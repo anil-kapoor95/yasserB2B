@@ -1,0 +1,49 @@
+/* ==========================================================================
+	#General
+========================================================================== */
+#pjWrapper * { font-family: 'Source Sans Pro', sans-serif; }
+#pjWrapper .fa { font-family: 'FontAwesome'; }
+#pjWrapper .glyphicon { font-family: 'Glyphicons Halflings'; }
+
+#pjWrapper { background-color: #222; }
+
+#pjWrapper .pjTbs-car-meta li span,
+#pjWrapper a { color: #595758; }
+
+#pjWrapper .btn-primary { background-color: #333; border-color: #222; color: #fff; }
+#pjWrapper .btn-primary:hover { background-color: #222; }
+
+#pjWrapper .btn-secondary,
+#pjWrapper .pjTbs-head { background-color: #595758; border-color: #0f0d0e; }
+
+#pjWrapper .btn-secondary:hover { background-color: #0f0d0e; }
+
+#pjWrapper .btn .glyphicon { color: #595758; }
+
+#pjWrapper .pjTbs-body { background-color: #444; border-color: #444;}
+
+#pjWrapper .pjTbs-box { background-color: #ddd; }
+
+#pjWrapper .pjTbs-car-meta li span { color: #222; }
+
+#pjWrapper .pjTbs-service-list,
+#pjWrapper .pjTbs-service-info,
+#pjWrapper .pjTbs-subtotal { color: #fff; }
+
+html[dir="rtl"] #pjWrapper .input-group-addon:first-child,
+#pjWrapper .pjTbs-head .btn-default,
+#pjWrapper .pjTbs-spinner-result,
+#pjWrapper .pjTbs-spinner .btn:hover, 
+#pjWrapper .pjTbs-spinner .btn,
+#pjWrapper .input-group-addon,
+#pjWrapper .pjTbs-subtotal p,
+#pjWrapper .pjTbs-extras li + li,
+#pjWrapper .pjTbs-box,
+#pjWrapper .form-control,
+#pjWrapper .pjTbs-body { border-color: #333; }
+
+#pjWrapper .bootstrap-datetimepicker-widget table td span.active,
+#pjWrapper .bootstrap-datetimepicker-widget table td.active, 
+#pjWrapper .bootstrap-datetimepicker-widget table td.active:hover { background-color: #222; }  
+
+#pjWrapper .bootstrap-datetimepicker-widget table td.today:before { border-color: rgba(0, 0, 0, 0.2) transparent #222; }

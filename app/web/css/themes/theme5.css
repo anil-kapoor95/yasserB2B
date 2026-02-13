@@ -1,0 +1,35 @@
+/* ==========================================================================
+	#General
+========================================================================== */
+#pjWrapper * { font-family: 'Droid Serif', serif; }
+#pjWrapper .fa { font-family: 'FontAwesome'; }
+#pjWrapper .glyphicon { font-family: 'Glyphicons Halflings'; }
+
+#pjWrapper .pjTbs-car-meta li span,
+#pjWrapper .input-group-addon,
+#pjWrapper .pjTbs-car-meta li span,
+#pjWrapper a { color: #5eb06e; }
+
+#pjWrapper a:hover { color: #529660; }
+
+#pjWrapper .btn-primary { background-color: #5eb06e; border-color: #529660; color: #fff;}
+#pjWrapper .btn-primary:hover { background-color: #529660; }
+
+#pjWrapper .btn-secondary,
+#pjWrapper .pjTbs-head { background-color: #9acf5b; border-color: #85b250; }
+
+#pjWrapper .btn-secondary:hover { background-color: #85b250; }
+
+#pjWrapper .btn .glyphicon { color: #5eb06e; }
+
+#pjWrapper .bootstrap-datetimepicker-widget table td span.active,
+#pjWrapper .bootstrap-datetimepicker-widget table td.active, 
+#pjWrapper .bootstrap-datetimepicker-widget table td.active:hover { background-color: #5eb06e; }
+
+#pjWrapper .bootstrap-datetimepicker-widget table td.today:before { border-color: rgba(0, 0, 0, 0.2) transparent #5eb06e; }
+
+#pjWrapper .btn,
+#pjWrapper .btn:hover { color: #fff; }
+
+#pjWrapper .pjTbs-head .btn,
+#pjWrapper .pjTbs-head .btn:hover { color: #333; }

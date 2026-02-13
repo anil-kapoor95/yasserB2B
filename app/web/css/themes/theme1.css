@@ -1,0 +1,76 @@
+/* ==========================================================================
+
+	#General
+
+========================================================================== */
+body #pjWrapper  { font-family: 'Plus Jakarta Sans', Sans-serif !important; }
+
+/*#pjWrapper .fa { font-family: 'Plus Jakarta Sans' !important; }*/
+
+/*#pjWrapper .glyphicon { font-family: 'Plus Jakarta Sans' !important; }*/
+
+
+#pjWrapper { border-radius: 15px; }
+
+#pjWrapper .pjtbs-car .pjTbs-car-actions input.btn, #pjWrapper .pjTbs-body input.btn, #pjWrapperTaxiBooking_theme1 input.btn { color: #000000; font-weight: 600; font-size: 15px; border-radius: 8px; }
+#pjWrapper a.btn-secondary { color: #ffffff !important; background: #000000 !important; border-radius: 8px;}
+
+#pjWrapper a,
+
+#pjWrapper .input-group-addon,
+
+#pjWrapper .btn .glyphicon { color: #ecbd1c; }
+
+
+
+#pjWrapper a:hover { color: #d5a80f; }
+
+
+
+#pjWrapper .btn-primary { background-color: #ecbd1c; border-color: #d5a80f; }
+
+#pjWrapper .btn-primary:hover { background-color: #d5a80f; }
+
+
+
+#pjWrapper .pjTbs-head { background-color: #303030; border-color: #303030; }
+
+
+
+#pjWrapper .btn-secondary { background-color: #767575; border-color: #6c6867; }
+
+#pjWrapper .btn-secondary:hover { background-color: #6c6867; }
+
+
+
+#pjWrapper .btn,
+
+#pjWrapper .btn:hover { color: #fff; }
+
+
+
+#pjWrapper .pjTbs-body { background-color: #fff; }
+
+
+
+#pjWrapper .pjTbs-head .form-control,
+
+#pjWrapper .btn-default { background-color: #404040; color: #fff; border-color: #585656; }
+
+
+
+#pjWrapper .pjTbs-head .dropdown-menu { background-color: #404040; }
+
+#pjWrapper .pjTbs-head .dropdown-menu li a:hover { background-color: #333; }
+
+
+
+#pjWrapper .bootstrap-datetimepicker-widget table td span.active,
+
+#pjWrapper .bootstrap-datetimepicker-widget table td.active, 
+
+#pjWrapper .bootstrap-datetimepicker-widget table td.active:hover { background-color: #ecbd1c; }  
+
+
+
+#pjWrapper .bootstrap-datetimepicker-widget table td.today:before { border-color: rgba(0, 0, 0, 0.2) transparent #ecbd1c; }
