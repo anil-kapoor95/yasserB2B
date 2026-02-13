@@ -42,9 +42,11 @@ class pjAdminBookings extends pjAdmin
 
             
             $this->set('date_format', pjUtil::toBootstrapDate($this->option_arr['o_date_format']));
-            
-            $this->appendCss('datepicker3.css', PJ_THIRD_PARTY_PATH . 'bootstrap_datepicker/');
-            $this->appendJs('bootstrap-datepicker.js', PJ_THIRD_PARTY_PATH . 'bootstrap_datepicker/');
+            // $this->appendCss('datepicker3.css', PJ_THIRD_PARTY_PATH . 'bootstrap_datepicker/');
+            // $this->appendJs('bootstrap-datepicker.js', PJ_THIRD_PARTY_PATH . 'bootstrap_datepicker/');
+            $this->appendJs('moment-with-locales.min.js', PJ_THIRD_PARTY_PATH . 'moment/');
+            $this->appendCss('build/css/bootstrap-datetimepicker.min.css', PJ_THIRD_PARTY_PATH . 'bootstrap_datetimepicker/');
+            $this->appendJs('build/js/bootstrap-datetimepicker.min.js', PJ_THIRD_PARTY_PATH . 'bootstrap_datetimepicker/');
             $this->appendJs('jquery.datagrid.js', PJ_FRAMEWORK_LIBS_PATH . 'pj/js/');
             $this->appendJs("pjAdminBookings.js?v={$version}");
             
@@ -280,6 +282,18 @@ class pjAdminBookings extends pjAdmin
                {
                    $pjBookingModel->where("(DATE_FORMAT(t1.booking_date, '%Y-%m-%d')='".$this->_get->toString('date')."')");
                }
+               if (!$this->_get->isEmpty('start_date'))
+                {
+                    $start_date = $this->_get->toString('start_date');
+                    $pjBookingModel->where("DATE(t1.booking_date) >=", $start_date);
+                }
+
+                // TO DATE
+                if (!$this->_get->isEmpty('end_date'))
+                {
+                    $end_date = $this->_get->toString('end_date');
+                    $pjBookingModel->where("DATE(t1.booking_date) <=", $end_date);
+                }
                $column = 'created';
                $direction = 'DESC';
                if ($this->_get->check('column') && in_array(strtoupper($this->_get->toString('direction')), array('ASC', 'DESC')))

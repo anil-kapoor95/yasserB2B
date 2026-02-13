@@ -133,6 +133,49 @@ var jQuery_1_8_2 = jQuery_1_8_2 || $.noConflict();
 		    calcPrice();
 		}
 
+		if ($('#datePickerOptions').length)
+			{
+				var currentDate = new Date(),
+					$optionsEle = $('#datePickerOptions');
+				moment.updateLocale('en', {
+					week: { dow: parseInt($optionsEle.data('wstart'), 10) },
+					months: $optionsEle.data('months').split("_"),
+					weekdaysMin: $optionsEle.data('days').split("_")
+				});
+				var datetimeOptions = {
+					format: $optionsEle.data('format'),
+					locale: moment.locale('en'),
+					allowInputToggle: true,
+					ignoreReadonly: true,
+					useCurrent: false
+				};
+
+				var dateOnlyOptions = {
+					format: 'YYYY-MM-DD',
+					locale: moment.locale('en'),
+					allowInputToggle: true,
+					ignoreReadonly: true,
+					useCurrent: false
+				};
+				$('.datetimepick_from').datetimepicker(dateOnlyOptions);
+				$('.datetimepick_to').datetimepicker(dateOnlyOptions);
+
+				$('#from_date').on('click', function () {
+					$(this).data("DateTimePicker").show();
+				});
+
+				$('#to_date').on('click', function () {
+					$(this).data("DateTimePicker").show();
+				});
+
+				$("#from_date").on("dp.change", function (e) {
+					$('#to_date').data("DateTimePicker").minDate(e.date);
+				});
+
+				$("#to_date").on("dp.change", function (e) {
+					$('#from_date').data("DateTimePicker").maxDate(e.date);
+				});
+			}
 
 		if ($frmCreateBooking.length > 0 || $frmUpdateBooking.length > 0) 
 
@@ -610,10 +653,6 @@ var jQuery_1_8_2 = jQuery_1_8_2 || $.noConflict();
 
 			});
 
-			
-
-			
-
 			if ($('#dateTimePickerOptions').length) {
 
 				
@@ -948,12 +987,17 @@ var jQuery_1_8_2 = jQuery_1_8_2 || $.noConflict();
 				content = $grid.datagrid("option", "content"),
 
 				cache = $grid.datagrid("option", "cache");
+				var startDate = $this.find("input[name='from_date']").val();
+				var endDate   = $this.find("input[name='to_date']").val();
 
 			$.extend(cache, {
 
 				q: $this.find("input[name='q']").val(),
-
-				status: $this.find("select[name='status']").val()
+				status: $this.find("select[name='status']").val(),
+				from_date: $this.find("select[name='from_date']").val(),
+				to_date: $this.find("select[name='to_date']").val(),
+				start_date: startDate,
+       			end_date: endDate
 
 			});
 

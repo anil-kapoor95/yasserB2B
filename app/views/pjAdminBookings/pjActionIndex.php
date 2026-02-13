@@ -80,7 +80,7 @@ $get = $controller->_get->raw();
 				<div class="ibox-content cardealer-no-border">
 					<form action="" method="get" class="form-horizontal frm-filter">
     					<div class="row m-b-md">
-    						<div class="col-sm-3">
+    						<div class="col-lg-2 col-md-2 col-sm-12 m-b-sm">
     						<?php 
                             if ($tpl['has_create'])
                             {
@@ -90,21 +90,38 @@ $get = $controller->_get->raw();
                             }
                             ?>
     						</div>
-    						<div class="col-md-3 col-sm-5">
+    						<div class="col-md-2 col-sm-5">
     							
 								<div class="input-group">
 									<input type="text" name="q" placeholder="<?php __('btnSearch', false, true); ?>" class="form-control">
-									<div class="input-group-btn">
-										<button class="btn btn-primary" type="submit">
-											<i class="fa fa-search"></i>
-										</button>
-									</div>
+									
 								</div>
-    							
                             </div>
-                            <div class="col-lg-2 col-md-3 col-sm-4">&nbsp;</div><!-- /.col-md-2 -->
-    						<div class="col-lg-2 col-lg-offset-2 col-md-12 text-right">
-    							<select class="form-control pj-filter-status" name="status">
+							
+							<div class="col-md-2 col-sm-5">
+								<div class="input-group">
+									<input type="text" name="from_date" id="from_date" class="form-control datetimepick_from required" data-wt="open" readonly="readonly"placeholder="From" data-msg-required="<?php __('tr_field_required'); ?>">
+									<span class="input-group-addon"><i class="fa fa-calendar"></i></span> 
+								</div>
+							</div><!-- /.col-md-2 -->
+							
+							<div class="col-md-2 col-sm-5">
+								<div class="input-group">
+									<input type="text" name="to_date" id="to_date" class="form-control datetimepick_to required" data-wt="open" readonly="readonly"  placeholder="To" data-msg-required="<?php __('tr_field_required');?>">
+									<span class="input-group-addon"><i class="fa fa-calendar"></i></span> 
+								</div>
+							</div><!-- /.col-md-2 -->
+
+							<div class="col-md-1 col-sm-5">
+								<div class="input-group-btn">
+									<button class="btn btn-primary" type="submit">
+										<i class="fa fa-search"></i>
+									</button>
+								</div>
+							</div>
+
+    						<div class="col-lg-2 col-md-2 col-sm-6 m-b-sm">
+    							<select class="form-control pj-filter-status text-center" name="status">
     								<option value="">-- <?php __('lblAll');?> --</option>
     								<?php foreach ($bs as $k => $v) { ?>
     									<option value="<?php echo $k;?>"><?php echo pjSanitize::html($v);?></option>
@@ -134,6 +151,14 @@ if ($controller->_get->toInt('client_id') > 0)
 if ($controller->_get->has('date'))
 {
     ?>pjGrid.queryString += "&date=<?php echo $controller->_get->toString('date'); ?>";<?php
+}
+if ($controller->_get->has('date_from') && $controller->_get->toString('date_from') != '')
+{
+    ?>pjGrid.queryString += "&date_from=<?php echo $controller->_get->toString('date_from'); ?>";<?php
+}
+if ($controller->_get->has('date_to') && $controller->_get->toString('date_to') != '')
+{
+    ?>pjGrid.queryString += "&date_to=<?php echo $controller->_get->toString('date_to'); ?>";<?php
 }
 ?>
 var myLabel = myLabel || {};
