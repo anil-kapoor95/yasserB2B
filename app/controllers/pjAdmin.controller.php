@@ -208,93 +208,277 @@ class pjAdmin extends pjAppController
 	}
 	
 	public function pjActionIndex()
-        {
-            $this->checkLogin();
-            if (!pjAuth::factory()->hasAccess())
-            {
-                $this->sendForbidden();
-                return;
-            }
+	{
+		$this->checkLogin();
 
-            $pjBookingModel = pjBookingModel::factory();
+		if (!pjAuth::factory()->hasAccess()) {
+			$this->sendForbidden();
+			return;
+		}
 
-            $authUser = $_SESSION[$this->defaultUser]; 
+		$pjBookingModel = pjBookingModel::factory();
+		$pjAuthUserModel = pjAuthUserModel::factory();
 
-            $isDriver = ($authUser['role_id'] == 4); 
+		$authUser = $_SESSION[$this->defaultUser];
+		$isDriver = ($authUser['role_id'] == 4);
+		$driverId = null;
 
-            $driverId = null;
-            if ($isDriver) {
-                $driver = pjDriverModel::factory()
-                    ->where('auth_id', $authUser['id'])
-                    ->findAll()
-                    ->getData();
-                if (!empty($driver)) {
-                    $driverId = $driver[0]['id'];
-                }
-            }
+		/* ================= DRIVER FILTER ================= */
+		if ($isDriver) {
+			$driver = pjDriverModel::factory()
+				->where('auth_id', $authUser['id'])
+				->findAll()
+				->getData();
+			if (!empty($driver)) {
+				$driverId = $driver[0]['id'];
+			}
+		}
 
-            // ----- enquiries today -----
-            $pjBookingModel->reset()
-                ->where("DATE_FORMAT(t1.created, '%Y-%m-%d')='".date('Y-m-d')."'");
-            if ($driverId) {
-                $pjBookingModel->where("t1.driver_id", $driverId);
-            }
-            $enquiries_received_today = $pjBookingModel->findCount()->getData();
+		/* ================= DATE FILTER ================= */
+		$from_input = isset($_REQUEST['from_date']) ? $_REQUEST['from_date'] : null;
+		$to_input   = isset($_REQUEST['to_date']) ? $_REQUEST['to_date'] : null;
 
-            // ----- reservations today -----
-            $pjBookingModel->reset()
-                ->where("DATE_FORMAT(t1.booking_date, '%Y-%m-%d')='".date('Y-m-d')."'")
-                ->where("t1.status <>", 'cancelled');
-            if ($driverId) {
-                $pjBookingModel->where("t1.driver_id", $driverId);
-            }
-            $reservations_today = $pjBookingModel->findCount()->getData();
+		if (empty($from_input) || empty($to_input)) {
+			$dateFrom = date('Y-m-01 00:00:00');
+			$dateTo   = date('Y-m-t 23:59:59');
+			$filter_from = date('Y-m-01');
+			$filter_to   = date('Y-m-t');
+		} else {
+			$dateFrom = date('Y-m-d 00:00:00', strtotime($from_input));
+			$dateTo   = date('Y-m-d 23:59:59', strtotime($to_input));
+			$filter_from = $from_input;
+			$filter_to   = $to_input;
+		}
 
-            // ----- total reservations -----
-            $pjBookingModel->reset();
-            if ($driverId) {
-                $pjBookingModel->where("t1.driver_id", $driverId);
-            }
-            $total_reservations = $pjBookingModel->findCount()->getData();
+		/* ================= OTHER FILTERS ================= */
+		$booking_status = isset($_REQUEST['booking_status']) ? $_REQUEST['booking_status'] : null;
+		$payment_status = isset($_REQUEST['payment_status']) ? $_REQUEST['payment_status'] : null;
 
-            // ----- latest enquiries -----
-            $pjBookingModel->reset()
-                ->select("t1.*, t2.content as fleet, t4.name, t4.email, t4.phone")
-                ->join('pjMultiLang', "t2.model='pjFleet' AND t2.foreign_id=t1.fleet_id AND t2.field='fleet' AND t2.locale='".$this->getLocaleId()."'", 'left outer')
-                ->join('pjClient', "t3.id=t1.client_id", 'left outer')
-                ->join('pjAuthUser', "t4.id=t3.foreign_id", 'left outer')
-                ->orderBy("t1.created DESC")
-                ->limit(4);
-            if ($driverId) {
-                $pjBookingModel->where("t1.driver_id", $driverId);
-            }
-            $latest_enquiries = $pjBookingModel->findAll()->getData();
+		/* ================= COMMON FILTER FUNCTION ================= */
+		$applyBookingFilters = function($model) use ($driverId, $booking_status, $payment_status, $dateFrom, $dateTo) {
 
-            // ----- reservations today list -----
-            $pjBookingModel->reset()
-                ->select("t1.*, t2.content as fleet, t4.name, t4.email, t4.phone")
-                ->join('pjMultiLang', "t2.model='pjFleet' AND t2.foreign_id=t1.fleet_id AND t2.field='fleet' AND t2.locale='".$this->getLocaleId()."'", 'left outer')
-                ->join('pjClient', "t3.id=t1.client_id", 'left outer')
-                ->join('pjAuthUser', "t4.id=t3.foreign_id", 'left outer')
-                ->where("DATE_FORMAT(t1.booking_date, '%Y-%m-%d')='".date('Y-m-d')."'")
-                ->where("t1.status <>", 'cancelled')
-                ->orderBy("t1.booking_date ASC")
-                ->limit(4);
-            if ($driverId) {
-                $pjBookingModel->where("t1.driver_id", $driverId);
-            }
-            $reservations_today_arr = $pjBookingModel->findAll()->getData();
+			if ($driverId) {
+				$model->where("t1.driver_id", $driverId);
+			}
 
-            // ✅ pass data to view
-            $this->set('enquiries_received_today', $enquiries_received_today);
-            $this->set('reservations_today', $reservations_today);
-            $this->set('total_reservations', $total_reservations);
-            $this->set('latest_enquiries', $latest_enquiries);
-            $this->set('reservations_today_arr', $reservations_today_arr);
+			if (!empty($booking_status)) {
+				$model->where("t1.status", $booking_status);
+			}
 
-            $this->appendJs('index.global.js', PJ_THIRD_PARTY_PATH . 'fullcalendar/');
-			$this->appendJs('index.global.min.js', PJ_THIRD_PARTY_PATH . 'fullcalendar/');
-        }
+			if (!empty($payment_status)) {
+				$model->where("t1.payment_method", $payment_status);
+			}
+
+			$model->where("t1.created >=", $dateFrom)
+				->where("t1.created <=", $dateTo);
+
+			return $model;
+		};
+
+		/* ================= KPI CARDS ================= */
+		// Total Reservations
+		$total_reservations = $applyBookingFilters(
+			$pjBookingModel->reset()
+		)->findCount()->getData();
+
+		// Completed
+		$completed_bookings = $applyBookingFilters(
+			$pjBookingModel->reset()->where("t1.status", "completed")
+		)->findCount()->getData();
+
+		// Cancelled
+		$cancelled_bookings = $applyBookingFilters(
+			$pjBookingModel->reset()->where("t1.status", "cancelled")
+		)->findCount()->getData();
+
+		// Revenue
+		$revenue_row = $applyBookingFilters(
+			$pjBookingModel->reset()->select("ROUND(SUM(t1.total),0) as total_revenue")
+		)->findAll()->getData();
+
+		$total_revenue = $revenue_row[0]['total_revenue'] ?? 0;
+
+		/* ================= CUSTOMERS ================= */
+
+		$new_customers = $pjAuthUserModel
+			->reset()
+			->select("COUNT(t1.id) as cnt")
+			->where("t1.role_id", 3)
+			->where("t1.created >=", $dateFrom)
+			->where("t1.created <=", $dateTo)
+			->findAll()->getData();
+
+		$new_customers = $new_customers[0]['cnt'] ?? 0;
+
+		$total_customers = $pjAuthUserModel
+			->reset()
+			->select("COUNT(t1.id) as cnt")
+			->where("t1.role_id", 3)
+			->where("t1.created <=", $dateTo)
+			->findAll()->getData();
+
+		$total_customers = $total_customers[0]['cnt'] ?? 0;
+
+		/* ================= REVENUE TREND ================= */
+
+		$groupType = isset($_REQUEST['group']) ? $_REQUEST['group'] : 'daily';
+		$this->set('groupType', $groupType);
+
+		$trendModel = $applyBookingFilters(
+			$pjBookingModel->reset()->where("t1.status <>", "cancelled")
+		);
+
+		switch ($groupType) {
+			case 'weekly':
+				$trendModel->select('
+					YEARWEEK(t1.created,1) AS period,
+					CONCAT("Week ", WEEK(t1.created,1)) AS label,
+					SUM(t1.total) AS total,
+					STR_TO_DATE(CONCAT(YEAR(t1.created), WEEK(t1.created,1), " Monday"), "%X%V %W") AS week_start
+				', false)
+				->groupBy('YEARWEEK(t1.created,1)', false)
+				->orderBy('week_start ASC'); // <- ensures proper chronological order
+				break;
+
+			case 'monthly':
+				$trendModel->select('
+					DATE_FORMAT(t1.created, "%Y-%m") AS period,
+					DATE_FORMAT(t1.created, "%b %Y") AS label,
+					SUM(t1.total) AS total
+				', false)
+				->groupBy('DATE_FORMAT(t1.created, "%Y-%m")', false)
+				->orderBy('period ASC');
+				break;
+
+			default: // daily
+				$trendModel->select('
+					DATE(t1.created) AS period,
+					DATE_FORMAT(t1.created,"%d %b") AS label,
+					SUM(t1.total) AS total
+				', false)
+				->groupBy('DATE(t1.created)', false)
+				->orderBy('period ASC');
+		}
+
+		$revenue_trend = $trendModel->findAll()->getData();
+
+		/* ================= STATUS CHART ================= */
+
+		$status_chart = $applyBookingFilters(
+			$pjBookingModel->reset()
+				->select("t1.status, COUNT(*) as total")
+				->groupBy("t1.status")
+		)->findAll()->getData();
+
+		/* ================= PAYMENT CHART ================= */
+
+		$payment_chart = $applyBookingFilters(
+			$pjBookingModel->reset()
+				->select("t1.payment_method, COUNT(*) as total")
+				->groupBy("t1.payment_method")
+		)->findAll()->getData();
+
+		/* ================= BOOKINGS PER DAY ================= */
+
+		$bookings_per_day = $applyBookingFilters(
+			$pjBookingModel->reset()
+				->select("DATE(t1.booking_date) as date, COUNT(*) as total")
+				->groupBy("DATE(t1.booking_date)")
+				->orderBy("DATE(t1.booking_date) ASC")
+		)->findAll()->getData();
+
+		/* ================= BOOKING TREND ================= */
+
+		$bookingAnalysisType = isset($_REQUEST['analysis']) ? $_REQUEST['analysis'] : 'date';
+
+		$this->set('bookingAnalysisType', $bookingAnalysisType);
+
+		$bookingAnalysisModel = $applyBookingFilters(
+			$pjBookingModel->reset()
+		);
+		switch ($bookingAnalysisType) {
+
+			case 'hour':
+
+				$bookingAnalysisModel->select('
+					HOUR(t1.booking_date) AS period,
+					CONCAT(LPAD(HOUR(t1.booking_date),2,"0"), ":00") AS label,
+					COUNT(*) AS total
+				', false)
+				->groupBy('HOUR(t1.booking_date)', false)
+				->orderBy('period ASC');
+
+				break;
+
+			case 'date':
+			default:
+
+				$bookingAnalysisModel->select('
+					DATE(t1.booking_date) AS period,
+					DATE_FORMAT(t1.booking_date,"%d %b %Y") AS label,
+					COUNT(*) AS total
+				', false)
+				->groupBy('DATE(t1.booking_date)', false)
+				->orderBy('period ASC');
+
+				break;
+		}
+		$booking_analysis = $bookingAnalysisModel->findAll()->getData();
+
+		// ================= REVENUE BY VEHICLE =================
+		$fleet_names = [
+			4  => 'Mercedes Benz Vito (Comfort)',
+			5  => 'Mercedes Benz V-Class',
+			10 => 'Mercedes Benz E-Class',
+			11 => 'Mercedes Benz Vito (Comfort) Large Groups',
+		];
+
+		$revenue_by_fleet = $applyBookingFilters(
+			$pjBookingModel->reset()
+				->select("t1.fleet_id, SUM(t1.total) AS total_revenue")
+				->where("t1.status <>", "cancelled") // Exclude cancelled
+				->groupBy("t1.fleet_id")
+				->orderBy("total_revenue DESC")
+		)->findAll()->getData();
+
+		$chart_labels = [];
+		$chart_data = [];
+		foreach ($revenue_by_fleet as $row) {
+			$chart_labels[] = $fleet_names[$row['fleet_id']] ?? "Fleet #" . $row['fleet_id'];
+			$chart_data[] = (float) $row['total_revenue'];
+		}
+
+
+		/* ================= PASS DATA TO VIEW ================= */
+
+		$this->set('filter_from', $filter_from);
+		$this->set('filter_to', $filter_to);
+		$this->set('total_reservations', $total_reservations);
+		$this->set('completed_bookings', $completed_bookings);
+		$this->set('cancelled_bookings', $cancelled_bookings);
+		$this->set('total_revenue', $total_revenue);
+		$this->set('new_customers', $new_customers);
+		$this->set('total_customers', $total_customers);
+		$this->set('revenue_trend', $revenue_trend);
+		$this->set('status_chart', $status_chart);
+		$this->set('payment_chart', $payment_chart);
+		$this->set('bookings_per_day', $bookings_per_day);
+		$this->set('booking_analysis', $booking_analysis);
+		$this->set('revenue_by_vehicle', [
+					'labels' => $chart_labels,
+					'data'   => $chart_data
+				]);
+		// -------------------------------
+		// 2️⃣1️⃣ Append JS/CSS files for dashboard
+		// -------------------------------
+		$this->appendJs('index.global.js', PJ_THIRD_PARTY_PATH . 'fullcalendar/');
+		$this->appendJs('index.global.min.js', PJ_THIRD_PARTY_PATH . 'fullcalendar/');
+		$this->appendJs('moment-with-locales.min.js', PJ_THIRD_PARTY_PATH . 'moment/');
+		$this->appendCss('build/css/bootstrap-datetimepicker.min.css', PJ_THIRD_PARTY_PATH . 'bootstrap_datetimepicker/');
+		$this->appendJs('build/js/bootstrap-datetimepicker.min.js', PJ_THIRD_PARTY_PATH . 'bootstrap_datetimepicker/');
+		$this->appendJs('jquery.datagrid.js', PJ_FRAMEWORK_LIBS_PATH . 'pj/js/');
+		$this->appendJs("pjAdmin.js?v={$version}");
+	}
 
      public function pjActionCalendar()
 		{
