@@ -237,6 +237,12 @@ class pjAdmin extends pjAppController
 		/* ================= DATE FILTER ================= */
 		$from_input = isset($_REQUEST['from_date']) ? $_REQUEST['from_date'] : null;
 		$to_input   = isset($_REQUEST['to_date']) ? $_REQUEST['to_date'] : null;
+		/* ================= OTHER FILTERS ================= */
+		$booking_status = isset($_REQUEST['booking_status']) ? $_REQUEST['booking_status'] : null;
+		$payment_status = isset($_REQUEST['payment_status']) ? $_REQUEST['payment_status'] : null;
+		$time_type = isset($_REQUEST['time_type']) ? $_REQUEST['time_type'] : null;
+		$city   = isset($_REQUEST['city']) ? $_REQUEST['city'] : null;
+		$fleet_id  = isset($_REQUEST['fleet_id']) ? $_REQUEST['fleet_id'] : null;
 
 		if (empty($from_input) || empty($to_input)) {
 			$dateFrom = date('Y-m-01 00:00:00');
@@ -250,13 +256,10 @@ class pjAdmin extends pjAppController
 			$filter_to   = $to_input;
 		}
 
-		/* ================= OTHER FILTERS ================= */
-		$booking_status = isset($_REQUEST['booking_status']) ? $_REQUEST['booking_status'] : null;
-		$payment_status = isset($_REQUEST['payment_status']) ? $_REQUEST['payment_status'] : null;
-
 		/* ================= COMMON FILTER FUNCTION ================= */
-		$applyBookingFilters = function($model) use ($driverId, $booking_status, $payment_status, $dateFrom, $dateTo) {
-
+		$applyBookingFilters = function($model) use (
+			$driverId, $booking_status, $payment_status, $dateFrom, $dateTo, $time_type, $city, $fleet_id
+		) {
 			if ($driverId) {
 				$model->where("t1.driver_id", $driverId);
 			}
@@ -269,13 +272,31 @@ class pjAdmin extends pjAppController
 				$model->where("t1.payment_method", $payment_status);
 			}
 
+			if (!empty($fleet_id)) {
+				$model->where("t1.fleet_id", $fleet_id);
+			}
+
+			  // CITY filter using escaped value
+			if (!empty($city)) {
+				$cityEscaped = pjSanitize::clean($city);
+				$model->where("(t1.pickup_address LIKE '%$cityEscaped%' OR t1.return_address LIKE '%$cityEscaped%')");
+			}
+
+			if ($time_type == "past") {
+				$model->where("t1.booking_date <", date('Y-m-d H:i:s'));
+			} elseif ($time_type == "future") {
+				$model->where("t1.booking_date >", date('Y-m-d H:i:s'));
+			} elseif ($time_type == "present") {
+				$model->where("DATE(t1.booking_date)", date('Y-m-d'));
+			}
+
 			$model->where("t1.created >=", $dateFrom)
 				->where("t1.created <=", $dateTo);
 
 			return $model;
 		};
 
-		/* ================= KPI CARDS ================= */
+		/* ================= CARDS ================= */
 		// Total Reservations
 		$total_reservations = $applyBookingFilters(
 			$pjBookingModel->reset()
@@ -324,9 +345,17 @@ class pjAdmin extends pjAppController
 		$groupType = isset($_REQUEST['group']) ? $_REQUEST['group'] : 'daily';
 		$this->set('groupType', $groupType);
 
-		$trendModel = $applyBookingFilters(
-			$pjBookingModel->reset()->where("t1.status <>", "cancelled")
-		);
+		// $trendModel = $applyBookingFilters(
+		// 	$pjBookingModel->reset()->where("t1.status <>", "cancelled")
+		// );
+		if (empty($booking_status)) {
+			$trendModel = $pjBookingModel->reset()->where("t1.status <>", "cancelled");
+		} else {
+			$trendModel = $pjBookingModel->reset();
+		}
+
+		// Apply all filters including status filter
+		$trendModel = $applyBookingFilters($trendModel);
 
 		switch ($groupType) {
 			case 'weekly':
@@ -365,26 +394,31 @@ class pjAdmin extends pjAppController
 		/* ================= STATUS CHART ================= */
 
 		$status_chart = $applyBookingFilters(
-			$pjBookingModel->reset()
-				->select("t1.status, COUNT(*) as total")
-				->groupBy("t1.status")
+		$pjBookingModel->reset()
+		->select("t1.status, COUNT(*) as total")
+		->groupBy("t1.status")
 		)->findAll()->getData();
 
 		/* ================= PAYMENT CHART ================= */
 
+		// $payment_chart = $applyBookingFilters(
+		// 	$pjBookingModel->reset()
+		// 	->select("t1.payment_method, COUNT(*) as total")
+		// 	->groupBy("t1.payment_method")
+		// )->findAll()->getData();
 		$payment_chart = $applyBookingFilters(
 			$pjBookingModel->reset()
-				->select("t1.payment_method, COUNT(*) as total")
-				->groupBy("t1.payment_method")
+			->select("t1.payment_method, COUNT(*) as total_count, SUM(t1.total) as total_amount")
+			->groupBy("t1.payment_method")
 		)->findAll()->getData();
 
 		/* ================= BOOKINGS PER DAY ================= */
 
 		$bookings_per_day = $applyBookingFilters(
 			$pjBookingModel->reset()
-				->select("DATE(t1.booking_date) as date, COUNT(*) as total")
-				->groupBy("DATE(t1.booking_date)")
-				->orderBy("DATE(t1.booking_date) ASC")
+			->select("DATE(t1.booking_date) as date, COUNT(*) as total")
+			->groupBy("DATE(t1.booking_date)")
+			->orderBy("DATE(t1.booking_date) ASC")
 		)->findAll()->getData();
 
 		/* ================= BOOKING TREND ================= */
@@ -426,17 +460,31 @@ class pjAdmin extends pjAppController
 		$booking_analysis = $bookingAnalysisModel->findAll()->getData();
 
 		// ================= REVENUE BY VEHICLE =================
-		$fleet_names = [
-			4  => 'Mercedes Benz Vito (Comfort)',
-			5  => 'Mercedes Benz V-Class',
-			10 => 'Mercedes Benz E-Class',
-			11 => 'Mercedes Benz Vito (Comfort) Large Groups',
-		];
+		// $revenue_by_fleet = $applyBookingFilters(
+		// 	$pjBookingModel->reset()
+		// 		->join('pjFleet', 't2.id = t1.fleet_id', 'left')
+		// 		->join('pjMultiLang', "t3.model='pjFleet' AND t3.foreign_id=t2.id AND t3.field='fleet' AND t3.locale='".$this->getLocaleId()."'", 'left')
+		// 		->select("t1.fleet_id, t3.content AS fleet_name, SUM(t1.total) AS total_revenue")
+		// 		->where("t1.status <>", "cancelled")
+		// 		->groupBy("t1.fleet_id")
+		// 		->orderBy("total_revenue DESC")
+		// )->findAll()->getData();
+
+		if (empty($booking_status)) {
+			// No status filter set: exclude cancelled
+			$fleetModel = $pjBookingModel->reset()
+				->join('pjFleet', 't2.id = t1.fleet_id', 'left')
+				->join('pjMultiLang', "t3.model='pjFleet' AND t3.foreign_id=t2.id AND t3.field='fleet' AND t3.locale='".$this->getLocaleId()."'", 'left')
+				->where("t1.status <>", "cancelled");
+		} else {
+			// Status filter set: include all statuses (including cancelled)
+			$fleetModel = $pjBookingModel->reset()
+				->join('pjFleet', 't2.id = t1.fleet_id', 'left')
+				->join('pjMultiLang', "t3.model='pjFleet' AND t3.foreign_id=t2.id AND t3.field='fleet' AND t3.locale='".$this->getLocaleId()."'", 'left');
+		}
 
 		$revenue_by_fleet = $applyBookingFilters(
-			$pjBookingModel->reset()
-				->select("t1.fleet_id, SUM(t1.total) AS total_revenue")
-				->where("t1.status <>", "cancelled") // Exclude cancelled
+			$fleetModel->select("t1.fleet_id, t3.content AS fleet_name, SUM(t1.total) AS total_revenue")
 				->groupBy("t1.fleet_id")
 				->orderBy("total_revenue DESC")
 		)->findAll()->getData();
@@ -444,12 +492,48 @@ class pjAdmin extends pjAppController
 		$chart_labels = [];
 		$chart_data = [];
 		foreach ($revenue_by_fleet as $row) {
-			$chart_labels[] = $fleet_names[$row['fleet_id']] ?? "Fleet #" . $row['fleet_id'];
+			// Take the fleet name or fallback
+			$label = $row['fleet_name'] ?: "Fleet #" . $row['fleet_id'];
+
+			// Remove everything after ' -- '
+			if (strpos($label, '--') !== false) {
+				$label = trim(explode('--', $label)[0]);
+			}
+
+			// Shorten the label if it's still long (optional: max 20 chars)
+			if (strlen($label) > 20) {
+				$label = substr($label, 0, 20) . '...';
+			}
+
+			$chart_labels[] = $label;
 			$chart_data[] = (float) $row['total_revenue'];
 		}
 
 
 		/* ================= PASS DATA TO VIEW ================= */
+		$pjFleetModel = pjFleetModel::factory();
+
+		$fleet_arr = $pjFleetModel
+		->join('pjMultiLang', "t2.model='pjFleet' AND t2.foreign_id=t1.id AND t2.field='fleet' AND t2.locale='".$this->getLocaleId()."'", 'left outer')
+		->select("t1.id, t2.content as fleet")
+		->where('t1.status', 'T')
+		->findAll()->getData();
+		$this->set('fleets', $fleet_arr);
+
+		$column = 'name';
+		$direction = 'ASC';
+		
+
+		$pjCityModel = pjCityModel::factory();
+		$city_array = $pjCityModel
+		->join('pjMultiLang', "t2.foreign_id = t1.id AND t2.model = 'pjCity' AND t2.locale = '".$this->getLocaleId()."' AND t2.field = 'name'", 'left')
+		->select('t1.id, t2.content AS name')
+		->orderBy("$column $direction")
+		->findAll()
+		->getData();
+		$this->set('cities', $city_array);
+
+		// echo'<pre>';print_r($payment_chart);die;
 
 		$this->set('filter_from', $filter_from);
 		$this->set('filter_to', $filter_to);

@@ -11,6 +11,7 @@ ksort($months);
 $short_days = __("short_days", true);
 $bs = __("booking_statuses", true);
 $ps = __("payment_statuses", true);
+$tt = __("time_type", true);
 $get = $controller->_get->raw();
 $set = isset($get["group"]) && !empty($get["group"]) ? $get["group"] : "daily";
 $auth = pjAuth::factory();
@@ -400,27 +401,26 @@ $roleId = $auth->getRoleId();
 		data-days="<?php echo implode("_", $short_days); ?>">
 	</div>
 
-	<form method="get" action="" class="form-horizontal frm-filter">
+	<form method="get" action="" class="form-horizontal frm-filter" style="display: flex; flex-wrap: nowrap; gap: 0;margin-bottom: 20px;margin-top: 20px;">
 		<input type="hidden" name="group" value="<?= htmlspecialchars($set) ?>">
 		<input type="hidden" name="analysis" value="<?= isset($get["analysis"])
 		? htmlspecialchars($get["analysis"])
 		: "date" ?>">
-		<div class="row m-b-lg m-t-lg">
-			<div class="col-lg-2">
+			<div style="flex: 1; margin: 0;">
 				<input type="text" name="from_date" id="from_date" class="form-control datetimepick_from" placeholder="From" value="<?php echo isset(
 					$get["from_date"]
 				)
 					? htmlspecialchars($get["from_date"])
 					: $tpl["filter_from"]; ?>"  readonly>
 			</div>
-			<div class="col-lg-2">
+			<div style="flex: 1; margin: 0;">
 				<input type="text" name="to_date" id="to_date" class="form-control datetimepick_to" placeholder="To" value="<?php echo isset(
 					$get["to_date"]
 				)
 					? htmlspecialchars($get["to_date"])
 					: $tpl["filter_to"]; ?>" readonly>
 			</div>
-			<div class="col-lg-2">
+			<div style="flex: 1; margin: 0;">
 				<select name="booking_status" class="form-control">
 					<option value="">-- <?php __("lblAllStatus"); ?> --</option>
 					<?php foreach ($bs as $k => $v) { ?>
@@ -429,7 +429,7 @@ $roleId = $auth->getRoleId();
 					<?php } ?>
 				</select>
 			</div>
-			<div class="col-lg-2">
+			<div style="flex: 1; margin: 0;">
 				<select name="payment_status" class="form-control">
 					<option value="">-- <?php __("lblALlPayments"); ?> --</option>
 					<?php foreach ($ps as $k => $v) { ?>
@@ -438,10 +438,44 @@ $roleId = $auth->getRoleId();
 					<?php } ?>
 				</select>
 			</div>
+			<div style="flex: 1; margin: 0;">
+				<select name="time_type" class="form-control">
+					<option value="">-- <?php __("lblTimeType"); ?> --</option>
+					<?php foreach ($tt as $k => $v) { ?>
+					<option value="<?php echo $k; ?>" <?php echo isset($get["time_type"]) && $get["time_type"] === $k ? "selected"    : ""; ?>>
+					<?php echo pjSanitize::html($v); ?>
+					<?php } ?>
+				</select>
+			</div>
+
+			<div style="flex: 1; margin: 0;">
+				<select name="city" class="form-control">
+					<option value="">-- City --</option>
+					<?php foreach($tpl['cities'] as $city){ ?>
+							<option value="<?= pjSanitize::html($city['name']) ?>"
+							<?= isset($get['city']) && $get['city']==$city['name'] ? 'selected':'' ?>>
+							<?= pjSanitize::html($city['name']) ?>
+						</option>
+					<?php } ?>
+				</select>
+			</div>
+
+			<div style="flex: 1; margin: 0;">
+				<select name="fleet_id" class="form-control">
+					<option value="">Vehicle Type</option>
+
+					<?php foreach ($tpl['fleets'] as $fleet): ?>
+						<option value="<?php echo $fleet['id']; ?>"
+							<?php echo (isset($get['fleet_id']) && $get['fleet_id'] == $fleet['id']) ? 'selected' : ''; ?>>
+							<?php echo pjSanitize::html($fleet['fleet']); ?>
+						</option>
+					<?php endforeach; ?>
+
+				</select>
+			</div>
 			<div class="col-md-1">
 				<button type="submit" class="btn btn-primary"><i class="fa fa-search"></i></button>
 			</div>
-		</div>
 	</form>
 
 	<div id="dashboardContent">
@@ -506,13 +540,13 @@ $roleId = $auth->getRoleId();
 						<div class="btn-group btn-group-sm" id="revenueTabs">
 							<button class="btn btn-white <?= $set == "daily"
 								? "active"
-								: "" ?>" data-type="daily"><h4><?php __("dash_daily"); ?></h4></button>
+								: "" ?>" data-type="daily"><?php __("dash_daily"); ?></button>
 							<button class="btn btn-white <?= $set == "weekly"
 								? "active"
-								: "" ?>" data-type="weekly"><h4><?php __("dash_weekly"); ?></h4></button>
+								: "" ?>" data-type="weekly"><?php __("dash_weekly"); ?></button>
 							<button class="btn btn-white <?= $set == "monthly"
 								? "active"
-								: "" ?>" data-type="monthly"><h4><?php __("dash_monthly"); ?></h4></button>
+								: "" ?>" data-type="monthly"><?php __("dash_monthly"); ?></button>
 						</div>
 					</div>
 					<div class="ibox-content">
@@ -542,10 +576,10 @@ $roleId = $auth->getRoleId();
 
 						<div class="btn-group btn-group-sm" id="bookingTabs">
 							<button class="btn btn-white <?= $analysis == "date" ? "active" : "" ?>" data-type="date">
-								<h4><?php __("lblDate"); ?></h4>
+								<?php __("lblDate"); ?>
 							</button>
 							<button class="btn btn-white <?= $analysis == "hour" ? "active": "" ?>" data-type="hour">
-								<h4><?php __("lblOptionHours"); ?></h4>
+								<?php __("lblOptionHours"); ?>
 							</button>
 						</div>
 					</div>
@@ -577,7 +611,7 @@ $roleId = $auth->getRoleId();
 			</div>
 		</div>
 		<div class="row m-t-lg">
-			<div class="col-lg-4">
+			<div class="col-lg-3">
 				<div class="ibox">
 					<div class="ibox-title"><h4><?php __("dash_revenue_vehicle_type"); ?></h4></div>
 					<div class="ibox-content">
@@ -588,106 +622,118 @@ $roleId = $auth->getRoleId();
 		</div>
 	</div> 
 	<!-- end dashboardContent -->
-			<!-- ================= STYLES ================= -->
-		<style>
-			/* ROW */
-			.kpi-row {
-				display: flex;
-				flex-wrap: wrap;
-				gap: 15px;
-			}
+	<!-- ================= STYLES ================= -->
+	<style>
+		/* ROW */
+		/* Make all charts same size */
+		.ibox-content{
+			height: 260px;
+			position: relative;
+		}
 
-			/* COLUMN */
+		.ibox-content canvas{
+			width: 100% !important;
+			height: 220px !important;
+		}
+		.kpi-row {
+			display: flex;
+			flex-wrap: wrap;
+			gap: 15px;
+		}
+
+		/* COLUMN */
+		.kpi-col {
+			flex: 1 1 200px; /* grow, shrink, base width */
+		}
+
+		/* CARD */
+		.kpi-card {
+			background: #ffffff;
+			border-radius: 12px;
+			box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+			padding: 20px;
+			transition: transform 0.2s, box-shadow 0.2s;
+		}
+
+		.kpi-card:hover {
+			transform: translateY(-3px);
+			box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+		}
+
+		/* ICON + TITLE */
+		.kpi-top {
+			display: flex;
+			align-items: center;
+			gap: 10px;
+			margin-bottom: 15px;
+		}
+
+		.kpi-top i {
+			font-size: 28px; /* bigger icon */
+			color: #9aa0a6;
+		}
+
+		/* KPI Colors */
+		.kpi-total-bookings i { color: #3498db; }
+		.kpi-total-revenue i { color: #2ecc71; }
+		.kpi-completed-bookings i { color: #1abc9c; }
+		.kpi-cancelled-bookings i { color: #e74c3c; }
+		.kpi-new-customers i { color: #e67e22; }
+		.kpi-total-customers i { color: #9b59b6; }
+		/* NUMBER */
+		.kpi-card h2 {
+			/* font-size: 32px; */
+			font-weight: 500;
+			margin: 0;
+			text-align:center
+		}
+		.kpi-card h4 {
+			/* font-size: 13px; */
+			font-weight: 600;
+			margin: 0;
+			color: #555;
+		}
+
+		/* CHANGE % (if used) */
+		.kpi-change {
+			font-size: 13px;
+			font-weight: 600;
+			text-align: center;
+		}
+
+		.kpi-change.up {
+			color: #1ab394;
+		}
+
+		.kpi-change.down {
+			color: #e74c3c;
+		}
+
+		/* RESPONSIVE */
+		@media (max-width: 1200px) {
 			.kpi-col {
-				flex: 1 1 200px; /* grow, shrink, base width */
+				flex: 1 1 45%; /* two per row */
 			}
+		}
 
-			/* CARD */
-			.kpi-card {
-				background: #ffffff;
-				border-radius: 12px;
-				box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-				padding: 20px;
-				transition: transform 0.2s, box-shadow 0.2s;
+		@media (max-width: 768px) {
+			.kpi-col {
+				flex: 1 1 100%; /* one per row */
 			}
+		}
+	</style>
 
-			.kpi-card:hover {
-				transform: translateY(-3px);
-				box-shadow: 0 8px 20px rgba(0,0,0,0.15);
-			}
+	<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
 
-			/* ICON + TITLE */
-			.kpi-top {
-				display: flex;
-				align-items: center;
-				gap: 10px;
-				margin-bottom: 15px;
-			}
-
-			.kpi-top i {
-				font-size: 28px; /* bigger icon */
-				color: #9aa0a6;
-			}
-
-			/* KPI Colors */
-			.kpi-total-bookings i { color: #3498db; }
-			.kpi-total-revenue i { color: #2ecc71; }
-			.kpi-completed-bookings i { color: #1abc9c; }
-			.kpi-cancelled-bookings i { color: #e74c3c; }
-			.kpi-new-customers i { color: #e67e22; }
-			.kpi-total-customers i { color: #9b59b6; }
-			/* NUMBER */
-			.kpi-card h2 {
-				font-size: 32px;
-				font-weight: 700;
-				margin: 0;
-			}
-			.kpi-card h4 {
-				font-size: 16px;
-				font-weight: 600;
-				margin: 0;
-				color: #555;
-			}
-
-			/* CHANGE % (if used) */
-			.kpi-change {
-				font-size: 13px;
-				font-weight: 600;
-				text-align: center;
-			}
-
-			.kpi-change.up {
-				color: #1ab394;
-			}
-
-			.kpi-change.down {
-				color: #e74c3c;
-			}
-
-			/* RESPONSIVE */
-			@media (max-width: 1200px) {
-				.kpi-col {
-					flex: 1 1 45%; /* two per row */
-				}
-			}
-
-			@media (max-width: 768px) {
-				.kpi-col {
-					flex: 1 1 100%; /* one per row */
-				}
-			}
-		</style>
-
-		<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-		<script>
-		window.dashboardData = {
-			revenueTrend: <?= json_encode($tpl["revenue_trend"]) ?>,
-			statusChart: <?= json_encode($tpl["status_chart"]) ?>,
-			paymentChart: <?= json_encode($tpl["payment_chart"]) ?>,
-			bookingsPerDay: <?= json_encode($tpl["bookings_per_day"]) ?>,
-			peakBookingChart: <?= json_encode($tpl["booking_analysis"]) ?>,
-			revenueByVehicleChart: <?= json_encode($tpl["revenue_by_vehicle"]) ?>
-		};
-		</script>
+	<script>
+	window.dashboardData = {
+		revenueTrend: <?= json_encode($tpl["revenue_trend"]) ?>,
+		statusChart: <?= json_encode($tpl["status_chart"]) ?>,
+		paymentChart: <?= json_encode($tpl["payment_chart"]) ?>,
+		bookingsPerDay: <?= json_encode($tpl["bookings_per_day"]) ?>,
+		peakBookingChart: <?= json_encode($tpl["booking_analysis"]) ?>,
+		revenueByVehicleChart: <?= json_encode($tpl["revenue_by_vehicle"]) ?>
+	};
+	</script>
 <?php } ?>

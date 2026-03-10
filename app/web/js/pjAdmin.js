@@ -63,6 +63,10 @@ var jQuery_1_8_2 = jQuery_1_8_2 || $.noConflict();
                         tension: 0.4,
                         fill: true
                     }]
+                },
+                options:{
+                    responsive:true,
+                    maintainAspectRatio:false
                 }
             });
 
@@ -75,8 +79,12 @@ var jQuery_1_8_2 = jQuery_1_8_2 || $.noConflict();
                         label: "Bookings",
                         data: data.bookingsPerDay?.map(x => x.total) || [],
                         backgroundColor: "#569eac",
-                        maxBarThickness: 40
+                        maxBarThickness: 10
                     }]
+                },
+                options:{
+                    responsive:true,
+                    maintainAspectRatio:false
                 }
             });
 
@@ -90,25 +98,77 @@ var jQuery_1_8_2 = jQuery_1_8_2 || $.noConflict();
                         backgroundColor: ["#4C786B", "#9BD0C0", "#569EAC", "#ed5565"]
                     }]
                 },
-                options: {
-                    responsive: true,
-                    plugins: { legend: { position: "bottom", align: "start" } }
+                options:{
+                    responsive:true,
+                    maintainAspectRatio:false,
+                    plugins:{ legend:{ position:"bottom", align: "start" } }
                 }
             });
 
             /* Payment Chart */
+            // createChart("paymentChart", {
+            //     type: "doughnut",
+            //     data: {
+            //         labels: data.paymentChart?.map(x => `${x.payment_method} [${x.total}]`) || [],
+            //         datasets: [{
+            //             data: data.paymentChart?.map(x => x.total) || [],
+            //             backgroundColor: ["#4C786B", "#9BD0C0", "#569EAC", "#ed5565"]
+            //         }]
+            //     },
+            //     options:{
+            //         responsive:true,
+            //         maintainAspectRatio:false,
+            //         cutout:"50%",
+            //         plugins:{ legend:{ position:"bottom", align: "start" } }
+            //     }
+            // });
+
             createChart("paymentChart", {
                 type: "doughnut",
                 data: {
-                    labels: data.paymentChart?.map(x => `${x.payment_method} [${x.total}]`) || [],
+                    labels: data.paymentChart?.map(x => x.payment_method) || [],
                     datasets: [{
-                        data: data.paymentChart?.map(x => x.total) || [],
-                        backgroundColor: ["#4C786B", "#9BD0C0", "#569EAC", "#ed5565"]
+                        label: 'Bookings',
+                        data: data.paymentChart?.map(x => x.total_count) || [], // counts
+                        backgroundColor: ["#4C786B", "#9BD0C0", "#569EAC", "#ed5565"],
+                        amounts: data.paymentChart?.map(x => parseFloat(x.total_amount)) || [] // numeric amounts
                     }]
                 },
                 options: {
                     responsive: true,
-                    plugins: { legend: { position: "bottom", align: "start" } }
+                    maintainAspectRatio: false,
+                    cutout: "50%",
+                    plugins: {
+                        legend: {
+                            position: "bottom",
+                            align: "start",
+                            labels: {
+                                generateLabels: function(chart) {
+                                    const dataset = chart.data.datasets[0];
+                                    return chart.data.labels.map((label, i) => {
+                                        const amount = dataset.amounts[i];
+                                        return {
+                                            text: `${label} (${amount.toFixed(2)})`, // append amount here
+                                            fillStyle: dataset.backgroundColor[i],
+                                            strokeStyle: dataset.borderColor,
+                                            lineWidth: dataset.borderWidth,
+                                            hidden: !chart.isDatasetVisible(0),
+                                            index: i
+                                        };
+                                    });
+                                }
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const count = context.raw;
+                                    const amount = context.dataset.amounts[context.dataIndex];
+                                    return `${context.label}: Total = ${count}, Amount = ${amount.toFixed(2)}`;
+                                }
+                            }
+                        }
+                    }
                 }
             });
 
@@ -123,9 +183,11 @@ var jQuery_1_8_2 = jQuery_1_8_2 || $.noConflict();
                             backgroundColor: ["#4C786B", "#9BD0C0", "#569EAC", "#ed5565"]
                         }]
                     },
-                    options: {
-                        responsive: true,
-                        plugins: { legend: { position: "bottom", align: "start" } }
+                    options:{
+                        responsive:true,
+                        maintainAspectRatio:false,
+                        cutout:"50%",
+                        plugins:{ legend:{ position:"bottom", align: "start" } }
                     }
                 });
             }
@@ -138,8 +200,12 @@ var jQuery_1_8_2 = jQuery_1_8_2 || $.noConflict();
                         label: "Peak Bookings",
                         data: data.peakBookingChart?.map(x => x.total) || [],
                         backgroundColor: "#1ab394",
-                        maxBarThickness: 40
+                        maxBarThickness: 10
                     }]
+                },
+                options:{
+                    responsive:true,
+                    maintainAspectRatio:false
                 }
             });
         }
@@ -185,13 +251,19 @@ var jQuery_1_8_2 = jQuery_1_8_2 || $.noConflict();
             const endDate   = $form.find("input[name='to_date']").val();
             const bookingStatus = $form.find("select[name='booking_status']").val();
             const paymentStatus = $form.find("select[name='payment_status']").val();
+            const timeType = $form.find("select[name='time_type']").val();
+            const city = $form.find("select[name='city']").val();
+            const fleet = $form.find("select[name='fleet_id']").val();
 
             // Build query string
             const params = new URLSearchParams({
                 from_date: startDate,
                 to_date: endDate,
                 booking_status: bookingStatus,
-                payment_status: paymentStatus
+                payment_status: paymentStatus,
+                time_type: timeType,
+                city: city,
+                fleet_id: fleet,
             });
 
             // Redirect to URL with query params
