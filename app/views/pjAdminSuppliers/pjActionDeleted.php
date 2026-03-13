@@ -7,7 +7,6 @@ $short_days = __('short_days', true);
 $bs = __('booking_statuses', true);
 $get = $controller->_get->raw();
 ?>
-
 <style>
 	.bg-completed {
     background-color: #8E44AD !important; /* Purple (example) */
@@ -25,18 +24,21 @@ $get = $controller->_get->raw();
     float: left;
 }
 }
-
+/* Restore button (first delete button) */
+#griddeleted .pj-table-icon-delete:first-child:before {
+    content: "\f0e2"; /* FontAwesome undo */
+}
 </style>
 <div id="datePickerOptions" style="display:none;" data-wstart="<?php echo (int) $tpl['option_arr']['o_week_start']; ?>" data-format="<?php echo $tpl['date_format']; ?>" data-months="<?php echo implode("_", $months);?>" data-days="<?php echo implode("_", $short_days);?>"></div>
 <div class="row wrapper border-bottom white-bg page-heading">
 	<div class="col-sm-12 bookings-page-heading">
 		<div class="row">
-			<div class="col-sm-10 list-view">
+			<div class="col-sm-9 list-view">
 				<h2><?php __('infoReservationListTitle');?></h2>
 			</div>
-			<div class="col-sm-2 align-items-end cal-view" style="padding-top: 10px; text-align: right;">
-				<a href="<?php echo $_SERVER['PHP_SELF']; ?>?controller=pjAdminBookings&amp;action=pjActionDeleted" class="btn btn-primary">
-					<i class="fa fa-trash m-r-xs"></i></a> &nbsp;
+			
+			<div class="col-sm-3 align-items-end cal-view" style="padding-top: 10px; text-align: right;">
+				<a href="<?php echo $_SERVER['PHP_SELF']; ?>?controller=pjAdminBookings&action=pjActionIndex" class="btn btn-primary"><?php __('infoReservationListTitle');?></a> &nbsp;
 				<a href="<?php echo $_SERVER['PHP_SELF']; ?>?controller=pjAdmin&action=pjActionCalendar" class="btn btn-primary">Calendar View</a>
 			</div>
 			
@@ -54,7 +56,7 @@ $get = $controller->_get->raw();
 	{
 		switch (true)
 		{
-			case in_array($error_code, array('ABB01', 'ABB03')):
+			case in_array($error_code, array('ABB01', 'ABB03', 'ABB11')):
 				?>
 				<div class="alert alert-success">
 					<i class="fa fa-check m-r-xs"></i>
@@ -81,7 +83,7 @@ $get = $controller->_get->raw();
 				<div class="ibox-content cardealer-no-border">
 					<form action="" method="get" class="form-horizontal frm-filter">
     					<div class="row m-b-md">
-    						<div class="col-lg-2 col-md-2 col-sm-12 m-b-sm">
+    						<div class="col-sm-3">
     						<?php 
                             if ($tpl['has_create'])
                             {
@@ -91,38 +93,21 @@ $get = $controller->_get->raw();
                             }
                             ?>
     						</div>
-    						<div class="col-md-2 col-sm-5">
+    						<div class="col-md-3 col-sm-5">
     							
 								<div class="input-group">
 									<input type="text" name="q" placeholder="<?php __('btnSearch', false, true); ?>" class="form-control">
-									
+									<div class="input-group-btn">
+										<button class="btn btn-primary" type="submit">
+											<i class="fa fa-search"></i>
+										</button>
+									</div>
 								</div>
+    							
                             </div>
-							
-							<div class="col-md-2 col-sm-5">
-								<div class="input-group">
-									<input type="text" name="from_date" id="from_date" class="form-control datetimepick_from required" data-wt="open" readonly="readonly"placeholder="From" data-msg-required="<?php __('tr_field_required'); ?>">
-									<span class="input-group-addon"><i class="fa fa-calendar"></i></span> 
-								</div>
-							</div><!-- /.col-md-2 -->
-							
-							<div class="col-md-2 col-sm-5">
-								<div class="input-group">
-									<input type="text" name="to_date" id="to_date" class="form-control datetimepick_to required" data-wt="open" readonly="readonly"  placeholder="To" data-msg-required="<?php __('tr_field_required');?>">
-									<span class="input-group-addon"><i class="fa fa-calendar"></i></span> 
-								</div>
-							</div><!-- /.col-md-2 -->
-
-							<div class="col-md-1 col-sm-5">
-								<div class="input-group-btn">
-									<button class="btn btn-primary" type="submit">
-										<i class="fa fa-search"></i>
-									</button>
-								</div>
-							</div>
-
-    						<div class="col-lg-2 col-md-2 col-sm-6 m-b-sm">
-    							<select class="form-control pj-filter-status text-center" name="status">
+                            <div class="col-lg-2 col-md-3 col-sm-4">&nbsp;</div><!-- /.col-md-2 -->
+    						<div class="col-lg-2 col-lg-offset-2 col-md-12 text-right">
+    							<select class="form-control pj-filter-status" name="status">
     								<option value="">-- <?php __('lblAll');?> --</option>
     								<?php foreach ($bs as $k => $v) { ?>
     									<option value="<?php echo $k;?>"><?php echo pjSanitize::html($v);?></option>
@@ -131,7 +116,7 @@ $get = $controller->_get->raw();
     						</div>
     					</div>				
 					</form>
-					<div id="grid"></div>
+					<div id="griddeleted"></div>
 				</div>
 			</div>
 		</div>
@@ -153,14 +138,6 @@ if ($controller->_get->has('date'))
 {
     ?>pjGrid.queryString += "&date=<?php echo $controller->_get->toString('date'); ?>";<?php
 }
-if ($controller->_get->has('date_from') && $controller->_get->toString('date_from') != '')
-{
-    ?>pjGrid.queryString += "&date_from=<?php echo $controller->_get->toString('date_from'); ?>";<?php
-}
-if ($controller->_get->has('date_to') && $controller->_get->toString('date_to') != '')
-{
-    ?>pjGrid.queryString += "&date_to=<?php echo $controller->_get->toString('date_to'); ?>";<?php
-}
 ?>
 var myLabel = myLabel || {};
 myLabel.client = <?php x__encode('lblClient', false, true); ?>;
@@ -176,13 +153,14 @@ myLabel.distance = <?php x__encode('lblDistance', false, true); ?>;
 myLabel.date_time = <?php x__encode('lblDateTime', false, false); ?>;
 myLabel.email = <?php x__encode('email', false, true); ?>;
 myLabel.driver_name = "Driver";
-myLabel.supplier_name = 'Supplier Name';
-myLabel.is_auction = 'In Auction';
 myLabel.status = <?php x__encode('lblStatus'); ?>;
 myLabel.exported = <?php x__encode('lblExport', false, true); ?>;
 myLabel.print = <?php x__encode('lblPrint', false, true); ?>;
 myLabel.delete_selected = <?php x__encode('delete_selected', false, true); ?>;
 myLabel.delete_confirmation = <?php x__encode('delete_confirmation', false, true); ?>;
+myLabel.restore_selected = <?php x__encode('restore_selected', false, true); ?>;
+myLabel.restore_confirmation = <?php x__encode('restore_confirmation', false, true); ?>;
+
 myLabel.pending = <?php echo x__encode('booking_statuses_ARRAY_pending'); ?>;
 myLabel.confirmed = <?php echo x__encode('booking_statuses_ARRAY_confirmed'); ?>;
 myLabel.cancelled = <?php echo x__encode('booking_statuses_ARRAY_cancelled'); ?>;

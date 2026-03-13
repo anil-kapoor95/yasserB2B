@@ -79,7 +79,9 @@ class pjBookingModel extends pjAppModel
 		array('name' => 'is_deleted', 'type' => 'int', 'default' => 0),
     	array('name' => 'deleted_at', 'type' => 'DATETIME', 'default' => ':NULL'),
 		array('name' => 'net_total', 'type' => 'varchar', 'default' => ':NULL'),
-
+		array('name' => 'is_auction', 'type' => 'TINYINT', 'default' => 0),
+		array('name' => 'auctioned_on', 'type' => 'datetime', 'default' => ':NULL'),
+		array('name' => 'supplier_id', 'type' => 'int', 'default' => ':NULL'),
 	);
 
 	

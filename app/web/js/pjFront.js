@@ -16,6 +16,8 @@
 		validate = (pjQ.$.fn.validate !== undefined),
 		routes = [
 
+		          	{pattern: /^#!\/SupplierLogin$/, eventName: "SupplierLogin"},
+		          	{pattern: /^#!\/SupplierRegister$/, eventName: "SupplierRegister"},
 		          	{pattern: /^#!\/loadSearch$/, eventName: "loadSearch"},
 		          	{pattern: /^#!\/loadFleets$/, eventName: "loadFleets"},
 		          	{pattern: /^#!\/loadCheckout$/, eventName: "loadCheckout"},
@@ -624,7 +626,12 @@
 
 			
 
-			pjQ.$(window).on("loadSearch", this.$container, function (e) {
+			pjQ.$(window)
+			.on("SupplierRegister", this.$container, function (e) {
+				self.SupplierRegister.call(self);
+			}).on("SupplierLogin", this.$container, function (e) {
+				self.SupplierLogin.call(self);
+			}).on("loadSearch", this.$container, function (e) {
 
 				self.loadSearch.call(self);
 
@@ -781,6 +788,7 @@
 			}
 
 			pjQ.$.get([this.opts.folder, "index.php?controller=pjFrontPublic&action=pjActionSearch"].join(""), params).done(function (data) {
+				pjQ.$("#registerLink").show(); 
 
 				self.$container.html(data);
 
@@ -792,6 +800,228 @@
 
 			});
 
+		},
+
+		SupplierRegister: function () {
+			var self = this,
+				params = {};
+
+			params.locale = this.opts.locale;
+			params.index = this.opts.index;
+
+			if (self.opts.session_id != '') {
+				params.session_id = self.opts.session_id;
+			}
+
+			pjQ.$.get([this.opts.folder, "index.php?controller=pjFrontPublic&action=pjActionSupplierRegister"].join(""), params)
+			.done(function (data) {
+
+				pjQ.$("#registerLink").hide();
+				self.$container.html(data);
+
+				self.bindSupplierRegister.call(self);
+
+			}).fail(function () {
+				console.log("Supplier register page failed to load");
+			});
+		},
+
+		bindSupplierRegister: function () {
+
+			var self = this;
+
+			if (validate) {
+
+				var $form = pjQ.$('#frmSupplierRegister_' + self.opts.index);
+
+				if (!$form.length) {
+					return;
+				}
+
+				$form.validate({
+					rules: {
+					first_name: "required",
+					last_name: "required",
+					email: {
+						required: true,
+						email: true
+					},
+					phone: "required",
+					company_name: "required",
+					city: "required",
+					total_vehicles: {
+						required: true,
+						number: true
+					},
+					password: {
+						required: true,
+						minlength: 6
+					},
+					confirm_password: {
+						required: true,
+						equalTo: "[name='password']"
+					}
+				},
+
+					onkeyup: false,
+					errorElement: 'li',
+
+					errorPlacement: function (error, element) {
+						error.addClass('text-danger');
+						error.insertAfter(element);
+					},
+
+					highlight: function (ele) {
+						pjQ.$(ele).closest('.form-group').removeClass('has-success').addClass('has-error');
+					},
+
+					unhighlight: function (ele) {
+						pjQ.$(ele).closest('.form-group').removeClass('has-error').addClass('has-success');
+					},
+
+					submitHandler: function (form) {
+
+						self.disableButtons.call(self);
+
+						var $form = pjQ.$(form);
+
+						var ajax_url = [self.opts.folder, "index.php?controller=pjFrontPublic&action=pjActionSupplierRegister"].join("");
+
+						if (self.opts.session_id != '') {
+							ajax_url += "&session_id=" + self.opts.session_id;
+						}
+
+						pjQ.$.ajax({
+							url: ajax_url,
+							type: "POST",
+							data: $form.serialize(),
+							dataType: "json", // IMPORTANT
+							success: function (data) {
+
+								if (data.status === 'OK') {
+
+									var $form = pjQ.$('#frmSupplierRegister_' + self.opts.index);
+
+									$form[0].reset();
+
+									self.$container.find('.alert-danger').hide();
+
+									self.$container.prepend(
+										'<div class="alert alert-success" style="margin-bottom:20px;">' +
+										'<strong><i class="fa fa-check-circle"></i> ' +
+										data.message +
+										'</strong></div>'
+									);
+								} else {
+
+									var $alert = self.$container.find('.alert-danger');
+
+									$alert.find('ul').empty();
+
+									if (data.errors && data.errors.length) {
+
+										pjQ.$.each(data.errors, function (i, err) {
+											$alert.find('ul').append('<li>' + err + '</li>');
+										});
+
+									} else {
+
+										$alert.find('ul').append('<li>Unknown error occurred</li>');
+									}
+
+									$alert.show();
+
+									self.enableButtons.call(self);
+								}
+							},
+
+							error: function () {
+
+								console.log("AJAX request failed");
+								self.enableButtons.call(self);
+							}
+						});
+
+						return false;
+					}
+
+				});
+			}
+		},
+
+		
+
+		SupplierLogin: function () {
+			var self = this,
+
+				index = this.opts.index,
+
+				params = {};
+
+			params.locale = this.opts.locale;
+
+			params.index = this.opts.index;
+
+			if(self.opts.session_id != '')
+			{
+				params.session_id = self.opts.session_id;
+			}
+
+			pjQ.$.get([this.opts.folder, "index.php?controller=pjFrontPublic&action=pjActionSupplierLogin"].join(""), params).done(function (data) {
+ 				pjQ.$("#registerLink").hide();
+				self.$container.html(data);
+
+				self.bindSupplierLogin.call(self);
+
+			}).fail(function () {
+			});
+
+		},
+
+		bindSupplierLogin: function () {
+			var self = this;
+
+			pjQ.$("#frmSupplierLogin").on("submit", function (e) {
+
+				e.preventDefault();
+
+				var $form = pjQ.$(this);
+
+				pjQ.$.ajax({
+					url: [self.opts.folder, "index.php?controller=pjFrontPublic&action=pjActionSupplierLogin"].join(""),
+					type: "POST",
+					data: $form.serialize(),
+					dataType: "json",
+					success: function (response) {
+
+						if (response.status == "OK") {
+
+							pjQ.$("#alertLoginForm")
+								.removeClass("alert-danger")
+								.addClass("alert-success")
+								.html("Login successful. Redirecting...")
+								.show();
+
+							$form[0].reset();
+
+							// redirect after login
+							setTimeout(function () {
+								window.location.href = response.redirect;
+							}, 300);
+
+						} else {
+
+							pjQ.$("#alertLoginForm")
+								.removeClass("alert-success")
+								.addClass("alert-danger")
+								.html(response.msg)
+								.show();
+
+						}
+					}
+				});
+
+			});
 		},
 
 		loadFleets: function () {

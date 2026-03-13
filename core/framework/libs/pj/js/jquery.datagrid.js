@@ -63,12 +63,15 @@
 			day_names: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
 			delete_title: "Delete confirmation",
 			delete_text: "Are you sure you want to delete selected record?",
+			auction_title: "Confirmation",
+			auction_text: "This booking will be placed in auction!",
 			action_title: "Action confirmation",
 			action_empty_title: "No records selected",
 			action_empty_body: "You need to select at least a single record",
 			btn_ok: "OK",
 			btn_cancel: "Cancel",
 			btn_delete: "Delete",
+			btn_auction: "Yes, auction it!",
 			empty_date: "(empty date)",
 			invalid_date: "(invalid date)"
 		};
@@ -330,6 +333,43 @@
 					showCancelButton: true,
 					confirmButtonColor: "#DD6B55",
 					confirmButtonText: self.messages.btn_delete,
+					cancelButtonText: self.messages.btn_cancel,
+					closeOnConfirm: false,
+					showLoaderOnConfirm: true
+				}, function () {
+					$.post($this.attr("href")).done(function (data) {
+					    if (!(data && data.status)) {
+							swal("Error!", '', "error");
+						}
+						switch (data.status) {
+                            case "OK":
+                                $tr.css("backgroundColor", "#FFB4B4").fadeOut("slow", function () {
+                                    self._loadDatagrid.call(self, target, inst.settings.dataUrl, inst.settings.content.column, inst.settings.content.direction, inst.settings.content.page, inst.settings.content.rowCount);
+                                    swal.close();
+                                });
+                                break;
+                            case "ERR":
+                                swal("Error!", data.text, "error");
+                                break;
+						}
+					});
+				});
+
+				return FALSE;
+			}).on("click.dg", ".pj-table-icon-auction", function (e) {
+				if (e && e.preventDefault) {
+					e.preventDefault();
+				}
+				var $this = $(this),
+					$tr = $this.closest("tr");
+				
+				swal({
+					title: self.messages.auction_title,
+					text: self.messages.auction_text,
+					type: "warning",
+					showCancelButton: true,
+					confirmButtonColor: "#DD6B55",
+					confirmButtonText: self.messages.btn_auction,
 					cancelButtonText: self.messages.btn_cancel,
 					closeOnConfirm: false,
 					showLoaderOnConfirm: true
@@ -924,6 +964,10 @@
 							case "delete":
 								$a.addClass("btn-danger btn-outline btn-sm m-l-xs pj-table-icon-delete");
 								$("<i>").addClass("fa fa-trash").appendTo($a);
+								break;
+							case "auction":
+								$a.addClass("btn-warning btn-outline btn-sm m-l-xs pj-table-icon-auction");
+								$("<i>").addClass("fa fa-gavel").appendTo($a);
 								break;
 							default:
 								$a.addClass("btn-primary btn-outline btn-sm m-l-xs pj-table-icon-" + inst.settings.buttons[j].type);

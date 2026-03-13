@@ -390,7 +390,9 @@ $roleId = $auth->getRoleId();
 	
 	</script>
     <!-- ================= Role Id 4 end here ================= -->
-<?php }  else {?>
+<?php } elseif ($roleId == 5 || $roleId == '5'){?>
+
+<?php } else {?>
 
 	<!-- DASHBOARD CONTENT -->
 

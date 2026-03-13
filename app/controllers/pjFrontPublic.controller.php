@@ -367,6 +367,7 @@ class pjFrontPublic extends pjFront
 			}
 		}
 	}
+
 	
 	public function pjActionPreview()
 	{
@@ -572,6 +573,184 @@ class pjFrontPublic extends pjFront
 	        $this->set('arr', $arr);
 	        $this->set('get', $this->_get->raw());
 	    }
+	}	
+
+	public function pjActionSupplierLogin()
+	{
+		$this->setLayout('pjActionSupplierLogin');
+
+		if ($this->isXHR())
+		{
+			if ($this->_post->toInt('supplier_login') === 1)
+			{
+				$email = $this->_post->toString('email');
+				$password = $this->_post->toString('password');
+
+				$user = pjAuthUserModel::factory()
+					->where('email', $email)
+					->where('role_id', 5)
+					->limit(1)
+					->findAll()
+					->getData();
+
+				if (empty($user))
+				{
+					pjAppController::jsonResponse(array(
+						'status' => 'ERR',
+						'msg' => 'Invalid email or supplier account not found'
+					));
+				}
+
+				$user = $user[0];
+
+				if ($user['status'] != 'T')
+				{
+					pjAppController::jsonResponse(array(
+						'status' => 'ERR',
+						'msg' => 'Your account is not active. Please wait for admin approval.'
+					));
+				}
+
+				$data = array(
+					'login_email' => $email,
+					'login_password' => $password,
+					'role_id' => 5
+				);
+
+				$response = pjAuth::init($data)->doLogin();
+
+				if ($response['status'] == 'OK')
+				{
+					pjAppController::jsonResponse(array(
+						'status' => 'OK',
+						'msg' => 'Login successful',
+						'redirect'=> PJ_INSTALL_URL
+					));
+				}
+				else
+				{
+					pjAppController::jsonResponse(array(
+						'status' => 'ERR',
+						'msg' => 'Wrong password'
+					));
+				}
+			}
+		}
 	}
+
+	public function pjActionSupplierRegister()
+    {
+        // Initialize variables for the view
+        $this->set('post', array());
+        $this->set('errors', array());
+		
+
+        if (self::isPost() && $this->_post->toInt('supplier_register'))
+        {
+            $post = $this->_post->raw();
+            $errors = array();
+
+            // Required fields
+            $required = array(
+                'first_name',
+                'last_name',
+                'email',
+                'password',
+                'confirm_password',
+                'phone',
+                'company_name',
+                'city',
+                'total_vehicles'
+            );
+
+            foreach ($required as $field)
+            {
+                if (!isset($post[$field]) || trim($post[$field]) === '')
+                {
+                    $errors[] = ucfirst(str_replace('_',' ',$field)) . " is required";
+                }
+            }
+
+            // Email validation
+            if (!empty($post['email']) && !filter_var($post['email'], FILTER_VALIDATE_EMAIL))
+            {
+                $errors[] = "Invalid email format";
+            }
+
+            // Check email already exists
+            $exists = pjAuthUserModel::factory()
+                        ->where('email', $post['email'])
+                        ->findCount()
+                        ->getData();
+
+            if ($exists > 0)
+            {
+                $errors[] = "Email already exists";
+            }
+
+            // Password match
+            if ($post['password'] !== $post['confirm_password'])
+            {
+                $errors[] = "Passwords do not match";
+            }
+
+            if (!empty($errors))
+			{
+				echo json_encode(array(
+					'status' => 'ERR',
+					'errors' => $errors
+				));
+				exit;
+			}
+
+            // Create Auth User
+            $userData = array(
+                'role_id'   => 5,
+                'email'     => $post['email'],
+                'password'  => $post['password'],
+                'name'      => trim($post['first_name'] . ' ' . $post['last_name']),
+                'phone'     => $post['phone'],
+                'status'    => 'F',
+                'is_active' => 'T',
+                'ip'        => pjUtil::getClientIp()
+            );
+
+            $authId = pjAuthUserModel::factory($userData)->insert()->getInsertId();
+            if ($authId!== false && (int) $authId > 0)
+				{
+				
+                $supplierData = array(
+                    'auth_id'        => $authId,
+                    'first_name'     => $post['first_name'],
+                    'last_name'      => $post['last_name'],
+                    'phone'          => $post['phone'],
+                    'company_name'   => $post['company_name'],
+                    'city'           => $post['city'],
+                    'total_vehicles' => $post['total_vehicles'],
+                    'status'         => 'T',
+                );
+
+                $supplierId = pjSupplierModel::factory()
+								->setAttributes($supplierData)
+                                ->insert()
+                                ->getInsertId();
+								
+
+                if ($supplierId)
+                {
+					echo json_encode(array(
+					'status' => 'OK',
+					'message' => 'You have successfully registered. Please wait for admin approval.'
+					));
+					exit;
+                }
+            }
+			echo json_encode(array(
+				'status' => 'ERR',
+				'errors' => $errors
+			));
+			exit;
+        }
+    }
 }
 ?>

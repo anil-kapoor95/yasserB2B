@@ -18,6 +18,10 @@ $isScriptDriversIndex = $isScriptDriversController && in_array($action_name, arr
 
 $isScriptDriversResIndex = $isScriptDriversController && in_array($action_name, array('pjActionGetDriverReservationIndex'));
 
+// Supplier Available Bookings
+$isScriptSupplierBookingsController = in_array($controller_name, array('pjAdminSuppliers'));
+$isScriptSupplierBookingsIndex = $isScriptSupplierBookingsController && in_array($action_name, array('pjActionIndex'));
+
 // Vehicles
 $isScriptFleetsController = in_array($controller_name, array('pjAdminFleets'));
 $isScriptFleetsIndex = $isScriptFleetsController && in_array($action_name, array('pjActionIndex', 'pjActionCreate', 'pjActionUpdate'));
@@ -28,6 +32,8 @@ $isScriptCitiesIndex = $isScriptCitiesController && in_array($action_name, array
 
 // Extras
 $isScriptExtrasController         = in_array($controller_name, array('pjAdminExtras'));
+// Category
+$isScriptCategoryController         = in_array($controller_name, array('pjAdminCategory'));
 
 // Payments
 $isScriptPaymentsController = in_array($controller_name, array('pjPayments'));
@@ -62,12 +68,18 @@ $hasAccessScriptCitiesndex       = pjAuth::factory('pjAdminCities', 'pjActionInd
 $hasAccessScriptDrivers            = pjAuth::factory('pjAdminDrivers')->hasAccess();
 $hasAccessScriptDriversIndex       = pjAuth::factory('pjAdminDrivers', 'pjActionIndex')->hasAccess();
 
+// Permissions - Supplier Available Bookings
+$hasAccessScriptSupplierBookings = pjAuth::factory('pjAdminSuppliers', 'pjActionIndex')->hasAccess();
+
 // Permissions - Reservation
 $hasAccessScriptReservationDrivers            = pjAuth::factory('pjAdminDrivers')->hasAccess();
 $hasAccessScriptReservationDriversIndex       = pjAuth::factory('pjAdminDrivers', 'pjActionGetDriverReservationIndex')->hasAccess();
 
 // Permissions - Extras
 $hasAccessScriptExtras       = pjAuth::factory('pjAdminExtras')->hasAccess();
+
+// Permissions - Category
+$hasAccessScriptCategory       = pjAuth::factory('pjAdminCategory')->hasAccess();
 
 // Permissions - Payments
 $hasAccessScriptPayments = pjAuth::factory('pjPayments', 'pjActionIndex')->hasAccess();
@@ -103,7 +115,7 @@ $hasAccessScriptOptionsNotifications    = pjAuth::factory('pjAdminOptions', 'pjA
         <a href="<?php echo $_SERVER['PHP_SELF']; ?>?controller=pjAdminClients&amp;action=pjActionIndex"><i class="fa fa-user"></i> <span class="nav-label"><?php __('menuClients');?></span></a>
     </li>
 <?php endif; ?>
-
+<?php echo $_SERVER['PHP_SELF']; ?>
 <?php 
     $auth = pjAuth::factory();
     $roleId = $auth->getRoleId();
@@ -117,6 +129,18 @@ $hasAccessScriptOptionsNotifications    = pjAuth::factory('pjAdminOptions', 'pjA
             </a>
         </li>
     <?php endif; ?>
+    <!-- supplier menu -->
+    <?php 
+    if ((int)$roleId === 5): ?>
+    <li<?php echo $isScriptSupplierBookingsIndex ? ' class="active"' : NULL; ?>>
+        <a href="<?php echo $_SERVER['PHP_SELF']; ?>?controller=pjAdminSuppliers&amp;action=pjActionIndex">
+            <i class="fa fa-list"></i> 
+            <span class="nav-label"><?php __('menuAvailableBookings'); ?></span>
+
+            <span class="nav-label">Available Bookings</span>
+        </a>
+    </li>
+    <?php endif; ?>
 
 <?php if ($hasAccessScriptCities): ?>
     <li<?php echo $isScriptCitiesIndex ? ' class="active"' : NULL; ?>>
@@ -127,6 +151,11 @@ $hasAccessScriptOptionsNotifications    = pjAuth::factory('pjAdminOptions', 'pjA
 <?php if ($hasAccessScriptExtras): ?>
     <li<?php echo $isScriptExtrasController ? ' class="active"' : NULL; ?>>
         <a href="<?php echo $_SERVER['PHP_SELF']; ?>?controller=pjAdminExtras&amp;action=pjActionIndex"><i class="fa fa-plus-circle"></i> <span class="nav-label"><?php __('menuExtras');?></span></a>
+    </li>
+<?php endif; ?>
+<?php if ($hasAccessScriptCategory): ?>
+    <li<?php echo $isScriptCategoryController ? ' class="active"' : NULL; ?>>
+        <a href="<?php echo $_SERVER['PHP_SELF']; ?>?controller=pjAdminCategory&amp;action=pjActionIndex"><i class="fa fa-tag"></i> <span class="nav-label"><?php __('menuCategory');?></span></a>
     </li>
 <?php endif; ?>
 

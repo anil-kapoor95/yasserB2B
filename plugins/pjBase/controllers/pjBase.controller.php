@@ -35,7 +35,7 @@ class pjBase extends pjBaseAppController
 		if ($this->requireLogin && !$this->isInstaller())
 		{
 		    $_get = pjRegistry::getInstance()->get('_get');
-		    if (!$this->isLoged() && !in_array($_get->toString('action'), array('pjActionLogin', 'pjActionForgot', 'pjActionCaptcha', 'pjActionCheckCaptcha', 'pjActionCheckReCaptcha', 'pjActionCheckLoginEmail', 'pjActionResendPassword', 'pjActionRun', 'pjActionReset', 'pjActionMessages')))
+		    if (!$this->isLoged() && !in_array($_get->toString('action'), array('pjActionLogin','pjActionRegister', 'pjActionForgot', 'pjActionCaptcha', 'pjActionCheckCaptcha', 'pjActionCheckReCaptcha', 'pjActionCheckLoginEmail', 'pjActionResendPassword', 'pjActionRun', 'pjActionReset', 'pjActionMessages')))
 			{
 				$next = NULL;
 				if (isset($_SERVER['REQUEST_URI']) && !empty($_SERVER['REQUEST_URI']))
@@ -263,13 +263,29 @@ class pjBase extends pjBaseAppController
 	    }
 	}
 	
+	
 	public function pjActionLogout()
 	{
-	    $response = pjAuth::init()->doLogout();
-	    if($response['status'] == 'OK')
-	    {
-	       pjUtil::redirect($_SERVER['PHP_SELF'] . "?controller=pjBase&action=pjActionLogin");
-	    }
+		// Save role before logout
+		$role_id = isset($_SESSION[$this->defaultUser]['role_id'])
+			? $_SESSION[$this->defaultUser]['role_id']
+			: null;
+
+		$response = pjAuth::init()->doLogout();
+
+		if ($response['status'] == 'OK')
+		{
+			// Supplier logout
+			if ($role_id == 5)
+			{
+            	pjUtil::redirect(PJ_INSTALL_URL . "preview.php#!/SupplierLogin");
+			}
+			else
+			{
+				// Admin logout
+				pjUtil::redirect($_SERVER['PHP_SELF'] . "?controller=pjBase&action=pjActionLogin");
+			}
+		}
 	}
 
 	public function pjActionResendPassword()

@@ -14,8 +14,12 @@ if(strpos($tpl['option_arr']['o_time_format'], 'A') > -1)
 }
 ?>
 <div id="pjWrapperTaxiBooking_<?php echo $theme;?>">
+	<div id="registerLink"  style="padding-left:30px">
+		<a href="#!/SupplierRegister" class="btn btn-primary">
+			<?php __('btnRegister');?>
+		</a>
+	</div>
 	<div id="pjTbsContainer_<?php echo $index; ?>" class="container-fluid"></div>
-	
 	<div class="modal fade pjTbModal" id="pjNcbTermModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
 	  	<div class="modal-dialog">
 	    	<div class="modal-content">

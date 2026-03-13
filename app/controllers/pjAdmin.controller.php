@@ -555,13 +555,14 @@ class pjAdmin extends pjAppController
 		// -------------------------------
 		// 2️⃣1️⃣ Append JS/CSS files for dashboard
 		// -------------------------------
+		$version = rand(0,9) . '.' . rand(0,9) . '.' . rand(0,9);
 		$this->appendJs('index.global.js', PJ_THIRD_PARTY_PATH . 'fullcalendar/');
 		$this->appendJs('index.global.min.js', PJ_THIRD_PARTY_PATH . 'fullcalendar/');
 		$this->appendJs('moment-with-locales.min.js', PJ_THIRD_PARTY_PATH . 'moment/');
 		$this->appendCss('build/css/bootstrap-datetimepicker.min.css', PJ_THIRD_PARTY_PATH . 'bootstrap_datetimepicker/');
 		$this->appendJs('build/js/bootstrap-datetimepicker.min.js', PJ_THIRD_PARTY_PATH . 'bootstrap_datetimepicker/');
 		$this->appendJs('jquery.datagrid.js', PJ_FRAMEWORK_LIBS_PATH . 'pj/js/');
-		$this->appendJs("pjAdmin.js?v={$version}");
+		$this->appendJs("pjAdmin.js?v=1");
 	}
 
      public function pjActionCalendar()

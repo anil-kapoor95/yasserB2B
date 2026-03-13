@@ -239,6 +239,18 @@ class pjAdminBookings extends pjAdmin
                ->join('pjClient', "t3.id=t1.client_id", 'left outer')
                ->join('pjAuthUser', "t4.id=t3.foreign_id", 'left outer')
                ->where("t1.is_deleted = 0");
+
+               $supplier_id = $this->getUserId();
+                $role_id = $this->getRoleId();
+
+                if ($role_id === 5 || $role_id === '5') {
+
+                    $pjBookingModel = $pjBookingModel
+                        ->select('t1.*')
+                        ->join('taxi_auctions', "taxi_auctions.booking_id = t1.id AND taxi_auctions.status = 'active'", 'inner')
+                        ->where('t1.is_auction', 1)
+                        ->where("t1.is_deleted", 0);
+                }
              
                if ($this->_get->has('q') && !$this->_get->isEmpty('q'))
                {
@@ -317,8 +329,9 @@ class pjAdminBookings extends pjAdmin
                
                $data = $pjBookingModel
                ->select("t1.*, t2.content as fleet, t4.name, t4.email,t4.phone, AES_DECRYPT(t1.cc_type, '".PJ_SALT."') AS `cc_type`,
-                AES_DECRYPT(t1.cc_num, '".PJ_SALT."') AS `cc_num`, AES_DECRYPT(t1.cc_exp_month, '".PJ_SALT."') AS `cc_exp_month`, AES_DECRYPT(t1.cc_exp_year, '".PJ_SALT."') AS `cc_exp_year`, AES_DECRYPT(t1.cc_code, '".PJ_SALT."') AS `cc_code`,CONCAT_WS(' ', t5.first_name, t5.last_name) AS driver_name ")
+                AES_DECRYPT(t1.cc_num, '".PJ_SALT."') AS `cc_num`, AES_DECRYPT(t1.cc_exp_month, '".PJ_SALT."') AS `cc_exp_month`, AES_DECRYPT(t1.cc_exp_year, '".PJ_SALT."') AS `cc_exp_year`, AES_DECRYPT(t1.cc_code, '".PJ_SALT."') AS `cc_code`,CONCAT_WS(' ', t5.first_name, t5.last_name) AS driver_name,t6.name AS supplier_name ")
                ->join('pjDriver', "t1.driver_id=t5.id", 'left')
+               ->join('pjAuthUser', "t6.id=t1.supplier_id", 'left')
                ->orderBy("$column $direction")
                ->limit($rowCount, $offset)
                ->findAll()
@@ -356,6 +369,7 @@ class pjAdminBookings extends pjAdmin
                     $v['distance'] = (int) $v['distance'] . ' km';
                     $v['driver_name'] = pjSanitize::clean($v['driver_name'] ? $v['driver_name'] : 'NA');
                     $data[$k] = $v;
+                    $data[$k]['is_auction'] = $v['is_auction'] == 1 ? 'Yes' : 'No';
                     $data[$k]['extras'] = $extras_by_booking[$v['id']] ?? [];
                 }
                 // echo "<pre>"; print_r($data); 
@@ -1089,6 +1103,68 @@ class pjAdminBookings extends pjAdmin
         } else {
             self::jsonResponse(['status' => 'ERR', 'code' => 105, 'text' => 'Booking has not been deleted.']);
         }
+        exit;
+    }
+
+    public function pjActionPutBookingInAuction()
+    {
+        $this->setAjax(true);
+
+        if (!$this->isXHR()) {
+            self::jsonResponse(['status' => 'ERR', 'code' => 100, 'text' => 'Missing headers']);
+        }
+
+        if (!self::isPost()) {
+            self::jsonResponse(['status' => 'ERR', 'code' => 101, 'text' => 'Invalid request']);
+        }
+
+        if (!pjAuth::factory()->hasAccess()) {
+            self::jsonResponse(['status' => 'ERR', 'code' => 102, 'text' => 'Access denied']);
+        }
+
+        $booking_id = $this->_get->toInt('id');
+
+        if (!$booking_id) {
+            self::jsonResponse(['status' => 'ERR', 'code' => 103, 'text' => 'Invalid booking id']);
+        }
+
+        $pjBookingModel = pjBookingModel::factory();
+        $pjAuctionModel = pjAuctionModel::factory();
+
+        $booking = $pjBookingModel->find($booking_id)->getData();
+
+        if (!$booking) {
+            self::jsonResponse(['status' => 'ERR', 'code' => 104, 'text' => 'Booking not found']);
+        }
+
+        $pjBookingModel
+        ->reset()
+        ->where('id', $booking_id)
+        ->modifyAll([
+            'is_auction' => 1,
+            'auctioned_on' => date('Y-m-d H:i:s'),
+            'supplier_id' => NULL
+        ]);
+
+        $auction = $pjAuctionModel->setAttributes(
+        array(
+            'booking_id' => (int)$booking_id,
+            'created' => date('Y-m-d H:i:s')
+        ))->insert();
+
+        if (!$auction) {
+            self::jsonResponse([
+                'status' => 'ERR',
+                'code' => 105,
+                'text' => 'Failed to insert auction record'
+            ]);
+        }
+        self::jsonResponse([
+            'status' => 'OK',
+            'code' => 200,
+            'text' => 'Booking successfully placed in auction',
+        ]);       
+
         exit;
     }
 
