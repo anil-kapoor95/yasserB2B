@@ -113,6 +113,17 @@ $bodies = __('error_bodies', true);
 					    </div>
 
 					</div>
+					<div class="form-group">
+
+					    <div class="radio radio-primary">
+
+					        <input type="radio" id="recipient_suppliers" name="recipient" value="suppliers"<?php echo isset($tpl['query']['recipient']) && $tpl['query']['recipient'] == 'suppliers' ? ' checked' : NULL; ?>>
+
+					        <label for="recipient_suppliers"><?php __('recipients_ARRAY_suppliers'); ?></label>
+
+					    </div>
+
+					</div>
 
 				</div>
 
@@ -161,6 +172,8 @@ $bodies = __('error_bodies', true);
 				<div class="ibox-content">
 
 					<div class="row">
+					<div class="default-tokens" style="display:none;">
+
 
 						<div class="col-xs-6">
 
@@ -186,6 +199,9 @@ $bodies = __('error_bodies', true);
 							<div><small>{DriverEmail}</small></div>
 							<div><small>{DepositPaymentLink}</small></div>
 							<div><small>{RemainingBalancePaymentLink}</small></div>
+							<div><small>{supplierName}</small></div>
+							<div><small>{supplierId}</small></div>
+							<div><small>{accountApprovalURL}</small></div>
 
 
                         </div>
@@ -224,6 +240,17 @@ $bodies = __('error_bodies', true);
 						
 
                         </div>
+					</div>
+						<div class="supplier-tokens" style="display:none;">
+							<div class="col-xs-6">
+								<div><small>{supplierFirstName}</small></div>
+								<div><small>{supplierLastName}</small></div>
+								<div><small>{supplierEmail}</small></div>
+								<div><small>{supplierPassword}</small></div>
+								<div><small>{supplierPhone}</small></div>
+								<div><small>{supplierCompany}</small></div>
+							</div>
+						</div>
 
 					</div>
 

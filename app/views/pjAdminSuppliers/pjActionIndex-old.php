@@ -9,12 +9,7 @@ $get = $controller->_get->raw();
 ?>
 
 <style>
-.auction_links{
-	text-decoration: underline;
-  cursor: pointer;
-  color: #0a5114;
-}
-.bg-completed {
+	.bg-completed {
     background-color: #8E44AD !important; /* Purple (example) */
     color: #fff !important;
 }
@@ -141,47 +136,6 @@ $get = $controller->_get->raw();
 			</div>
 		</div>
 	</div>
-
-
-	<!-- Commission Modal -->
-	<div class="modal fade" id="commissionModal" tabindex="-1" role="dialog" aria-hidden="true">
-	  <div class="modal-dialog modal-dialog-centered">
-	    <div class="modal-content">
-
-	      <div class="modal-header">
-	        <button type="button" class="close" data-dismiss="modal">
-	          &times;
-	        </button>
-	        <h4 class="modal-title">Enter Commission</h4>
-	      </div>
-
-	      <div class="modal-body">
-	        <div class="form-group">
-	          <label for="commissionInput">Commission Amount</label>
-	          <input
-	            type="number"
-	            class="form-control"
-	            id="commissionInput"
-	            placeholder="Enter commission"
-	            min="0"
-	            step="0.01"
-	          >
-	        </div>
-	      </div>
-
-	      <div class="modal-footer">
-	      	<input type="hidden" class="currentBookingId" value="">
-	        <button type="button" class="btn btn-default" data-dismiss="modal">
-	          Cancel
-	        </button>
-	        <button type="button" class="btn btn-primary" id="saveCommissionBtn">
-	          Save
-	        </button>
-	      </div>
-
-	    </div>
-	  </div>
-	</div>
 </div>
 <script type="text/javascript">
 var pjGrid = pjGrid || {};
@@ -211,19 +165,19 @@ if ($controller->_get->has('date_to') && $controller->_get->toString('date_to') 
 var myLabel = myLabel || {};
 myLabel.client = <?php x__encode('lblClient', false, true); ?>;
 myLabel.fleet = <?php x__encode('lblFleet', false, true); ?>;
-myLabel.pickup_address = <?php x__encode('plugin_base_lbl_pickup', false, true); ?>;
-myLabel.return_address = <?php x__encode('plugin_base_lbl_dropoff', false, true); ?>;
+myLabel.pickup_address = "Pickup";<?php // x__encode('lblFleet', false, true); ?>;
+myLabel.return_address = "Dropoff" ; <?php // x__encode('lblFleet', false, true); ?>;
 myLabel.passengers = <?php x__encode('lblPassengers', false, true); ?>;
-myLabel.extras = <?php x__encode('plugin_base_lbl_extras', false, true); ?>;
+myLabel.extras = "Extras"; <?php // x__encode('lblExport', false, true); ?>;
 
 myLabel.payment_method = <?php x__encode('lblPaymentMethod', false, true); ?>;
-myLabel.total = <?php x__encode('plugin_base_lbl_price', false, true); ?>;
+myLabel.total = "Price"; <?php // x__encode('lblFleet', false, true); ?>;
 myLabel.distance = <?php x__encode('lblDistance', false, true); ?>;
 myLabel.date_time = <?php x__encode('lblDateTime', false, false); ?>;
 myLabel.email = <?php x__encode('email', false, true); ?>;
-myLabel.driver_name = <?php x__encode('plugin_base_lbl_driver', false, true); ?>;
-myLabel.supplier_name = <?php x__encode('plugin_base_lbl_supplier_name', false, true); ?>;
-myLabel.is_auction = <?php x__encode('plugin_base_lbl_in_auction', false, true); ?>;
+myLabel.driver_name = "Driver";
+myLabel.supplier_name = 'Supplier Name';
+myLabel.is_auction = 'In Auction';
 myLabel.status = <?php x__encode('lblStatus'); ?>;
 myLabel.exported = <?php x__encode('lblExport', false, true); ?>;
 myLabel.print = <?php x__encode('lblPrint', false, true); ?>;
@@ -232,5 +186,5 @@ myLabel.delete_confirmation = <?php x__encode('delete_confirmation', false, true
 myLabel.pending = <?php echo x__encode('booking_statuses_ARRAY_pending'); ?>;
 myLabel.confirmed = <?php echo x__encode('booking_statuses_ARRAY_confirmed'); ?>;
 myLabel.cancelled = <?php echo x__encode('booking_statuses_ARRAY_cancelled'); ?>;
-myLabel.completed = <?php echo x__encode('plugin_base_lbl_completed'); ?>;
+myLabel.completed = "Completed";
 </script>

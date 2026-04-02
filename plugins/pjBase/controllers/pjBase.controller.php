@@ -213,6 +213,7 @@ class pjBase extends pjBaseAppController
     	        		pjUtil::redirect($_SERVER['PHP_SELF'] . "?controller=pjBaseUsers&action=pjActionUpdate&id=" . $this->getUserId() . "&change");
     	        	}
     	        	
+    	        	
    	        		pjUtil::redirect($_SERVER['PHP_SELF'] . "?controller=pjBaseOptions&action=pjActionIndex");
     	        	
     	            /*$response = pjAuth::init()->checkChangePassword();

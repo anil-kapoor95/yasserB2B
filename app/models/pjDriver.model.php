@@ -14,6 +14,7 @@ class pjDriverModel extends pjAppModel
     array('name' => 'id', 'type' => 'int', 'default' => ':NULL'),
     array('name' => 'title', 'type' => 'varchar', 'default' => ':NULL'),
     array('name' => 'auth_id', 'type' => 'int', 'default' => ':NULL'),
+    array('name' => 'supplier_id', 'type' => 'int', 'default' => 0),
     array('name' => 'first_name', 'type' => 'varchar', 'default' => ':NULL'),
     array('name' => 'last_name', 'type' => 'varchar', 'default' => ':NULL'),
     array('name' => 'email', 'type' => 'varchar', 'default' => ':NULL'),

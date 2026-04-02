@@ -220,6 +220,15 @@ class pjAdmin extends pjAppController
 		$pjAuthUserModel = pjAuthUserModel::factory();
 
 		$authUser = $_SESSION[$this->defaultUser];
+
+		//supplier code
+		$isSupplier = ($authUser['role_id'] == 5);
+		if($isSupplier){
+			pjUtil::redirect(PJ_INSTALL_URL . "index.php?controller=pjAdminSuppliers&action=pjActionIndex");
+			exit();
+		}
+
+
 		$isDriver = ($authUser['role_id'] == 4);
 		$driverId = null;
 

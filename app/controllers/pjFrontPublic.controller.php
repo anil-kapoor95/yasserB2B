@@ -624,7 +624,7 @@ class pjFrontPublic extends pjFront
 					pjAppController::jsonResponse(array(
 						'status' => 'OK',
 						'msg' => 'Login successful',
-						'redirect'=> PJ_INSTALL_URL
+						'redirect' => PJ_INSTALL_URL . 'index.php?controller=pjAdminSuppliers&action=pjActionIndex'
 					));
 				}
 				else
@@ -643,7 +643,6 @@ class pjFrontPublic extends pjFront
         // Initialize variables for the view
         $this->set('post', array());
         $this->set('errors', array());
-		
 
         if (self::isPost() && $this->_post->toInt('supplier_register'))
         {
@@ -660,7 +659,7 @@ class pjFrontPublic extends pjFront
                 'phone',
                 'company_name',
                 'city',
-                'total_vehicles'
+                //'total_vehicles'
             );
 
             foreach ($required as $field)

@@ -25,6 +25,7 @@ class pjAuthUserModel extends pjAuthAppModel
         array('name' => 'is_active', 'type' => 'enum', 'default' => 'F'),
         array('name' => 'locked', 'type' => 'enum', 'default' => 'F'),
         array('name' => 'login_token', 'type' => 'varchar', 'default' => ':NULL'),
+        array('name' => 'api_login_token', 'type' => 'varchar', 'default' => ':NULL'),
         array('name' => 'ip', 'type' => 'varchar', 'default' => ':NULL')
     );
     

@@ -7,6 +7,8 @@
 				__('notifications_msg_to_client');
 			} elseif ($tpl['query']['recipient'] == 'admin') {
 				__('notifications_msg_to_admin');
+			} elseif ($tpl['query']['recipient'] == 'suppliers') {
+				__('notifications_msg_to_suppliers');
 			} else {
 				__('notifications_msg_to_default');
 			}

@@ -1,6 +1,10 @@
 <head>
 <meta charset="utf-8">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+<link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/chosen/1.8.7/chosen.css">
+
+<script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/chosen/1.8.7/chosen.jquery.min.js"></script>
 </head>
 
 <style>
@@ -28,7 +32,7 @@ body{
 
     <div class="card">
 
-        <h2 style="text-align:center;margin-bottom:25px;"> Suppliar Registration Form </h2>
+        <h2 style="text-align:center;margin-bottom:25px;"> Supplier Registration Form </h2>
 
          <div class="alert alert-danger" style="display:none;">
             <ul></ul>
@@ -74,11 +78,26 @@ body{
             value="<?php echo isset($post['city']) ? pjSanitize::html($post['city']) : ''; ?>">
             </div>
 
-            <div class="form-group">
+            <!-- <div class="form-group">
             <label><?php __('plugin_base_lbl_vehicles', false, true); ?></label>
             <input type="number" name="total_vehicles" class="form-control"
             value="<?php echo isset($post['total_vehicles']) ? pjSanitize::html($post['total_vehicles']) : ''; ?>">
-            </div>
+            </div> -->
+
+
+            <!-- <div class="form-group">
+                <label class="control-label">Vehicle Category</label>
+
+                <select name="category[]" id="vfront_category" multiple="multiple" size="5" class="form-control" data-msg-required="<?php __('plugin_base_this_field_is_required', false, true);?>">
+                    
+                    <option value="1">sdddss></option>
+                    <option value="1">sdddss></option>
+                    <option value="1">sdddss></option>
+                    <option value="1">sdddss></option>
+                    
+                </select>
+            </div> -->
+                        
 
             <div class="form-group">
             <label><?php __('plugin_base_login_password', false, true); ?></label>
@@ -108,3 +127,4 @@ body{
 
     </div>
 </div>
+

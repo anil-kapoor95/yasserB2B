@@ -1,4 +1,5 @@
 <?php
+
 $controller_name = $controller->_get->toString('controller');
 $action_name = $controller->_get->toString('action');
 
@@ -12,6 +13,26 @@ $isScriptBookings = in_array($controller_name, array('pjAdminBookings'));
 $isScriptClientsController = in_array($controller_name, array('pjAdminClients'));
 $isScriptClientsIndex = $isScriptClientsController && in_array($action_name, array('pjActionIndex', 'pjActionCreate', 'pjActionUpdate'));
 
+// Supplier
+$isScriptSupplierController = in_array($controller_name, array('pjSupplier'));
+$isScriptSupplierIndex = $isScriptSupplierController && in_array($action_name, array('pjActionIndex', 'pjActionCreate', 'pjActionUpdate'));
+
+//Available rides
+$isScriptAvailableRidesController = in_array($controller_name, array('pjAdminSuppliers'));
+$isScriptSupplierAvailableRides = $isScriptAvailableRidesController && in_array($action_name, array('pjActionAvailableRides'));
+
+//Upcoming rides
+$isScriptUpcomingRidesController = in_array($controller_name, array('pjAdminSuppliers'));
+$isScriptSupplierUpcomingRides = $isScriptUpcomingRidesController && in_array($action_name, array('pjActionUpcomingRides'));
+
+//Past rides
+$isScriptPastRidesController = in_array($controller_name, array('pjAdminSuppliers'));
+$isScriptSupplierPastRides = $isScriptPastRidesController && in_array($action_name, array('pjActionPastRides'));
+
+//Suplier drivers
+$isScriptSupplierDriverController = in_array($controller_name, array('pjAdminSuppliers'));
+$isScriptSupplierDriverIndex = $isScriptSupplierDriverController && in_array($action_name, array('pjActionDrivers', 'pjActionDriverCreate', 'pjActionDriverUpdate'));
+
 // Driver
 $isScriptDriversController = in_array($controller_name, array('pjAdminDrivers'));
 $isScriptDriversIndex = $isScriptDriversController && in_array($action_name, array('pjActionIndex', 'pjActionCreate', 'pjActionUpdate'));
@@ -20,7 +41,8 @@ $isScriptDriversResIndex = $isScriptDriversController && in_array($action_name, 
 
 // Supplier Available Bookings
 $isScriptSupplierBookingsController = in_array($controller_name, array('pjAdminSuppliers'));
-$isScriptSupplierBookingsIndex = $isScriptSupplierBookingsController && in_array($action_name, array('pjActionIndex'));
+$isScriptSupplierIndex = $isScriptSupplierBookingsController && in_array($action_name, array('pjActionIndex'));
+$isScriptSupplierAvailableBookings = $isScriptSupplierBookingsController && in_array($action_name, array('pjActionAvailableBookings'));
 
 // Vehicles
 $isScriptFleetsController = in_array($controller_name, array('pjAdminFleets'));
@@ -56,6 +78,9 @@ $hasAccessScriptBookings = pjAuth::factory('pjAdminBookings', 'pjActionIndex')->
 $hasAccessScriptClients            = pjAuth::factory('pjAdminClients')->hasAccess();
 $hasAccessScriptClientsIndex       = pjAuth::factory('pjAdminClients', 'pjActionIndex')->hasAccess();
 
+$hasAccessScriptSupplier            = pjAuth::factory('pjSupplier')->hasAccess();
+$hasAccessScriptSupplierIndex       = pjAuth::factory('pjSupplier', 'pjActionIndex')->hasAccess();
+
 // Permissions - Vehicles
 $hasAccessScriptFleets            = pjAuth::factory('pjAdminFleets')->hasAccess();
 $hasAccessScriptFleetsIndex       = pjAuth::factory('pjAdminFleets', 'pjActionIndex')->hasAccess();
@@ -90,12 +115,18 @@ $hasAccessScriptOptionsBooking          = pjAuth::factory('pjAdminOptions', 'pjA
 $hasAccessScriptOptionsBookingForm      = pjAuth::factory('pjAdminOptions', 'pjActionBookingForm')->hasAccess();
 $hasAccessScriptOptionsTerm             = pjAuth::factory('pjAdminOptions', 'pjActionTerm')->hasAccess();
 $hasAccessScriptOptionsNotifications    = pjAuth::factory('pjAdminOptions', 'pjActionNotifications')->hasAccess();
+
+
+$auth = pjAuth::factory();
+$roleId = $auth->getRoleId();
 ?>
 
-<?php if ($hasAccessScriptDashboard): ?>
-    <li<?php echo $isScriptDashboard ? ' class="active"' : NULL; ?>>
-        <a href="<?php echo $_SERVER['PHP_SELF']; ?>?controller=pjAdmin&amp;action=pjActionIndex"><i class="fa fa-th-large"></i> <span class="nav-label"><?php __('plugin_base_menu_dashboard');?></span></a>
-    </li>
+<?php if ((int)$roleId != 5): ?>
+    <?php if ($hasAccessScriptDashboard): ?>
+        <li<?php echo $isScriptDashboard ? ' class="active"' : NULL; ?>>
+            <a href="<?php echo $_SERVER['PHP_SELF']; ?>?controller=pjAdmin&amp;action=pjActionIndex"><i class="fa fa-th-large"></i> <span class="nav-label"><?php __('plugin_base_menu_dashboard');?></span></a>
+        </li>
+    <?php endif; ?>
 <?php endif; ?>
 
 <?php if ($hasAccessScriptBookings): ?>
@@ -110,12 +141,24 @@ $hasAccessScriptOptionsNotifications    = pjAuth::factory('pjAdminOptions', 'pjA
     </li>
 <?php endif; ?>
 
+<?php if ($hasAccessScriptCategory): ?>
+    <li<?php echo $isScriptCategoryController ? ' class="active"' : NULL; ?>>
+        <a href="<?php echo $_SERVER['PHP_SELF']; ?>?controller=pjAdminCategory&amp;action=pjActionIndex"><i class="fa fa-tag"></i> <span class="nav-label"><?php __('menuCategory');?></span></a>
+    </li>
+<?php endif; ?>
+
 <?php if ($hasAccessScriptClients): ?>
     <li<?php echo $isScriptClientsIndex ? ' class="active"' : NULL; ?>>
         <a href="<?php echo $_SERVER['PHP_SELF']; ?>?controller=pjAdminClients&amp;action=pjActionIndex"><i class="fa fa-user"></i> <span class="nav-label"><?php __('menuClients');?></span></a>
     </li>
 <?php endif; ?>
-<?php echo $_SERVER['PHP_SELF']; ?>
+
+<?php if ($hasAccessScriptSupplier): ?>
+    <li<?php echo $isScriptSupplierIndex ? ' class="active"' : NULL; ?>>
+        <a href="<?php echo $_SERVER['PHP_SELF']; ?>?controller=pjSupplier&amp;action=pjActionIndex"><i class="fa fa-user"></i> <span class="nav-label"><?php __('plugin_base_menu_suppliers');?></span></a>
+    </li>
+<?php endif; ?>
+
 <?php 
     $auth = pjAuth::factory();
     $roleId = $auth->getRoleId();
@@ -129,18 +172,7 @@ $hasAccessScriptOptionsNotifications    = pjAuth::factory('pjAdminOptions', 'pjA
             </a>
         </li>
     <?php endif; ?>
-    <!-- supplier menu -->
-    <?php 
-    if ((int)$roleId === 5): ?>
-    <li<?php echo $isScriptSupplierBookingsIndex ? ' class="active"' : NULL; ?>>
-        <a href="<?php echo $_SERVER['PHP_SELF']; ?>?controller=pjAdminSuppliers&amp;action=pjActionIndex">
-            <i class="fa fa-list"></i> 
-            <span class="nav-label"><?php __('menuAvailableBookings'); ?></span>
-
-            <span class="nav-label">Available Bookings</span>
-        </a>
-    </li>
-    <?php endif; ?>
+    
 
 <?php if ($hasAccessScriptCities): ?>
     <li<?php echo $isScriptCitiesIndex ? ' class="active"' : NULL; ?>>
@@ -153,11 +185,7 @@ $hasAccessScriptOptionsNotifications    = pjAuth::factory('pjAdminOptions', 'pjA
         <a href="<?php echo $_SERVER['PHP_SELF']; ?>?controller=pjAdminExtras&amp;action=pjActionIndex"><i class="fa fa-plus-circle"></i> <span class="nav-label"><?php __('menuExtras');?></span></a>
     </li>
 <?php endif; ?>
-<?php if ($hasAccessScriptCategory): ?>
-    <li<?php echo $isScriptCategoryController ? ' class="active"' : NULL; ?>>
-        <a href="<?php echo $_SERVER['PHP_SELF']; ?>?controller=pjAdminCategory&amp;action=pjActionIndex"><i class="fa fa-tag"></i> <span class="nav-label"><?php __('menuCategory');?></span></a>
-    </li>
-<?php endif; ?>
+
 
 <?php if ($hasAccessScriptOptions || $hasAccessScriptPayments): ?>
     <li<?php echo $isScriptOptionsController || $isScriptPaymentsController ? ' class="active"' : NULL; ?>>
@@ -187,10 +215,49 @@ $hasAccessScriptOptionsNotifications    = pjAuth::factory('pjAdminOptions', 'pjA
 <?php endif; ?>
 
 <?php 
-$auth = pjAuth::factory();
-$roleId = $auth->getRoleId();
+
 if ((int)$roleId === 4): ?>
     <li<?php echo $isScriptDriversResIndex ? ' class="active"' : NULL; ?>>
         <a href="<?php echo $_SERVER['PHP_SELF']; ?>?controller=pjAdminDrivers&amp;action=pjActionGetDriverReservationIndex"><i class="fa fa-dribbble"></i> <span class="nav-label"><?php __('front_your_reservations');?></span></a>
     </li>
  <?php endif; ?>
+
+
+ <!-- supplier menu -->
+<?php 
+if ((int)$roleId === 5): ?>
+<li<?php echo $isScriptSupplierIndex ? ' class="active"' : NULL; ?>>
+    <a href="<?php echo $_SERVER['PHP_SELF']; ?>?controller=pjAdminSuppliers&amp;action=pjActionIndex">
+        <i class="fa fa-th-large"></i>
+        <span class="nav-label"><?php __('plugin_base_menu_dashboard');?></span>
+    </a>
+</li>
+
+<li<?php echo $isScriptSupplierAvailableRides ? ' class="active"' : NULL; ?>>
+    <a href="<?php echo $_SERVER['PHP_SELF']; ?>?controller=pjAdminSuppliers&amp;action=pjActionAvailableRides">
+        <i class="fa fa-car"></i> 
+        <span class="nav-label"><?php __('plugin_base_menu_available_rides');?></span>
+    </a>
+</li>
+
+<li<?php echo $isScriptSupplierUpcomingRides ? ' class="active"' : NULL; ?>>
+    <a href="<?php echo $_SERVER['PHP_SELF']; ?>?controller=pjAdminSuppliers&amp;action=pjActionUpcomingRides">
+        <i class="fa fa-calendar-check-o"></i> 
+        <span class="nav-label"><?php __('plugin_base_menu_upcoming_rides');?></span>
+    </a>
+</li>
+
+<li<?php echo $isScriptSupplierPastRides ? ' class="active"' : NULL; ?>>
+    <a href="<?php echo $_SERVER['PHP_SELF']; ?>?controller=pjAdminSuppliers&amp;action=pjActionPastRides">
+        <i class="fa fa-history"></i> 
+        <span class="nav-label"><?php __('plugin_base_menu_past_rides');?></span>
+    </a>
+</li>
+
+<li<?php echo $isScriptSupplierDriverIndex ? ' class="active"' : NULL; ?>>
+    <a href="<?php echo $_SERVER['PHP_SELF']; ?>?controller=pjAdminSuppliers&amp;action=pjActionDrivers">
+        <i class="fa fa-users"></i>
+        <span class="nav-label"><?php __('menuDrivers'); ?></span>
+    </a>
+</li>
+<?php endif; ?>

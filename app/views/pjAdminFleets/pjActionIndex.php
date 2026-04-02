@@ -77,6 +77,7 @@ myLabel.thumb = <?php x__encode('lblThumb'); ?>;
 myLabel.fleet = <?php x__encode('lblFleet'); ?>;
 myLabel.passengers = <?php x__encode('lblPassengers'); ?>;
 myLabel.luggage = <?php x__encode('lblLuggage'); ?>;
+myLabel.category = 'Category';
 myLabel.count = <?php x__encode('lblCount'); ?>;
 myLabel.revert_status = <?php x__encode('revert_status'); ?>;
 myLabel.exported = <?php x__encode('lblExport'); ?>;

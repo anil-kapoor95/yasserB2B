@@ -534,6 +534,11 @@ class pjController extends pjObject
     {
    		return $this->getRoleId() == 1;
     }
+
+    public function isSupplier()
+    {
+   		return $this->getRoleId() == 5;
+    }
 /**
  * Check if request is send via AJAX
  *

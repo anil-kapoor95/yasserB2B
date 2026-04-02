@@ -69,9 +69,22 @@ class pjAdminFleets extends pjAdmin
             ->join('pjMultiLang', "t2.model='pjFleet' AND t2.foreign_id=t1.id AND t2.field='fleet' AND t2.locale='".$this->getLocaleId()."'", 'left outer')
             ->join('pjMultiLang', "t3.model='pjFleet' AND t3.foreign_id=t1.id AND t3.field='description' AND t3.locale='".$this->getLocaleId()."'", 'left outer');
             
+            
             if ($q = $this->_get->toString('q'))
             {
-                $pjFleetModel->where("(t2.content LIKE '%$q%' OR t3.content LIKE '%$q%')");
+                $pjFleetModel->where(
+                    "(t2.content LIKE '%$q%'
+                      OR t3.content LIKE '%$q%'
+                      OR EXISTS (
+                            SELECT 1
+                            FROM taxi_plugin_base_multi_lang ml
+                            WHERE ml.model='pjCategory'
+                              AND ml.field='category'
+                              AND ml.foreign_id=t1.category
+                              AND ml.locale='".$this->getLocaleId()."'
+                              AND ml.content LIKE '%$q%'
+                      ))"
+                );
             }
             
             if ($this->_get->toString('status') && !$this->_get->isEmpty('status') && in_array($this->_get->toString('status'), array('T', 'F')))
@@ -79,14 +92,31 @@ class pjAdminFleets extends pjAdmin
                 $pjFleetModel->where('t1.status', $this->_get->toString('status'));
             }
             
-            $column = 'fleet';
+            $column = 't2.content';
             $direction = 'ASC';
             if ($this->_get->toString('column') && in_array(strtoupper($this->_get->toString('direction')), array('ASC', 'DESC')))
             {
-                $column = $this->_get->toString('column');
+                //$column = $this->_get->toString('column');
+                switch ($this->_get->toString('column')) {
+                    case 'category':
+                        $column = "(SELECT ml.content
+                            FROM taxi_plugin_base_multi_lang ml
+                            WHERE ml.model='pjCategory'
+                              AND ml.field='category'
+                              AND ml.foreign_id=t1.category
+                              AND ml.locale='".$this->getLocaleId()."'
+                            LIMIT 1)";
+                        break;
+                    case 'fleet':
+                        $column = 't2.content';
+                        break;
+                    default:
+                        $column = 't1.' . $this->_get->toString('column');
+                }
                 $direction = strtoupper($this->_get->toString('direction'));
             }
             
+            $pjFleetCount = clone $pjFleetModel;
             $total = $pjFleetModel->findCount()->getData();
             $rowCount = $this->_get->toInt('rowCount') ?: 10;
             $pages = ceil($total / $rowCount);
@@ -100,7 +130,24 @@ class pjAdminFleets extends pjAdmin
             $data = array();
             
             $data = $pjFleetModel
-            ->select('t1.id, t1.thumb_path, t2.content as fleet, t1.passengers, t1.status, t1.luggage')
+            
+            ->select(
+            "t1.id,
+             t1.thumb_path,
+             t2.content AS fleet,
+             t1.passengers,
+             t1.luggage,
+             (
+                SELECT ml.content
+                FROM taxi_plugin_base_multi_lang ml
+                WHERE ml.model='pjCategory'
+                  AND ml.field='category'
+                  AND ml.foreign_id=t1.category
+                  AND ml.locale='".$this->getLocaleId()."'
+                LIMIT 1
+             ) AS category,
+             t1.status"
+        )
             ->orderBy("$column $direction")
             ->limit($rowCount, $offset)
             ->findAll()->getData();
@@ -223,6 +270,7 @@ class pjAdminFleets extends pjAdmin
            
             $data['passengers'] = $this->_post->toInt('passengers');
             $data['luggage'] = $this->_post->toInt('luggage');
+            $data['category'] = $this->_post->toInt('category');
             $id = pjFleetModel::factory(array_merge($post, $data))->insert()->getInsertId();
             if ($id !== false && (int) $id > 0)
             {
@@ -344,6 +392,13 @@ class pjAdminFleets extends pjAdmin
         }else{
             
             $this->setLocalesData();
+
+            $this->set('categories_arr', pjCategoryModel::factory()
+                ->select('t1.id, t1.category')
+                ->orderBy('t1.category ASC')
+                ->findAll()
+                ->getData()
+            );
             
             $this->set('extra_arr', pjExtraModel::factory()
             ->select('t1.*, t2.content AS name')
@@ -454,6 +509,7 @@ class pjAdminFleets extends pjAdmin
             }
             $data['passengers'] = $this->_post->toInt('passengers');
             $data['luggage'] = $this->_post->toInt('luggage');
+            $data['category'] = $this->_post->toInt('category');
             $pjFleetModel->reset()->where('id', $id)->limit(1)->modifyAll(array_merge($this->_post->raw(), $data));
             
             $pjFleetExtraModel = pjFleetExtraModel::factory();
@@ -598,6 +654,13 @@ class pjAdminFleets extends pjAdmin
             
             $price_arr = pjPriceModel::factory()->where('fleet_id', $id)->findAll()->getData();
             $this->set('price_arr', $price_arr);
+
+            $this->set('categories_arr', pjCategoryModel::factory()
+                ->select('t1.id, t1.category')
+                ->orderBy('t1.category ASC')
+                ->findAll()
+                ->getData()
+            );
             
             $this->set('extra_arr', pjExtraModel::factory()
                 ->select('t1.*, t2.content AS name')

@@ -27,7 +27,7 @@ $isSystemOptions = $isGeneralOptions || $isBackup || $isLocale || $isSms || $isV
 <nav class="navbar-default navbar-static-side" style="background-color: #212121;" role="navigation">
     <div class="sidebar-collapse">
         <ul class="nav metismenu" id="side-menu">
-            <li class="nav-header" style="background-color: #212121;">
+            <li class="nav-header 111" style="background-color: #212121;">
             	<a style="padding: 0px;" href="https://booking.alpenheir.at/index.php?controller=pjAdmin&action=pjActionIndex"><img src="https://alpenheir.at/wp-content/uploads/2025/06/white-logo-e1750592073785.png" width="165" alt="Logo"></a>
             </li>
 			<?php

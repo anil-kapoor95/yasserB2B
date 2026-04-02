@@ -9,12 +9,7 @@ $get = $controller->_get->raw();
 ?>
 
 <style>
-.auction_links{
-	text-decoration: underline;
-  cursor: pointer;
-  color: #0a5114;
-}
-.bg-completed {
+	.bg-completed {
     background-color: #8E44AD !important; /* Purple (example) */
     color: #fff !important;
 }
@@ -37,17 +32,18 @@ $get = $controller->_get->raw();
 	<div class="col-sm-12 bookings-page-heading">
 		<div class="row">
 			<div class="col-sm-10 list-view">
-				<h2><?php __('infoReservationListTitle');?></h2>
+				<h2><?php __('plugin_base_menu_upcoming_rides');?></h2>
 			</div>
-			<div class="col-sm-2 align-items-end cal-view" style="padding-top: 10px; text-align: right;">
+			<!-- <div class="col-sm-2 align-items-end cal-view" style="padding-top: 10px; text-align: right;">
 				<a href="<?php echo $_SERVER['PHP_SELF']; ?>?controller=pjAdminBookings&amp;action=pjActionDeleted" class="btn btn-primary">
 					<i class="fa fa-trash m-r-xs"></i></a> &nbsp;
 				<a href="<?php echo $_SERVER['PHP_SELF']; ?>?controller=pjAdmin&action=pjActionCalendar" class="btn btn-primary">Calendar View</a>
-			</div>
+			</div> -->
 			
 		</div><!-- /.row -->
 
-		<p class="m-b-none"><i class="fa fa-info-circle"></i><?php __('infoReservationListDesc');?></p>
+		<p class="m-b-none">
+			<i class="fa fa-info-circle"></i><?php __('infoUpcomingRidesListDesc');?></p>
 	</div><!-- /.col-md-12 -->
 	
 </div>
@@ -86,19 +82,10 @@ $get = $controller->_get->raw();
 				<div class="ibox-content cardealer-no-border">
 					<form action="" method="get" class="form-horizontal frm-filter">
     					<div class="row m-b-md">
-    						<div class="col-lg-2 col-md-2 col-sm-12 m-b-sm">
-    						<?php 
-                            if ($tpl['has_create'])
-                            {
-                            	?>
-    							<a href="<?php echo $_SERVER['PHP_SELF']; ?>?controller=pjAdminBookings&amp;action=pjActionCreate" class="btn btn-primary"><i class="fa fa-plus m-r-xs"></i> <?php __('btnAddEnquiry'); ?></a>
-    							<?php 
-                            }
-                            ?>
-    						</div>
-    						<div class="col-md-2 col-sm-5">
+    						
+    						<div class="col-md-5 col-sm-5">
     							
-								<div class="input-group">
+								<div class="input-group" style="width: 100%;">
 									<input type="text" name="q" placeholder="<?php __('btnSearch', false, true); ?>" class="form-control">
 									
 								</div>
@@ -141,47 +128,6 @@ $get = $controller->_get->raw();
 			</div>
 		</div>
 	</div>
-
-
-	<!-- Commission Modal -->
-	<div class="modal fade" id="commissionModal" tabindex="-1" role="dialog" aria-hidden="true">
-	  <div class="modal-dialog modal-dialog-centered">
-	    <div class="modal-content">
-
-	      <div class="modal-header">
-	        <button type="button" class="close" data-dismiss="modal">
-	          &times;
-	        </button>
-	        <h4 class="modal-title">Enter Commission</h4>
-	      </div>
-
-	      <div class="modal-body">
-	        <div class="form-group">
-	          <label for="commissionInput">Commission Amount</label>
-	          <input
-	            type="number"
-	            class="form-control"
-	            id="commissionInput"
-	            placeholder="Enter commission"
-	            min="0"
-	            step="0.01"
-	          >
-	        </div>
-	      </div>
-
-	      <div class="modal-footer">
-	      	<input type="hidden" class="currentBookingId" value="">
-	        <button type="button" class="btn btn-default" data-dismiss="modal">
-	          Cancel
-	        </button>
-	        <button type="button" class="btn btn-primary" id="saveCommissionBtn">
-	          Save
-	        </button>
-	      </div>
-
-	    </div>
-	  </div>
-	</div>
 </div>
 <script type="text/javascript">
 var pjGrid = pjGrid || {};
@@ -221,9 +167,9 @@ myLabel.total = <?php x__encode('plugin_base_lbl_price', false, true); ?>;
 myLabel.distance = <?php x__encode('lblDistance', false, true); ?>;
 myLabel.date_time = <?php x__encode('lblDateTime', false, false); ?>;
 myLabel.email = <?php x__encode('email', false, true); ?>;
-myLabel.driver_name = <?php x__encode('plugin_base_lbl_driver', false, true); ?>;
-myLabel.supplier_name = <?php x__encode('plugin_base_lbl_supplier_name', false, true); ?>;
-myLabel.is_auction = <?php x__encode('plugin_base_lbl_in_auction', false, true); ?>;
+//myLabel.driver_name = "Driver";
+//myLabel.supplier_name = 'Supplier Name';
+//myLabel.is_auction = 'In Auction';
 myLabel.status = <?php x__encode('lblStatus'); ?>;
 myLabel.exported = <?php x__encode('lblExport', false, true); ?>;
 myLabel.print = <?php x__encode('lblPrint', false, true); ?>;

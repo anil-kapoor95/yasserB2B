@@ -99,6 +99,24 @@
 							<div class="row">
 								<div class="col-sm-6">
 									<div class="form-group">
+                                        <label class="control-label">Choose Category</label>
+    
+                                        <select name="category" id="category" class="form-control" data-placeholder="-- <?php __('lblChoose'); ?> --">
+	                						<?php
+	                						foreach ($tpl['categories_arr'] as $v)
+	                						{
+	                							$selected = (!empty($tpl['arr']['category']) && $tpl['arr']['category'] == $v['id'])
+										            ? 'selected="selected"'
+										            : '';
+										        ?>
+	                							<option value="<?php echo $v['id']; ?>" <?php echo $selected; ?>><?php echo stripslashes($v['category']); ?></option><?php
+	                						}
+	                						?>
+	                					</select>
+                                    </div><!-- /.form-group -->
+								</div>
+								<div class="col-sm-6">
+									<div class="form-group">
                                         <label class="control-label"><?php __('lblPassengers'); ?></label>
     
                                         <input type="text" name="passengers" id="passengers" value="<?php echo pjSanitize::clean($tpl['arr']['passengers'])?>" class="form-control pj-field-count digits" data-msg-digits="<?php __('pj_digits_validation');?>"/>

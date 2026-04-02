@@ -506,7 +506,11 @@ class pjAdminDrivers extends pjAdmin
                     $direction = strtoupper($this->_get->toString('direction'));
                 }
 
-                 $total = $pjDriverModel->findCount()->getData();
+                //new code
+                $pjDriverModel
+                ->where('t1.auth_id IS NOT NULL')
+                ->where('t1.auth_id !=', 0);
+                $total = $pjDriverModel->findCount()->getData();
                 $rowCount = $this->_get->toInt('rowCount') ?: 10;
                 $pages = ceil($total / $rowCount);
                 $page = $this->_get->toInt('page') ?: 1;

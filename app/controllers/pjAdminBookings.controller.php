@@ -369,7 +369,16 @@ class pjAdminBookings extends pjAdmin
                     $v['distance'] = (int) $v['distance'] . ' km';
                     $v['driver_name'] = pjSanitize::clean($v['driver_name'] ? $v['driver_name'] : 'NA');
                     $data[$k] = $v;
-                    $data[$k]['is_auction'] = $v['is_auction'] == 1 ? 'Yes' : 'No';
+                    //$data[$k]['is_auction'] = $v['is_auction'] == 1 ? 'Yes' : 'No';
+
+                    if($v['is_auction'] == 1){
+                        $isauc = '<span data-id="'.$v['id'].'" class="auction_links remove_auction">Remove from auction</span>';
+                    }else{
+                        $isauc = '<span data-id="'.$v['id'].'" class="auction_links add_auction">Add in auction</span>';
+                    }
+
+
+                    $data[$k]['is_auction'] = $isauc;
                     $data[$k]['extras'] = $extras_by_booking[$v['id']] ?? [];
                 }
                 // echo "<pre>"; print_r($data); 
@@ -620,6 +629,7 @@ class pjAdminBookings extends pjAdmin
             }
 
             $data['price_id'] = $price_arr['price_id'];
+            $data['fleet_category_id'] = $fleet_arr['category'];
             $data['sub_total'] = $dataSub_total;
             $data['tax'] = $price_arr['tax'];
             $data['total'] = $dataTotal;
@@ -1106,6 +1116,71 @@ class pjAdminBookings extends pjAdmin
         exit;
     }
 
+    public function pjActionRemoveAuctionBooking(){
+        $this->setAjax(true);
+
+        if (!$this->isXHR()) {
+            self::jsonResponse(['status' => 'ERR', 'code' => 100, 'text' => 'Missing headers']);
+        }
+
+        if (!self::isPost()) {
+            self::jsonResponse(['status' => 'ERR', 'code' => 101, 'text' => 'Invalid request']);
+        }
+
+        if (!pjAuth::factory()->hasAccess()) {
+            self::jsonResponse(['status' => 'ERR', 'code' => 102, 'text' => 'Access denied']);
+        }
+
+        $booking_id = $this->_post->toInt('booking_id');
+        if (!$booking_id) {
+            self::jsonResponse(['status' => 'ERR', 'code' => 103, 'text' => 'Invalid booking id']);
+        }
+
+        $pjBookingModel = pjBookingModel::factory();
+        $pjAuctionModel = pjAuctionModel::factory();
+
+        $booking = $pjBookingModel->find($booking_id)->getData();
+
+        if (!$booking) {
+            self::jsonResponse([
+                'status' => 'ERR',
+                'code'   => 104,
+                'text'   => 'Booking not found'
+            ]);
+        }
+
+        $pjBookingModel
+            ->reset()
+            ->where('id', $booking_id)
+            ->modifyAll([
+                'commission'  => NULL,      // or 0
+                'is_auction'  => 0,
+                'auctioned_on'=> NULL
+                // 'supplier_id' => $someSupplierId (only if needed)
+            ]);
+
+        $deleted = $pjAuctionModel
+            ->reset()
+            ->where('booking_id', $booking_id)
+            ->eraseAll();
+
+        if ($deleted === false) {
+            self::jsonResponse([
+                'status' => 'ERR',
+                'code'   => 105,
+                'text'   => 'Failed to remove auction entry'
+            ]);
+        }
+
+        self::jsonResponse([
+            'status' => 'OK',
+            'code'   => 200,
+            'text'   => 'Booking successfully removed from auction'
+        ]);
+
+        exit;
+    }
+
     public function pjActionPutBookingInAuction()
     {
         $this->setAjax(true);
@@ -1122,7 +1197,8 @@ class pjAdminBookings extends pjAdmin
             self::jsonResponse(['status' => 'ERR', 'code' => 102, 'text' => 'Access denied']);
         }
 
-        $booking_id = $this->_get->toInt('id');
+        $booking_id = $this->_post->toInt('booking_id');
+        $commission = $this->_post->toFloat('commission');
 
         if (!$booking_id) {
             self::jsonResponse(['status' => 'ERR', 'code' => 103, 'text' => 'Invalid booking id']);
@@ -1141,6 +1217,7 @@ class pjAdminBookings extends pjAdmin
         ->reset()
         ->where('id', $booking_id)
         ->modifyAll([
+            'commission' => $commission,
             'is_auction' => 1,
             'auctioned_on' => date('Y-m-d H:i:s'),
             'supplier_id' => NULL
@@ -1156,7 +1233,7 @@ class pjAdminBookings extends pjAdmin
             self::jsonResponse([
                 'status' => 'ERR',
                 'code' => 105,
-                'text' => 'Failed to insert auction record'
+                'text' => $booking_id
             ]);
         }
         self::jsonResponse([

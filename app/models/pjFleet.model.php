@@ -20,6 +20,7 @@ class pjFleetModel extends pjAppModel
 		array('name' => 'numberof_booking', 'type' => 'decimal', 'default' => ':NULL'),
 		array('name' => 'passengers', 'type' => 'int', 'default' => ':NULL'),
 		array('name' => 'luggage', 'type' => 'int', 'default' => ':NULL'),		
+		array('name' => 'category', 'type' => 'int', 'default' => ':NULL'),		
 		array('name' => 'source_path', 'type' => 'varchar', 'default' => ':NULL'),
 		array('name' => 'thumb_path', 'type' => 'varchar', 'default' => ':NULL'),
 		array('name' => 'image_name', 'type' => 'varchar', 'default' => ':NULL'),

@@ -12,6 +12,8 @@
 
 	});
 
+	
+
 	var document = window.document,
 		validate = (pjQ.$.fn.validate !== undefined),
 		routes = [
@@ -227,6 +229,7 @@
 
 			this.container = document.getElementById("pjTbsContainer_" + self.opts.index);
 
+			
 						
 
 			self.$container = pjQ.$(self.container);

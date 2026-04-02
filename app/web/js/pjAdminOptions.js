@@ -325,7 +325,15 @@ var jQuery_1_8_2 = jQuery_1_8_2 || $.noConflict();
 		}
 		
 		$("#boxNotificationsWrapper").on("change", 'input[name="recipient"]', function () {
-			
+			var recipient = $(this).val();
+
+			if(recipient === "suppliers"){
+				$(".default-tokens").hide();
+				$(".supplier-tokens").show();
+			}else{
+				$(".default-tokens").show();
+				$(".supplier-tokens").hide();
+			}
 			var search = window.location.search,
 				recipient = search.match(/&?recipient=(\w+)/),
 				variant = search.match(/&?variant=(\w+)/),

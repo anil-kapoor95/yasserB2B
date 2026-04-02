@@ -22,6 +22,81 @@ class pjFrontClient extends pjAuth
         }
     }
     
+    public function getSupplierByEmail()
+    {
+        $params = $this->getParams();
+        $client = pjAuthUserModel::factory()->where('email', $params['email'])->where('role_id', 5)->findAll()->getDataIndex(0);
+        if(!empty($client))
+        {
+            return $client;
+        }else{
+            return FALSE;
+        }
+    }
+    
+    public function createSupplier(){
+        $params = $this->getParams();
+
+        $u_data = array();
+        $categoryStr = null;
+
+
+        $u_data['is_active'] = 'T';
+        $u_data['role_id'] = 5;
+        $u_data['email'] = $params['email'];
+        $u_data['password'] = isset($params['password']) ? $params['password'] : pjAuth::generatePassword($this->option_arr);
+
+        $name_arr = array();
+        if(isset($params['fname']) && !empty($params['fname']))
+        {
+            $name_arr[] = $params['fname'];
+        }
+        if(isset($params['lname']) && !empty($params['lname']))
+        {
+            $name_arr[] = $params['lname'];
+        }
+        $u_data['name'] = join(" ", $name_arr);
+        $u_data['phone'] = isset($params['phone']) ? $params['phone'] : ":NULL";
+        $u_data['status'] = isset($params['status']) ? $params['status'] : ":NULL";
+        $u_data['ip'] = pjUtil::getClientIp();
+        $u_data['is_active'] = 'T';
+
+        $id = pjAuthUserModel::factory($u_data)->insert()->getInsertId();
+        if ($id !== false && (int) $id > 0)
+        {
+            $client = pjFrontClient::init($u_data)->getSupplierByEmail();
+            if($client != FALSE)
+            {
+                $c_data = array();
+                $c_data['auth_id'] = $client['id'];
+                //$c_data['title'] = isset($params['title']) ? $params['title'] : ":NULL";
+                $c_data['first_name'] = isset($params['fname']) ? $params['fname'] : ":NULL";
+                $c_data['last_name'] = isset($params['lname']) ? $params['lname'] : ":NULL";
+                $c_data['phone'] = isset($params['phone']) ? $params['phone'] : ":NULL";
+                $c_data['company_name'] = isset($params['company']) ? $params['company'] : ":NULL";
+                //$c_data['address'] = isset($params['address']) ? $params['address'] : ":NULL";
+                $c_data['city'] = isset($params['city']) ? $params['city'] : ":NULL";
+                //$c_data['state'] = isset($params['state']) ? $params['state'] : ":NULL";
+                //$c_data['zip'] = isset($params['zip']) ? $params['zip'] : ":NULL";
+                //$c_data['country_id'] = isset($params['country_id']) ? $params['country_id'] : ":NULL";
+                $c_data['total_vehicles'] = isset($params['vehicles']) ? $params['vehicles'] : ":NULL";
+                if (isset($params['category']) && is_array($params['category'])) {
+                    $c_data['vehicle_category'] = implode(',', $params['category']);
+                }
+        
+                $client_id = pjSupplierModel::factory()->setAttributes($c_data)->insert()->getInsertId();
+                if ($client_id !== false && (int) $client_id > 0)
+                {
+                    //pjAppController::pjActionAccountSend($this->option_arr, $client_id, PJ_SALT, 'account', $this->getLocaleId());
+                    return array('status' => "OK", 'code' => 200, 'client_id' => $client_id);
+                }
+                return array('status' => "OK", 'code' => 200);
+            }
+        }else{
+            return array('status' => "ERR", 'code' => 100);
+        }
+    }
+
     public function createClient()
     {
         $params = $this->getParams();

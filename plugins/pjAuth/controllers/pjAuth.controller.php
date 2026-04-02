@@ -895,16 +895,20 @@ class pjAuth extends pjAuthAppController
      */
     public function hasAccess($subaction = null)
     {
+
         $params = $this->getParams();
 
         if (!$this->isLoged())
         {
             return false;
         }else{
-            if($this->getUserId() == 1)
+            
+            if($this->getUserId() == 1 || ($this->isSupplier() == 1 && (isset($params['controller']) && $params['controller'] == 'pjAdminSuppliers')))
             {
+                
                 return true;
             }
+            
             if(isset($params['controller']) && !empty($params['controller']))
             {
                 $pair = $params['controller'];
@@ -916,6 +920,7 @@ class pjAuth extends pjAuthAppController
                 {
                     $pair .= '_' . $subaction;
                 }
+                //die($pair);
                 $permissions = $this->session->has($this->defaultPermissions) ? $this->session->getData($this->defaultPermissions) : array();
                 if(in_array($pair, $permissions))
                 {

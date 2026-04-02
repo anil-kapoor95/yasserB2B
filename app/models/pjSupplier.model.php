@@ -18,6 +18,7 @@ class pjSupplierModel extends pjAppModel
             array('name' => 'company_name', 'type' => 'varchar', 'default' => ':NULL'),
             array('name' => 'city', 'type' => 'varchar', 'default' => ':NULL'),
             array('name' => 'total_vehicles', 'type' => 'int', 'default' => 0),
+            array('name' => 'vehicle_category', 'type' => 'varchar', 'default' => ':NULL'),
             array('name' => 'status', 'type' => 'enum', 'default' => 'F'),
             array('name' => 'created', 'type' => 'datetime', 'default' => ':NOW()'),
             array('name' => 'modified', 'type' => 'datetime', 'default' => ':NOW()')

@@ -25,6 +25,7 @@ class pjBookingModel extends pjAppModel
 	    array('name' => 'locale_id', 'type' => 'int', 'default' => ':NULL'),
 		array('name' => 'client_id', 'type' => 'int', 'default' => ':NULL'),
 		array('name' => 'fleet_id', 'type' => 'int', 'default' => ':NULL'),
+		array('name' => 'fleet_category_id', 'type' => 'int', 'default' => ':NULL'),
 		array('name' => 'price_id', 'type' => 'int', 'default' => ':NULL'),
 		array('name' => 'pickup_address', 'type' => 'varchar', 'default' => ':NULL'),
 		array('name' => 'return_address', 'type' => 'varchar', 'default' => ':NULL'),
@@ -81,6 +82,7 @@ class pjBookingModel extends pjAppModel
 		array('name' => 'net_total', 'type' => 'varchar', 'default' => ':NULL'),
 		array('name' => 'is_auction', 'type' => 'TINYINT', 'default' => 0),
 		array('name' => 'auctioned_on', 'type' => 'datetime', 'default' => ':NULL'),
+		array('name' => 'commission', 'type' => 'varchar', 'default' => ':NULL'),
 		array('name' => 'supplier_id', 'type' => 'int', 'default' => ':NULL'),
 	);
 

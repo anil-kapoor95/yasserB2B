@@ -193,11 +193,12 @@ var jQuery_1_8_2 = jQuery_1_8_2 || $.noConflict();
 				          {text: myLabel.fleet, type: "text", sortable: true, editable: true, editableWidth: 170},
 				          {text: myLabel.passengers, type: "text", sortable: true, editable: true, editableWidth: 70},
 				          {text: myLabel.luggage, type: "text", sortable: true, editable: true, editableWidth: 70},
+				          {text: myLabel.category, type: "text", sortable: true, editable: true, editableWidth: 70},
 				          {text: myLabel.status, type: "toggle", sortable: true, editable: true, positiveLabel: myLabel.active, positiveValue: "T", negativeLabel: myLabel.inactive, negativeValue: "F"}
 				          ],
 				dataUrl: "index.php?controller=pjAdminFleets&action=pjActionGetFleet",
 				dataType: "json",
-				fields: ['thumb_path', 'fleet', 'passengers', 'luggage', 'status'],
+				fields: ['thumb_path', 'fleet', 'passengers', 'luggage', 'category', 'status'],
 				paginator: {
 					actions: [
 					   {text: myLabel.delete_selected, url: "index.php?controller=pjAdminFleets&action=pjActionDeleteFleetBulk", render: true, confirmation: myLabel.delete_confirmation}

@@ -794,18 +794,19 @@ var jQuery_1_8_2 = jQuery_1_8_2 || $.noConflict();
 			    return paymentLabels[val] || val;
 			}
 
+			function getSupplierVehicleCategories() {
+			    return Array.isArray(window.appData?.supplierVehicleCategories)
+			        ? window.appData.supplierVehicleCategories
+			        : [];
+			}
+
+			var buttonOpts = [];
+
+			buttonOpts.push({type: "eye", url: "index.php?controller=pjAdminBookings&action=pjActionUpdate&id={:id}"});
+
+			buttonOpts.push({type: "check", url: "index.php?controller=pjAdminBookings&action=pjActionUpdate&id={:id}",});
 			var $grid = $("#grid").datagrid({
-
-				buttons: [{type: "print", target: "_blank", url: "index.php?controller=pjAdminBookings&action=pjActionPrint&id={:id}"},
-
-				          {type: "edit", url: "index.php?controller=pjAdminBookings&action=pjActionUpdate&id={:id}"},
-
-				          {type: "delete", url: "index.php?controller=pjAdminBookings&action=pjActionDeleteBooking&id={:id}"},
-
-				          // {type: "auction", url: "index.php?controller=pjAdminBookings&action=pjActionPutBookingInAuction&id={:id}"}
-
-						  ],
-
+				//buttons: buttonOpts,
 				columns: [
 
 				          {text: myLabel.client, type: "text", sortable: false},
@@ -816,18 +817,59 @@ var jQuery_1_8_2 = jQuery_1_8_2 || $.noConflict();
 				          {text: myLabel.extras, type: "text", sortable: false, renderer: formatExtras},
 				          {text: myLabel.payment_method, type: "text", sortable: false, renderer: formatPaymentTypes},
 				          {text: myLabel.total, type: "text", sortable: false},
+				          {text: myLabel.commission, type: "text", sortable: false},
 				          {text: myLabel.distance, type: "text", sortable: false},
 				          {text: myLabel.date_time, type: "text", sortable: false},
-				          {text: myLabel.driver_name, type: "text", sortable: false},
-				          {text: myLabel.supplier_name, type: "text", sortable: false},
-				          {text: myLabel.is_auction, type: "text", sortable: false},
-				          {text: myLabel.status, type: "text", sortable: true, editable: false, renderer: formatStatus}],
+				          {
+				          	text: myLabel.actions, 
+				          	type: "text", 
+				          	sortable: false,
 
-				dataUrl: "index.php?controller=pjAdminBookings&action=pjActionGetBooking" + pjGrid.queryString,
+				          	renderer: function (val, row) {
+				          	const supplierVehicleCategories = getSupplierVehicleCategories();
+
+				          	//console.log('supplierVehicleCategories',supplierVehicleCategories);
+    						let html = '';
+
+						    // 👁 View button (always visible)
+						    html += `
+						      <a href="index.php?controller=pjAdminSuppliers&action=pjActionRideDetails&id=${row.id}"
+						         class="pj-button pj-button-eye"
+						         title="">
+						        <i class="fa fa-eye"></i>
+						      </a>
+						    `;
+
+						    // ✔ Assign button (conditional)
+						    if (
+						      Array.isArray(supplierVehicleCategories) &&
+						      supplierVehicleCategories.length > 0 &&
+						      supplierVehicleCategories.includes(parseInt(row.fleet_category_id, 10))
+						    ) {
+						      html += `
+						        <a href="javascript:void(0);"
+						           class="pj-button pj-button-check accept_ride"
+						      	   data-id="${row.id}"
+						           title="">
+						          <i class="fa fa-check"></i>
+						        </a>
+						      `;
+						    }
+
+						    return html;
+						    }
+				          },
+				          // {text: myLabel.driver_name, type: "text", sortable: false},
+				          // {text: myLabel.supplier_name, type: "text", sortable: false},
+				          // {text: myLabel.is_auction, type: "text", sortable: false},
+				          // {text: myLabel.status, type: "text", sortable: true, editable: false, renderer: formatStatus}
+				      ],
+
+				dataUrl: "index.php?controller=pjAdminSuppliers&action=pjActionGetAvailableBooking" + pjGrid.queryString,
 
 				dataType: "json",
 
-				fields: ['client', 'fleet','pickup_address', 'return_address', 'passengers', 'extras', 'payment_method', 'total', 'distance', 'date_time', 'driver_name', 'supplier_name','is_auction','status'],
+				fields: ['client', 'fleet','pickup_address', 'return_address', 'passengers', 'extras', 'payment_method', 'total','commission', 'distance', 'date_time','actions'],
 
 				paginator: {
 
@@ -955,101 +997,6 @@ var jQuery_1_8_2 = jQuery_1_8_2 || $.noConflict();
 			});
 		}
 
-		$(document).on("click", ".add_auction", function (e) {
-			var $this = $(this);
-			var bid = $this.data('id');
-			$(document).find('#commissionModal').modal('show');
-			if(bid){
-				$(document).find('.currentBookingId').val(bid);
-			}
-		});
-
-		$('#saveCommissionBtn').on('click', function () {
-		    var commission = $('#commissionInput').val();
-		    var currentBookingId = $(document).find('.currentBookingId').val();
-
-		    if (commission === '' || isNaN(commission) || commission < 0) {
-		        //alert('Please enter a valid commission amount');
-		        return;
-		    }
-
-		    // 🔽 AJAX save (example)
-		    var params = {
-			    booking_id: currentBookingId,
-			    commission: $('#commissionInput').val()
-			};
-		    $.post(
-			    ["index.php?controller=pjAdminBookings&action=pjActionPutBookingInAuction"].join(""),
-			    params
-			).done(function (data) {
-
-			    if (data && data.status === 'OK') {
-			        // Optional: update UI or reload grid
-			        $("#commissionModal").modal("hide");
-
-			        // Example: reload grid
-			        if (typeof $grid !== "undefined") {
-			            $grid.datagrid(
-						    "load",
-						    "index.php?controller=pjAdminBookings&action=pjActionGetBooking" + pjGrid.queryString
-						);
-			        }
-			    } else {
-			        //alert(data.text || "Failed to save commission");
-			        $("#commissionModal").modal("hide");
-			    }
-
-			}).fail(function () {
-			    //alert("Server error. Please try again.");
-			    $("#commissionModal").modal("hide");
-			});
-		});
-
-		$(document).on("click", ".remove_auction", function (e) {
-			var bookingId = $(this).data('id');
-
-		    swal({
-		        title: "Are you sure?",
-		        text: "This booking will be removed from auction.",
-		        type: "warning",
-		        showCancelButton: true,
-		        confirmButtonColor: "#DD6B55",
-		        confirmButtonText: "Yes, remove it!",
-		        cancelButtonText: "Cancel",
-		        closeOnConfirm: true
-		    }, function (isConfirm) {
-
-		        if (!isConfirm) {
-		            return;
-		        }
-
-		        // AJAX call
-		        $.post(
-		            "index.php?controller=pjAdminBookings&action=pjActionRemoveAuctionBooking",
-		            { booking_id: bookingId },
-		            function (resp) {
-
-		                if (resp.status === 'OK') {
-
-		                    //swal("Removed!", resp.text, "success");
-
-		                    // Reload grid correctly
-		                    $grid.datagrid(
-							    "load",
-							    "index.php?controller=pjAdminBookings&action=pjActionGetBooking" + pjGrid.queryString
-							);
-
-		                } else {
-		                    swal("Error!", resp.text || "Something went wrong", "error");
-		                }
-
-		            },
-		            "json"
-		        );
-
-		    });
-		});
-
 		$(document).on("focusin", ".timepick", function (e) {
 
 			var minDateTime, maxDateTime,
@@ -1099,7 +1046,7 @@ var jQuery_1_8_2 = jQuery_1_8_2 || $.noConflict();
 
 			$grid.datagrid("option", "cache", cache);
 
-			$grid.datagrid("load", "index.php?controller=pjAdminBookings&action=pjActionGetBooking" + pjGrid.queryString, "created", "DESC", content.page, content.rowCount);
+			$grid.datagrid("load", "index.php?controller=pjAdminSuppliers&action=pjActionGetAvailableBooking" + pjGrid.queryString, "created", "DESC", content.page, content.rowCount);
 
 			return false;
 
@@ -1322,6 +1269,52 @@ var jQuery_1_8_2 = jQuery_1_8_2 || $.noConflict();
 		});
 
 		
+
+		$(document).on("click", '.accept_ride', function (e) {
+			var bookingId = $(this).data('id');
+			
+
+			swal({
+		        title: "Are you sure?",
+		        //text: "This booking will be removed from auction.",
+		        type: "warning",
+		        showCancelButton: true,
+		        confirmButtonColor: "#DD6B55",
+		        confirmButtonText: "Yes, accept it!",
+		        cancelButtonText: "Cancel",
+		        closeOnConfirm: true
+		    }, function (isConfirm) {
+		    	if (!isConfirm) {
+		            return;
+		        }
+
+		        $.post(
+		            "index.php?controller=pjAdminSuppliers&action=pjActionAcceptRide",
+		            { booking_id: bookingId },
+		            function (resp) {
+
+		                if (resp.status === 'OK') {
+
+		                    swal("Accepted!", resp.text, "success");
+
+		                    // Reload grid correctly
+		                    $grid.datagrid(
+							    "load",
+							    "index.php?controller=pjAdminSuppliers&action=pjActionAvailableRides" + pjGrid.queryString
+							);
+
+		                } else {
+		                    swal("Error!", resp.text || "Something went wrong", "error");
+		                }
+
+		            },
+		            "json"
+		        );
+		        //console.log('accept_ride');
+		    });
+
+			
+		});
 
 		$("#grid").on("click", 'a.pj-paginator-action:last', function (e) {
 
