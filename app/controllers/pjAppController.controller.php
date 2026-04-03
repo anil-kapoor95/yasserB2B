@@ -2420,10 +2420,136 @@ public static function calPriceAdmin($fleet_id, $distance, $passengers, $extra_i
 
 	}
 
+	public function pjActionAccountActiveSend($option_arr, $suppliar_id, $salt, $opt, $locale_id)
+	{
+	    $Email = self::getMailer($option_arr);
+	    $pjNotificationModel = pjNotificationModel::factory();
 
+	    $notification = $pjNotificationModel->reset()->where('recipient', 'admin')->where('transport', 'email')->where('variant', $opt)->findAll()->getDataIndex(0);
 
+	    if((int) $notification['id'] > 0 && $notification['is_active'] == 1)
+
+	    {
+	        $suppliar = pjSupplierModel::factory()->find($suppliar_id)->getData();
+	        $tokens = pjAppController::getAdminTokens($option_arr, $suppliar, PJ_SALT, $locale_id);
+	        $resp = pjFrontEnd::pjActionGetSubjectMessage($notification, $locale_id, $this->getForeignId());
+	        $lang_message = $resp['lang_message'];
+	        $lang_subject = $resp['lang_subject'];
+	        $auth_user = pjAuthUserModel::factory()->find($suppliar['auth_id'])->getData();
+	        if (count($lang_message) === 1 && count($lang_subject) === 1 && !empty($auth_user['email']))
+	        {
+	            $message = preg_replace('/\[Delivery\].*\[\/Delivery\]/s', '', $lang_message[0]['content']);
+
+	            $message = str_replace($tokens['search'], $tokens['replace'], $message);
+				// Get admin email
+                $adminEmail = self::getAdminEmail();
+                // $adminEmail = 'anil.allalgos@gmail.com';
+	            $Email
+	            ->setTo($adminEmail)
+	            ->setSubject($lang_subject[0]['content'])
+	            ->send($message);
+	        }
+	    }
+	}
+
+	public function pjActionSupplierAccountSend($option_arr, $suppliar_id, $salt, $opt, $locale_id)
+	{
+	    $Email = self::getMailer($option_arr);
+	    $pjNotificationModel = pjNotificationModel::factory();
+
+	    $notification = $pjNotificationModel->reset()->where('recipient', 'suppliers')->where('transport', 'email')->where('variant', $opt)->findAll()->getDataIndex(0);
+
+	    if((int) $notification['id'] > 0 && $notification['is_active'] == 1)
+
+	    {
+	        $suppliar = pjSupplierModel::factory()->find($suppliar_id)->getData();
+	        $tokens = pjAppController::getSuppliarTokens($option_arr, $suppliar, PJ_SALT, $locale_id);
+	        $resp = pjFrontEnd::pjActionGetSubjectMessage($notification, $locale_id, $this->getForeignId());
+	        $lang_message = $resp['lang_message'];
+	        $lang_subject = $resp['lang_subject'];
+	        $auth_user = pjAuthUserModel::factory()->find($suppliar['auth_id'])->getData();
+	        if (count($lang_message) === 1 && count($lang_subject) === 1 && !empty($auth_user['email']))
+	        {
+	            $message = preg_replace('/\[Delivery\].*\[\/Delivery\]/s', '', $lang_message[0]['content']);
+
+	            $message = str_replace($tokens['search'], $tokens['replace'], $message);
+
+	            $Email
+	            ->setTo($auth_user['email'])
+	            ->setSubject($lang_subject[0]['content'])
+	            ->send($message);
+	        }
+	    }
+	}
+
+	public function getSuppliarTokens($option_arr, $suppliar, $salt, $locale_id)
+	{
+	    $supplierFirstName = '';
+	    $supplierLastName = '';
+	    $supplierEmail = '';
+	    $supplierPassword = '';
+	    $supplierPhone = '';
+	    $supplierCompany = '';
+
+		if (!empty($suppliar['auth_id'])) 
+		{
+			$user = pjAuthUserModel::factory()
+				->find($suppliar['auth_id'])
+				->getData();
+
+			if (!empty($user)) 
+			{
+				$supplierFirstName = !empty($suppliar['first_name']) ? $suppliar['first_name'] : '';
+				$supplierLastName  = !empty($suppliar['last_name']) ? $suppliar['last_name'] : '';
+				$supplierEmail = pjSanitize::clean($user['email']);
+				$supplierPassword = pjSanitize::clean($user['password']);
+				$supplierPhone = pjSanitize::clean($suppliar['phone']);
+				$supplierCompany = pjSanitize::clean($suppliar['company_name']);
+			}
+		}
+
+		$search = array('{supplierFirstName}', '{supplierLastName}', '{supplierEmail}', '{supplierPassword}', '{supplierPhone}','{supplierCompany}');
+		$replace = array(
+			$supplierFirstName,
+			$supplierLastName,
+			$supplierEmail,
+			$supplierPassword,
+			$supplierPhone,
+			$supplierCompany
+		);
+
+		return compact('search', 'replace');
+	}
+
+	public function getAdminTokens($option_arr, $suppliar, $salt, $locale_id)
+	{
+		$supplierName = '';
+		$supplierId = '';
+		$accountApprovalURL = '';
+
+		if (!empty($suppliar['auth_id'])) 
+		{
+			$authId = $suppliar['auth_id'];
+
+			// Fetch user
+			$user = pjAuthUserModel::factory()
+				->find($authId)
+				->getData();
+
+			if (!empty($user)) 
+			{
+				$supplierName = pjSanitize::clean($user['name']);
+			}
+
+			// Approval URL
+			$url = PJ_INSTALL_URL . 'index.php?controller=pjBaseUsers&action=pjActionUpdate&id=' . $authId;
+			$accountApprovalURL = '<a href="' . $url . '">' . $url . '</a>';
+		}
+
+		$search = array('{supplierName}', '{supplierId}', '{accountApprovalURL}');
+		$replace = array($supplierName, $authId, $accountApprovalURL);
+
+		return compact('search', 'replace');
+	}
 }
-
-
-
 ?>

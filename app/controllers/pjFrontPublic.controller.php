@@ -725,7 +725,7 @@ class pjFrontPublic extends pjFront
                     'phone'          => $post['phone'],
                     'company_name'   => $post['company_name'],
                     'city'           => $post['city'],
-                    'total_vehicles' => $post['total_vehicles'],
+                    // 'total_vehicles' => $post['total_vehicles'],
                     'status'         => 'T',
                 );
 
@@ -733,12 +733,12 @@ class pjFrontPublic extends pjFront
 								->setAttributes($supplierData)
                                 ->insert()
                                 ->getInsertId();
-								
 
                 if ($supplierId)
                 {
 					echo json_encode(array(
 					'status' => 'OK',
+					'supplier_id' => $supplierId,
 					'message' => 'You have successfully registered. Please wait for admin approval.'
 					));
 					exit;
@@ -751,5 +751,31 @@ class pjFrontPublic extends pjFront
 			exit;
         }
     }
+
+	public function pjActionSendSupplierEmails()
+	{
+		$supplierId = $this->_get->toInt('supplier_id');
+
+		if ($supplierId > 0) {
+
+			pjAppController::pjActionSupplierAccountSend(
+				$this->option_arr,
+				$supplierId,
+				PJ_SALT,
+				"account",
+				$this->getLocaleId()
+			);
+
+			pjAppController::pjActionAccountActiveSend(
+				$this->option_arr,
+				$supplierId,
+				PJ_SALT,
+				"accountactive",
+				$this->getLocaleId()
+			);
+		}
+
+		exit;
+	}
 }
 ?>

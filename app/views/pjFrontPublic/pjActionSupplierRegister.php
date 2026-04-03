@@ -26,6 +26,38 @@ body{
 .is-invalid{
     border-color:#dc3545;
 }
+#supplierSnackbar{
+    visibility: hidden;
+    min-width: 320px;
+    background-color: #28a745; /* success green */
+    color: #fff;
+    text-align: center;
+    border-radius: 6px;
+    padding: 14px 20px;
+    position: fixed;
+    z-index: 9999;
+    left: 50%;
+    bottom: 30px;
+    transform: translateX(-50%);
+    font-size: 15px;
+    font-weight: 500;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+}
+
+#supplierSnackbar.show{
+    visibility: visible;
+    animation: fadeIn 0.4s, fadeOut 0.4s 3s;
+}
+
+@keyframes fadeIn{
+    from{bottom:0; opacity:0;}
+    to{bottom:30px; opacity:1;}
+}
+
+@keyframes fadeOut{
+    from{bottom:30px; opacity:1;}
+    to{bottom:0; opacity:0;}
+}
 </style>
 
 <div class="container" style="max-width:700px;margin-top:40px;margin-bottom:40px;">
@@ -126,5 +158,7 @@ body{
         </form>
 
     </div>
+    <!-- Snackbar -->
+    <div id="supplierSnackbar"></div>
 </div>
 

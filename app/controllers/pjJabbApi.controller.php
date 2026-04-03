@@ -281,102 +281,6 @@ class pjJabbApi extends pjAppController
             ]);
             exit;
         }
-        // Account active email
-        $notificationModel = pjNotificationModel::factory()
-            ->where('recipient', 'admin')
-            ->where('transport', 'email')
-            ->where('variant', 'accountactive');
-        
-        $notification = $notificationModel
-            ->findAll()
-            ->getDataIndex(0);
-
-        if ((int)$notification['id'] > 0 && $notification['is_active'] == 1) {
-            $resp = pjAppController::pjActionGetSubjectMessage($notification, $this->getLocaleId(), $this->getForeignId());
-            $lang_message = $resp['lang_message'];
-            $lang_subject = $resp['lang_subject'];
-
-            if (count($lang_message) === 1 && count($lang_subject) === 1) {
-
-                $AccountApprovalURL = PJ_INSTALL_URL . 'index.php?controller=pjBaseUsers&action=pjActionUpdate&id=' . $authId;
-                $AccountApprovalURL = '<a href="'.$AccountApprovalURL.'">'.$AccountApprovalURL.'</a>';
-                $search  = ['{supplierName}','{supplierId}','{accountApprovalURL}'];
-                $replace = [
-                    $userData['name'],
-                    $authId,
-                    $AccountApprovalURL
-                ];
-                $subject = $lang_subject[0]['content'] ?? '';
-                $message = $lang_message[0]['content'] ?? '';
-
-                $subject_client = str_replace($search, $replace, $subject);
-                $message_client = str_replace($search, $replace, $message);
-
-                // Get admin email
-                $adminEmail = self::getAdminEmail();
-                if ($adminEmail) {
-                    $Email = self::getMailer($this->option_arr);
-                    $Email->setTo($adminEmail)
-                        ->setSubject($subject_client)
-                        ->send(pjUtil::textToHtml($message_client));
-                }
-            }
-
-        }
-
-        // Register supplier email
-        $notificationModel = pjNotificationModel::factory()
-            ->where('recipient', 'suppliers')
-            ->where('transport', 'email')
-            ->where('variant', 'account');
-
-        $notification = $notificationModel
-            ->findAll()
-            ->getDataIndex(0);
-
-        if ((int)$notification['id'] > 0 && $notification['is_active'] == 1) {
-
-            $resp = pjAppController::pjActionGetSubjectMessage(
-                $notification,
-                $this->getLocaleId(),
-                $this->getForeignId()
-            );
-
-            $lang_message = $resp['lang_message'];
-            $lang_subject = $resp['lang_subject'];
-            
-            if (count($lang_message) === 1 && count($lang_subject) === 1) {
-
-                $search = [
-                    '{supplierFirstName}',
-                    '{supplierLastName}',
-                    '{supplierEmail}',
-                    '{supplierPassword}',
-                    '{supplierPhone}',
-                    '{supplierCompany}',
-                ];
-
-                $replace = [
-                    $supplierData['first_name'],
-                    $supplierData['last_name'],
-                    $userData['email'],
-                    $userData['password'],
-                    $supplierData['phone'],
-                    $supplierData['company_name'],
-                ];
-
-                $subject = $lang_subject[0]['content'] ?? '';
-                $message = $lang_message[0]['content'] ?? '';
-
-                $subject_client = str_replace($search, $replace, $subject);
-                $message_client = str_replace($search, $replace, $message);
-
-                $Email = self::getMailer($this->option_arr);
-                $Email->setTo($userData['email'])
-                    ->setSubject($subject_client)
-                    ->send(pjUtil::textToHtml($message_client));
-            }
-        }
 
         // ---------------- SUCCESS RESPONSE ----------------
         echo json_encode([
@@ -389,6 +293,22 @@ class pjJabbApi extends pjAppController
                 'email' => $post['email']
             ]
         ]);
+        
+        $url = PJ_INSTALL_URL . "index.php?controller=pjFrontPublic&action=pjActionSendSupplierEmails&supplier_id=".$supplierId;
+
+        $parts = parse_url($url);
+
+        $fp = fsockopen($parts['host'], 80, $errno, $errstr, 1);
+
+        if ($fp) {
+            $out = "GET ".$parts['path']."?".$parts['query']." HTTP/1.1\r\n";
+            $out .= "Host: ".$parts['host']."\r\n";
+            $out .= "Connection: Close\r\n\r\n";
+
+            fwrite($fp, $out);
+            fclose($fp);
+        }
+        
         exit;
     }
 

@@ -299,8 +299,8 @@ class pjAdmin extends pjAppController
 				$model->where("DATE(t1.booking_date)", date('Y-m-d'));
 			}
 
-			$model->where("t1.created >=", $dateFrom)
-				->where("t1.created <=", $dateTo);
+			$model->where("t1.booking_date >=", $dateFrom)
+				->where("t1.booking_date <=", $dateTo);
 
 			return $model;
 		};

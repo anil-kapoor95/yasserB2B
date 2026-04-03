@@ -43,6 +43,19 @@
 		}
 
 	}
+	
+	function showSnackbar(message) {
+
+		var x = pjQ.$("#supplierSnackbar");
+
+		x.html('<i class="fa fa-check-circle"></i> ' + message);
+
+		x.addClass("show");
+
+		setTimeout(function () {
+			x.removeClass("show");
+		}, 3500);
+	}
 
 	
 
@@ -908,13 +921,24 @@
 									$form[0].reset();
 
 									self.$container.find('.alert-danger').hide();
+									showSnackbar(data.message);
+									self.enableButtons.call(self);
+									// self.$container.prepend(
+									// 	'<div class="alert alert-success" style="margin-bottom:20px;">' +
+									// 	'<strong><i class="fa fa-check-circle"></i> ' +
+									// 	data.message +
+									// 	'</strong></div>'
+									// );
 
-									self.$container.prepend(
-										'<div class="alert alert-success" style="margin-bottom:20px;">' +
-										'<strong><i class="fa fa-check-circle"></i> ' +
-										data.message +
-										'</strong></div>'
-									);
+									// ---------------------------
+									// Trigger email in background
+									// ---------------------------
+									if (data.supplier_id) {
+										fetch(self.opts.folder + 
+											"index.php?controller=pjFrontPublic&action=pjActionSendSupplierEmails&supplier_id=" 
+											+ data.supplier_id
+										);
+									}
 								} else {
 
 									var $alert = self.$container.find('.alert-danger');
