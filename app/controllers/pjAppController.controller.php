@@ -1046,9 +1046,21 @@ public static function calPriceAdmin($fleet_id, $distance, $passengers, $extra_i
 	// }
 
 
-	public function getTokens($option_arr, $booking_arr, $salt, $locale_id)
+	public function getTokens($option_arr, $booking_arr, $salt, $locale_id, $supplier = null)
 		{
 			// echo "<pre>"; print_r($booking_arr); echo "</pre>";
+			$supplier_name = null;
+			$supplier_id = null;
+			$supplier_company = null;
+			$supplier_phone = null;
+
+			if (!empty($supplier)) {
+				$supplier_name = trim($supplier[0]['first_name'] . ' ' . $supplier[0]['last_name']);
+				$supplier_id = $supplier[0]['auth_id'];
+				$supplier_company = $supplier[0]['company_name'];
+				$supplier_phone = $supplier[0]['phone'];
+			}
+
 			$parentBookingDetail = pjBookingModel::factory();
 			$parentBooking = $parentBookingDetail
 					->reset()
@@ -1220,12 +1232,12 @@ public static function calPriceAdmin($fleet_id, $distance, $passengers, $extra_i
 
 		    $search = array(
 		        '{Title}', '{FirstName}', '{LastName}', '{Email}', '{Password}', '{Phone}', '{Country}', '{City}', '{State}', '{Zip}', '{Address}', '{Airline}', '{FlightNumber}', '{ArrivalTime}', '{DepartureAirline}', '{DepartureFlightNumber}', '{DepartureTime}','{Terminal}', '{Company}', '{CCType}', '{CCNum}', '{CCExp}','{CCSec}', '{PaymentMethod}',
-		        '{UniqueID}', '{DateTime}', '{returnDateTime}', '{From}', '{To}', '{returnFrom}', '{returnTo}', '{Vehicle}', '{Distance}', '{Passengers}', '{Luggage}', '{Extras}', '{SubTotal}', '{Tax}', '{Total}', '{Deposit}', '{RoundBookingSubTotal}', '{RoundBookingTax}', '{RoundBookingTotal}', '{RoundBookingDeposit}', '{DepositPaymentLink}', '{RemainingBalance}', '{RoundBookingRemainingBalance}','{RemainingBalancePaymentLink}','{Notes}', '{CancelURL}', '{DriverFirstName}', '{DriverLastName}', '{DriverEmail}','{DriverPhone}');
+		        '{UniqueID}', '{DateTime}', '{returnDateTime}', '{From}', '{To}', '{returnFrom}', '{returnTo}', '{Vehicle}', '{Distance}', '{Passengers}', '{Luggage}', '{Extras}', '{SubTotal}', '{Tax}', '{Total}', '{Deposit}', '{RoundBookingSubTotal}', '{RoundBookingTax}', '{RoundBookingTotal}', '{RoundBookingDeposit}', '{DepositPaymentLink}', '{RemainingBalance}', '{RoundBookingRemainingBalance}','{RemainingBalancePaymentLink}','{Notes}', '{CancelURL}', '{DriverFirstName}', '{DriverLastName}', '{DriverEmail}','{DriverPhone}','{supplierName}','{supplierId}','{supplierCompany}','{supplierPhone}');
 		    $replace = array(
 		        $title, $first_name, $last_name, $email, @$booking_arr['password'], $phone, $country,
 		        $city, $state, $zip, $address, $booking_arr['c_airline_company'], $booking_arr['c_flight_number'], $flight_time, $booking_arr['c_departure_airline_company'], $booking_arr['c_departure_flight_number'], $departure_time, $booking_arr['c_terminal'],
 		        $company, @$booking_arr['cc_type'], @$booking_arr['cc_num'], (@$booking_arr['payment_method'] == 'creditcard' ? @$booking_arr['cc_exp_month'] . '/' . substr(@$booking_arr['cc_exp_year'], -2) : NULL), @$booking_arr['cc_code'], $payment_method,
-		        @$booking_arr['uuid'], $booking_date, $rbooking_date, @$booking_arr['pickup_address'], @$booking_arr['return_address'], @$parentBooking['pickup_address'], @$parentBooking['return_address'], $vehicle, $distance, @$booking_arr['passengers'], @$booking_arr['luggage'], $extras, @$sub_total, @$tax, @$total, @$deposit,  @$round_booking_sub_total, @$round_booking_tax, @$round_booking_total, @$round_booking_deposit,  @$d_stripeLink, @$remainingBalance, @$round_booking_remainingBalance, @$rb_stripeLink, @$booking_arr['c_notes'], $cancelURL, @$driverdetail['first_name'], @$driverdetail['last_name'], @$driverdetail['email'], @$driverdetail['phone']);
+		        @$booking_arr['uuid'], $booking_date, $rbooking_date, @$booking_arr['pickup_address'], @$booking_arr['return_address'], @$parentBooking['pickup_address'], @$parentBooking['return_address'], $vehicle, $distance, @$booking_arr['passengers'], @$booking_arr['luggage'], $extras, @$sub_total, @$tax, @$total, @$deposit,  @$round_booking_sub_total, @$round_booking_tax, @$round_booking_total, @$round_booking_deposit,  @$d_stripeLink, @$remainingBalance, @$round_booking_remainingBalance, @$rb_stripeLink, @$booking_arr['c_notes'], $cancelURL, @$driverdetail['first_name'], @$driverdetail['last_name'], @$driverdetail['email'], @$driverdetail['phone'], $supplier_name, $supplier_id, $supplier_company, $supplier_phone);
 		   
 		    return compact('search', 'replace');
 		}
@@ -2524,6 +2536,8 @@ public static function calPriceAdmin($fleet_id, $distance, $passengers, $extra_i
 	public function getAdminTokens($option_arr, $suppliar, $salt, $locale_id)
 	{
 		$supplierName = '';
+		$supplierPhone = '';
+		$supplierCompany = '';
 		$supplierId = '';
 		$accountApprovalURL = '';
 
@@ -2539,17 +2553,56 @@ public static function calPriceAdmin($fleet_id, $distance, $passengers, $extra_i
 			if (!empty($user)) 
 			{
 				$supplierName = pjSanitize::clean($user['name']);
+				$supplierPhone = pjSanitize::clean($suppliar['phone']);
 			}
+			$supplierCompany = pjSanitize::clean($suppliar['company_name']);
 
 			// Approval URL
 			$url = PJ_INSTALL_URL . 'index.php?controller=pjBaseUsers&action=pjActionUpdate&id=' . $authId;
 			$accountApprovalURL = '<a href="' . $url . '">' . $url . '</a>';
 		}
 
-		$search = array('{supplierName}', '{supplierId}', '{accountApprovalURL}');
-		$replace = array($supplierName, $authId, $accountApprovalURL);
+		$search = array('{supplierName}', '{supplierId}', '{supplierCompany}','{supplierPhone}', '{accountApprovalURL}');
+		$replace = array($supplierName, $authId, $supplierCompany, $supplierPhone, $accountApprovalURL);
 
 		return compact('search', 'replace');
+	}
+
+	public function pjActionBookingAcceptBySupplierSend($option_arr,$booking_arr, $supplier_id, $salt, $opt, $locale_id)
+	{
+	    $Email = self::getMailer($option_arr);
+	    $pjNotificationModel = pjNotificationModel::factory();
+
+	    $notification = $pjNotificationModel->reset()->where('recipient', 'admin')->where('transport', 'email')->where('variant', $opt)->findAll()->getDataIndex(0);
+	    if((int) $notification['id'] > 0 && $notification['is_active'] == 1)
+
+	    {
+			$supplier = pjSupplierModel::factory()
+			->where('auth_id', $supplier_id)
+			->limit(1)
+			->findAll()
+			->getData();
+			
+	        $tokens = pjAppController::getTokens($option_arr, $booking_arr, PJ_SALT, $locale_id, $supplier);
+	        $resp = pjFrontEnd::pjActionGetSubjectMessage($notification, $locale_id, $this->getForeignId());
+	        $lang_message = $resp['lang_message'];
+	        $lang_subject = $resp['lang_subject'];
+	        $auth_user = pjAuthUserModel::factory()->find($supplier_id)->getData();
+	        if (count($lang_message) === 1 && count($lang_subject) === 1 && !empty($auth_user['email']))
+	        {
+	            $message = preg_replace('/\[Delivery\].*\[\/Delivery\]/s', '', $lang_message[0]['content']);
+
+	            $message = str_replace($tokens['search'], $tokens['replace'], $message);
+
+				// Get admin email
+                // $adminEmail = self::getAdminEmail();
+                $adminEmail = 'anil.allalgos@gmail.com';
+	            $Email
+	            ->setTo($adminEmail)
+	            ->setSubject($lang_subject[0]['content'])
+	            ->send($message);
+	        }
+	    }
 	}
 }
 ?>

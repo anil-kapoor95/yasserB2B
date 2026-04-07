@@ -369,32 +369,32 @@ class pjAdmin extends pjAppController
 		switch ($groupType) {
 			case 'weekly':
 				$trendModel->select('
-					YEARWEEK(t1.created,1) AS period,
-					CONCAT("Week ", WEEK(t1.created,1)) AS label,
+					YEARWEEK(t1.booking_date,1) AS period,
+					CONCAT("Week ", WEEK(t1.booking_date,1)) AS label,
 					SUM(t1.total) AS total,
-					STR_TO_DATE(CONCAT(YEAR(t1.created), WEEK(t1.created,1), " Monday"), "%X%V %W") AS week_start
+					STR_TO_DATE(CONCAT(YEAR(t1.booking_date), WEEK(t1.booking_date,1), " Monday"), "%X%V %W") AS week_start
 				', false)
-				->groupBy('YEARWEEK(t1.created,1)', false)
+				->groupBy('YEARWEEK(t1.booking_date,1)', false)
 				->orderBy('week_start ASC'); // <- ensures proper chronological order
 				break;
 
 			case 'monthly':
 				$trendModel->select('
-					DATE_FORMAT(t1.created, "%Y-%m") AS period,
-					DATE_FORMAT(t1.created, "%b %Y") AS label,
+					DATE_FORMAT(t1.booking_date, "%Y-%m") AS period,
+					DATE_FORMAT(t1.booking_date, "%b %Y") AS label,
 					SUM(t1.total) AS total
 				', false)
-				->groupBy('DATE_FORMAT(t1.created, "%Y-%m")', false)
+				->groupBy('DATE_FORMAT(t1.booking_date, "%Y-%m")', false)
 				->orderBy('period ASC');
 				break;
 
 			default: // daily
 				$trendModel->select('
-					DATE(t1.created) AS period,
-					DATE_FORMAT(t1.created,"%d %b") AS label,
+					DATE(t1.booking_date) AS period,
+					DATE_FORMAT(t1.booking_date,"%d %b") AS label,
 					SUM(t1.total) AS total
 				', false)
-				->groupBy('DATE(t1.created)', false)
+				->groupBy('DATE(t1.booking_date)', false)
 				->orderBy('period ASC');
 		}
 

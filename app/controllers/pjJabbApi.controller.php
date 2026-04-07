@@ -77,7 +77,6 @@ class pjJabbApi extends pjAppController
                 t1.status,
                 t2.company_name,
                 t2.city,
-                t2.total_vehicles
             ")
             ->limit(1)
             ->findAll()
@@ -309,6 +308,137 @@ class pjJabbApi extends pjAppController
             fclose($fp);
         }
         
+        exit;
+    }
+
+    public function pjActionUpdateProfile()
+    {
+        header("Content-Type: application/json");
+
+        $raw_input = file_get_contents("php://input");
+        $input = json_decode($raw_input, true);
+        $post = !empty($input) ? $input : $this->_post->raw();
+
+        // ---------------- TOKEN CHECK ----------------
+        $token = $post['api_login_token'] ?? '';
+
+        if (empty($token)) {
+            echo json_encode([
+                'status' => 'ERR',
+                'code' => 401,
+                'message' => 'API token required'
+            ]);
+            exit;
+        }
+
+        // ---------------- GET AUTH USER ----------------
+        $auth = pjAuthUserModel::factory()
+            ->where('api_login_token', $token)
+            ->findAll()
+            ->getData();
+
+        if (empty($auth)) {
+            echo json_encode([
+                'status' => 'ERR',
+                'code' => 401,
+                'message' => 'Invalid API token'
+            ]);
+            exit;
+        }
+
+        $authId = $auth[0]['id'];
+
+        // ---------------- GET SUPPLIER ----------------
+        $supplier = pjSupplierModel::factory()
+            ->where('auth_id', $authId)
+            ->findAll()
+            ->getData();
+
+        if (empty($supplier)) {
+            echo json_encode([
+                'status' => 'ERR',
+                'code' => 404,
+                'message' => 'Supplier not found'
+            ]);
+            exit;
+        }
+
+        $supplierId = $supplier[0]['id'];
+
+        $updateData = [];
+
+        // ---------------- FULL NAME SPLIT ----------------
+        if (!empty($post['full_name'])) {
+
+            $nameParts = explode(" ", trim($post['full_name']), 2);
+
+            $firstName = $nameParts[0];
+            $lastName = $nameParts[1] ?? '';
+
+            $updateData['first_name'] = $firstName;
+            $updateData['last_name'] = $lastName;
+
+            // update auth user name
+            pjAuthUserModel::factory()
+                ->where('id', $authId)
+                ->limit(1)
+                ->modifyAll([
+                    'name' => trim($firstName . " " . $lastName)
+                ]);
+        }
+
+        // ---------------- PHONE ----------------
+        if (!empty($post['phone'])) {
+            $updateData['phone'] = $post['phone'];
+
+            pjAuthUserModel::factory()
+                ->where('id', $authId)
+                ->limit(1)
+                ->modifyAll([
+                    'phone' => $post['phone']
+                ]);
+        }
+
+        // ---------------- ADDRESS FIELDS ----------------
+        if (isset($post['street'])) {
+            $updateData['street'] = $post['street'];
+        }
+
+        if (isset($post['city'])) {
+            $updateData['city'] = $post['city'];
+        }
+
+        if (isset($post['state'])) {
+            $updateData['state'] = $post['state'];
+        }
+
+        if (isset($post['pin'])) {
+            $updateData['pin'] = $post['pin'];
+        }
+
+        if (empty($updateData)) {
+            echo json_encode([
+                'status' => 'ERR',
+                'code' => 400,
+                'message' => 'No fields to update'
+            ]);
+            exit;
+        }
+
+        $updateData['modified'] = date("Y-m-d H:i:s");
+
+        // ---------------- UPDATE SUPPLIER ----------------
+        pjSupplierModel::factory()
+            ->where('id', $supplierId)
+            ->limit(1)
+            ->modifyAll($updateData);
+
+        echo json_encode([
+            'status' => 'OK',
+            'code' => 200,
+            'message' => 'Profile updated successfully'
+        ]);
+
         exit;
     }
 
@@ -999,13 +1129,32 @@ class pjJabbApi extends pjAppController
                 'supplier_id' => $supplier_id
             ]);
 
+            
         /* ================= RESPONSE ================= */
 
-        echo json_encode([
+        $response = [
             'status' => 'OK',
             'code' => 200,
             'message' => 'Booking accepted successfully'
-        ]);
+        ];
+
+        $json = json_encode($response);
+        
+        /* SEND RESPONSE */
+        header("Connection: close");
+        header("Content-Length: " . strlen($json));
+
+        echo $json;
+
+        /* FLUSH RESPONSE TO CLIENT */
+        ob_flush();
+        flush();
+
+        /* ALLOW SCRIPT TO CONTINUE */
+        ignore_user_abort(true);
+        /* ===== SEND EMAIL AFTER RESPONSE ===== */
+        
+         pjAppController::pjActionBookingAcceptBySupplierSend($this->option_arr, $booking, $supplier_id,  PJ_SALT, 'bookingaccept', $this->getLocaleId());
 
         exit;
     }
@@ -1026,143 +1175,6 @@ class pjJabbApi extends pjAppController
             'code' => 200,
             'data' => $categories_arr
         ]);
-        exit;
-    }
-
-    public function pjActionUpdateProfile()
-    {
-        header("Content-Type: application/json");
-
-        $params = $this->_post->raw();
-
-        // 🔹 Validate client_id
-        if (!isset($params['client_id']) || empty($params['client_id'])) {
-            echo json_encode([
-                'status'  => 'ERR',
-                'code'    => 400,
-                'message' => 'client_id is required.'
-            ]);
-            exit;
-        }
-
-        $client_id = (int)$params['client_id'];
-
-        $pjClientModel = pjClientModel::factory();
-
-        // 🔹 Check client exists
-        $client = $pjClientModel
-            ->where('id', $client_id)
-            ->limit(1)
-            ->findAll()
-            ->getData();
-
-        if (empty($client)) {
-            echo json_encode([
-                'status'  => 'ERR',
-                'code'    => 404,
-                'message' => 'Client not found.'
-            ]);
-            exit;
-        }
-
-        // 🔹 Email duplicate check
-        if (isset($params['email']) && !empty($params['email'])) {
-            $exists = $pjClientModel
-                ->reset()
-                ->where('email', $params['email'])
-                ->where('id !=', $client_id)
-                ->findCount()
-                ->getData();
-
-            if ($exists > 0) {
-                echo json_encode([
-                    'status'  => 'ERR',
-                    'code'    => 409,
-                    'message' => 'Email already exists.'
-                ]);
-                exit;
-            }
-        }
-
-        // 🔹 Update profile
-        $update_data = [];
-        if (isset($params['client_name'])) $update_data['client_name'] = $params['client_name'];
-        if (isset($params['email']))       $update_data['email']       = $params['email'];
-        if (isset($params['phone']))       $update_data['phone']       = $params['phone'];
-
-        if (!empty($update_data)) {
-            $pjClientModel->reset()->set('id', $client_id)->modify($update_data);
-        }
-
-        /* ================= DEFAULT ADDRESS ================= */
-
-        $pjAddressModel = pjAddressModel::factory();
-
-        $defaultAddress = $pjAddressModel
-            ->where('client_id', $client_id)
-            ->where('is_default_shipping', 1)
-            ->limit(1)
-            ->findAll()
-            ->getData();
-
-        $address_data = [
-            'client_id'  => $client_id,
-            'country_id' => $params['country_id'] ?? null,
-            'state'      => $params['state'] ?? null,
-            'city'       => $params['city'] ?? null,
-            'zip'        => $params['zip'] ?? null,
-            'address_1'  => $params['address_1'] ?? null,
-            'address_2'  => $params['address_2'] ?? null,
-            'name'       => $params['address_name'] ?? 'Default Address',
-            'is_default_shipping' => 1,
-            'is_default_billing'  => 1
-        ];
-
-        if (!empty($defaultAddress)) {
-            $pjAddressModel->reset()->set('id', $defaultAddress[0]['id'])->modify($address_data);
-        } else {
-            $pjAddressModel->reset()->setAttributes($address_data)->insert();
-        }
-
-        /* ================= FETCH UPDATED DATA ================= */
-
-        $updated_client = $pjClientModel
-            ->reset()
-            ->where('id', $client_id)
-            ->limit(1)
-            ->findAll()
-            ->getData();
-        $locale_id = $this->getLocaleId();
-
-        $updated_address = $pjAddressModel
-            ->reset()
-            ->join('pjBaseCountry', 't2.id = t1.country_id', 'left')
-            ->join(
-                'pjBaseMultiLang',
-                "t3.model='pjBaseCountry' AND t3.foreign_id=t2.id AND t3.field='name' AND t3.locale='$locale_id'",
-                'left'
-            )
-            ->select("
-                t1.*,
-                t3.content AS country_name
-            ")
-            ->where('t1.client_id', $client_id)
-            ->where('t1.is_default_shipping', 1)
-            ->limit(1)
-            ->findAll()
-            ->getData();
-
-
-        echo json_encode([
-            'status'  => 'OK',
-            'code'    => 200,
-            'message' => 'Profile updated successfully.',
-            'data' => [
-                'client'  => $updated_client[0] ?? null,
-                'address' => $updated_address[0] ?? null
-            ]
-        ]);
-
         exit;
     }
 

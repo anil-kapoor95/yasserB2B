@@ -72,14 +72,44 @@ class pjAdminSuppliers extends pjAdmin
             ->reset()
             ->where('booking_id', $booking_id)
             ->modifyAll([
-                'supplier_id' => $login_id
+                'supplier_id' => $login_id,
+                'status' => 'ended',
+                'accepted_on' => date('Y-m-d H:i:s')
             ]);
-    
-        self::jsonResponse([
+        
+        /* ================= GET BOOKING DATA ================= */
+        $booking = pjBookingModel::factory()
+            ->find($booking_id)
+            ->getData();
+
+        $response = [
             'status' => 'OK',
             'code'   => 200,
             'text'   => 'Booking accepted'
-        ]);
+        ];
+
+        $json = json_encode($response);
+
+        header("Content-Type: application/json");
+        header("Connection: close");
+        header("Content-Length: " . strlen($json));
+
+        echo $json;
+
+        ob_flush();
+        flush();
+        ignore_user_abort(true);
+
+        /* ================= SEND EMAIL AFTER RESPONSE ================= */
+
+        pjAppController::pjActionBookingAcceptBySupplierSend(
+            $this->option_arr,
+            $booking,
+            $login_id,
+            PJ_SALT,
+            'bookingaccept',
+            $this->getLocaleId()
+        );
 
         exit;
     }

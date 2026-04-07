@@ -16,6 +16,7 @@ class pjAuctionModel extends pjAppModel
         array('name' => 'booking_id', 'type' => 'int', 'default' => ':NULL'),
         array('name' => 'supplier_id', 'type' => 'int', 'default' => ':NULL'),
         array('name' => 'status', 'type' => 'enum', 'default' => 'active'),
+        array('name' => 'accepted_on', 'type' => 'datetime', 'default' => ':NULL'),
         array('name' => 'created', 'type' => 'datetime', 'default' => ':NOW()'),
         array('name' => 'modified', 'type' => 'datetime', 'default' => ':NOW()'),
     );

@@ -202,6 +202,8 @@ $bodies = __('error_bodies', true);
 							<div><small>{supplierName}</small></div>
 							<div><small>{supplierId}</small></div>
 							<div><small>{accountApprovalURL}</small></div>
+							<div><small>{supplierCompany}</small></div>
+							<div><small>{supplierPhone}</small></div>
 
 
                         </div>
