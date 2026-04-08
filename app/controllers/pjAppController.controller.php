@@ -2595,8 +2595,8 @@ public static function calPriceAdmin($fleet_id, $distance, $passengers, $extra_i
 	            $message = str_replace($tokens['search'], $tokens['replace'], $message);
 
 				// Get admin email
-                // $adminEmail = self::getAdminEmail();
-                $adminEmail = 'anil.allalgos@gmail.com';
+                $adminEmail = self::getAdminEmail();
+                // $adminEmail = 'anil.allalgos@gmail.com';
 	            $Email
 	            ->setTo($adminEmail)
 	            ->setSubject($lang_subject[0]['content'])

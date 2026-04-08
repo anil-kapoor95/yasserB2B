@@ -814,18 +814,20 @@ var jQuery_1_8_2 = jQuery_1_8_2 || $.noConflict();
 				          {text: myLabel.extras, type: "text", sortable: false, renderer: formatExtras},
 				          {text: myLabel.payment_method, type: "text", sortable: false, renderer: formatPaymentTypes},
 				          {text: myLabel.total, type: "text", sortable: false},
+						  {text: myLabel.commission, type: "text", sortable: false},
 				          {text: myLabel.distance, type: "text", sortable: false},
 				          {text: myLabel.date_time, type: "text", sortable: false},
 				          // {text: myLabel.driver_name, type: "text", sortable: false},
 				          // {text: myLabel.supplier_name, type: "text", sortable: false},
 				          // {text: myLabel.is_auction, type: "text", sortable: false},
-				          {text: myLabel.status, type: "text", sortable: true, editable: false, renderer: formatStatus}],
+				        //   {text: myLabel.status, type: "text", sortable: true, editable: false, renderer: formatStatus}
+						],
 
 				dataUrl: "index.php?controller=pjAdminSuppliers&action=pjActionGetUpcomingBooking" + pjGrid.queryString,
 
 				dataType: "json",
 
-				fields: ['client', 'fleet','pickup_address', 'return_address', 'passengers', 'extras', 'payment_method', 'total', 'distance', 'date_time','status'],
+				fields: ['client', 'fleet','pickup_address', 'return_address', 'passengers', 'extras', 'payment_method', 'total','commission', 'distance', 'date_time'],
 
 				paginator: {
 

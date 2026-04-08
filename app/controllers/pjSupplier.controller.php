@@ -85,44 +85,80 @@ class pjSupplier extends pjAdmin{
             $this->sendForbidden();
             return;
         }
-        if (self::isPost() && $this->_post->toInt('supplier_update') && $this->_post->toInt('id'))
+       if (self::isPost() && $this->_post->toInt('supplier_update') && $this->_post->toInt('id'))
         {
-        	$pjClientModel = pjSupplierModel::factory();
+            $pjSupplierModel = pjSupplierModel::factory();
             $id = $this->_post->toInt('id');
-            $post = $this->_post->raw();
-            $data = array();
-            if($this->_post->check('status'))
-            {
-                $post['status'] = 'T';
-                $data['status'] = 'T';
-            }else{
-                $post['status'] = 'F';
-                $data['status'] = 'F';
+
+            /* ===== GET OLD SUPPLIER + USER ===== */
+            $old_supplier = $pjSupplierModel->find($id)->getData();
+            if (empty($old_supplier)) {
+                pjUtil::redirect(PJ_INSTALL_URL . "index.php?controller=pjSupplier&action=pjActionIndex&err=AC08");
             }
-            $post['first_name'] = $this->_post->toString('fname');
-            $post['last_name'] = $this->_post->toString('lname');
-            $post['company_name'] = $this->_post->toString('company');
-            $post['total_vehicles'] = $this->_post->toString('vehicles');
+
+            $auth_id = $old_supplier['auth_id'];
+
+            $old_user = pjAuthUserModel::factory()->find($auth_id)->getData();
+            $old_status = $old_user['status'];
+
+            /* ===== SUPPLIER DATA ===== */
+            $supplier_data = array();
+            $supplier_data['first_name'] = $this->_post->toString('fname');
+            $supplier_data['last_name'] = $this->_post->toString('lname');
+            $supplier_data['company_name'] = $this->_post->toString('company');
+            $supplier_data['phone'] = $this->_post->toString('phone');
+            $supplier_data['city'] = $this->_post->toString('city');
 
             $categories = $this->_post->toArray('category');
             if (!empty($categories)) {
-                $post['vehicle_category'] = implode(',', $categories);
-            } else {
-                $post['vehicle_category'] = ":NULL";
+                $supplier_data['vehicle_category'] = implode(',', $categories);
             }
 
-
-            $pjClientModel->where('id', $id)->limit(1)->modifyAll($post);
-            $client = $pjClientModel->reset()->find($id)->getData();
-            $data['id'] = $client['auth_id'];
+            /* ===== UPDATE SUPPLIER TABLE ===== */
+            $pjSupplierModel
+                ->reset()
+                ->where('id', $id)
+                ->limit(1)
+                ->modifyAll($supplier_data);
+            /* ===== USER DATA ===== */
+            $data = array();
+            $data['id'] = $auth_id;
             $data['email'] = $this->_post->toString('email');
             $data['password'] = $this->_post->toString('password');
+            $data['phone'] = $this->_post->toString('phone');
+
             $name_arr = array();
             $name_arr[] = $this->_post->toString('fname');
             $name_arr[] = $this->_post->toString('lname');
             $data['name'] = join(" ", $name_arr);
-            $data['phone'] = $this->_post->toString('phone');
+
+            if ($this->_post->check('status')) {
+                $data['status'] = 'T';
+            } else {
+                $data['status'] = 'F';
+            }
+
+            /* ===== UPDATE USER ===== */
             pjAuth::init($data)->updateUser();
+
+            /* ===== SEND EMAIL ONLY IF STATUS CHANGED F -> T ===== */
+            if ($old_status == 'F' && $data['status'] == 'T') {
+
+                $option_arr = $this->option_arr;
+                $locale_id = $this->getLocaleId();
+
+                register_shutdown_function(function() use ($id, $option_arr, $locale_id) {
+                    pjAppController::pjActionSupplierAccountSend(
+                        $option_arr,
+                        $id,
+                        PJ_SALT,
+                        'activeaccount',
+                        $locale_id
+                    );
+                });
+            }
+
+            /* ===== REDIRECT ===== */
             pjUtil::redirect(PJ_INSTALL_URL . "index.php?controller=pjSupplier&action=pjActionUpdate&id=".$id."&err=AC01");
         }
 
@@ -301,6 +337,26 @@ class pjSupplier extends pjAdmin{
                 pjAuth::init($params)->updateUser();
             }
         }
+        // self::jsonResponse(array('status' => 'OK', 'code' => 200, 'text' => 'Supplier has been updated!'));
+         /* ================= SEND EMAIL IF STATUS = T ================= */
+
+        if ($params['column'] == 'status' && $params['value'] == 'T') {
+
+            $supplier = pjSupplierModel::factory()
+                ->find($this->_get->toInt('id'))
+                ->getData();
+
+            if (!empty($supplier)) {
+                pjAppController::pjActionSupplierAccountSend(
+                    $this->option_arr,
+                    $this->_get->toInt('id'),
+                    PJ_SALT,
+                    'activeaccount',
+                    $this->getLocaleId()
+                );
+            }
+        }
+
         self::jsonResponse(array('status' => 'OK', 'code' => 200, 'text' => 'Supplier has been updated!'));
         exit;
     }

@@ -164,13 +164,14 @@ myLabel.extras = <?php x__encode('plugin_base_lbl_extras', false, true); ?>;
 
 myLabel.payment_method = <?php x__encode('lblPaymentMethod', false, true); ?>;
 myLabel.total = <?php x__encode('plugin_base_lbl_price', false, true); ?>;
+myLabel.commission = <?php x__encode('plugin_base_lbl_commissions', false, true); ?>;
 myLabel.distance = <?php x__encode('lblDistance', false, true); ?>;
 myLabel.date_time = <?php x__encode('lblDateTime', false, false); ?>;
 myLabel.email = <?php x__encode('email', false, true); ?>;
 //myLabel.driver_name = "Driver";
 //myLabel.supplier_name = 'Supplier Name';
 //myLabel.is_auction = 'In Auction';
-myLabel.status = <?php x__encode('lblStatus'); ?>;
+
 myLabel.exported = <?php x__encode('lblExport', false, true); ?>;
 myLabel.print = <?php x__encode('lblPrint', false, true); ?>;
 myLabel.delete_selected = <?php x__encode('delete_selected', false, true); ?>;

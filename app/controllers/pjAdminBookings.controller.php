@@ -371,10 +371,16 @@ class pjAdminBookings extends pjAdmin
                     $data[$k] = $v;
                     //$data[$k]['is_auction'] = $v['is_auction'] == 1 ? 'Yes' : 'No';
 
-                    if($v['is_auction'] == 1){
-                        $isauc = '<span data-id="'.$v['id'].'" class="auction_links remove_auction">Remove from auction</span>';
-                    }else{
-                        $isauc = '<span data-id="'.$v['id'].'" class="auction_links add_auction">Add in auction</span>';
+                    if ($v['status'] == 'confirmed') {
+
+                        if ($v['is_auction'] == 1) {
+                            $isauc = '<span data-id="'.$v['id'].'" class="auction_links remove_auction">Remove from auction</span>';
+                        } else {
+                            $isauc = '<span data-id="'.$v['id'].'" class="auction_links add_auction">Add in auction</span>';
+                        }
+
+                    } else {
+                        $isauc = '<i class="fa fa-ban text-muted" title="Auction not allowed"></i>';
                     }
 
 
