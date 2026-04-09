@@ -87,6 +87,9 @@ class pjAdminOptions extends pjAdmin
                     case 'pjActionTerm':
                         $err = 'AO05';
                         break;
+                    case 'pjActionCommission':
+                        $err = 'AO06';
+                        break;
                 }
             }
             pjUtil::redirect($_SERVER['PHP_SELF'] . "?controller=pjAdminOptions&action=" . $this->_post->toString('next_action') . "&err=$err");
@@ -102,6 +105,23 @@ class pjAdminOptions extends pjAdmin
         $arr = pjOptionModel::factory()
         ->where('t1.foreign_id', $this->getForeignId())
         ->where('t1.tab_id', 2)
+        ->orderBy('t1.order ASC')
+        ->findAll()
+        ->getData();
+        
+        $this->set('arr', $arr);
+        $this->appendJs('pjAdminOptions.js');
+    }
+    public function pjActionCommission()
+    {
+        if (!pjAuth::factory()->hasAccess())
+        {
+            $this->sendForbidden();
+            return;
+        }
+        $arr = pjOptionModel::factory()
+        ->where('t1.foreign_id', $this->getForeignId())
+        ->where('t1.tab_id', 6)
         ->orderBy('t1.order ASC')
         ->findAll()
         ->getData();

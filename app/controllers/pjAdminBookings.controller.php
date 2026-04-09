@@ -374,9 +374,28 @@ class pjAdminBookings extends pjAdmin
                     if ($v['status'] == 'confirmed') {
 
                         if ($v['is_auction'] == 1) {
-                            $isauc = '<span data-id="'.$v['id'].'" class="auction_links remove_auction">Remove from auction</span>';
+                            $type = !empty($v['commission_type']) ? $v['commission_type'] : 'percent';
+                            $amount = !empty($v['commission']) ? $v['commission'] : '0';
+
+                            $isauc = '
+                            <span 
+                                data-id="'.$v['id'].'"
+                                data-type="'.$type.'"
+                                data-amount="'.$amount.'"
+                                class="auction_links edit_auction">
+                                Edit Auction
+                            </span>
+                            /
+                            <span 
+                                data-id="'.$v['id'].'"
+                                class="auction_links remove_auction">
+                                Remove
+                            </span>';
                         } else {
-                            $isauc = '<span data-id="'.$v['id'].'" class="auction_links add_auction">Add in auction</span>';
+                            $isauc = '
+                            <span data-id="'.$v['id'].'" class="auction_links add_auction">
+                             Add in auction
+                            </span>';
                         }
 
                     } else {
@@ -1160,6 +1179,8 @@ class pjAdminBookings extends pjAdmin
             ->where('id', $booking_id)
             ->modifyAll([
                 'commission'  => NULL,      // or 0
+                'commission_type'  => NULL,      // or 0
+                'commission_amount'  => NULL,      // or 0
                 'is_auction'  => 0,
                 'auctioned_on'=> NULL
                 // 'supplier_id' => $someSupplierId (only if needed)
@@ -1205,6 +1226,7 @@ class pjAdminBookings extends pjAdmin
 
         $booking_id = $this->_post->toInt('booking_id');
         $commission = $this->_post->toFloat('commission');
+        $commission_type = $this->_post->toString('commission_type');
 
         if (!$booking_id) {
             self::jsonResponse(['status' => 'ERR', 'code' => 103, 'text' => 'Invalid booking id']);
@@ -1214,7 +1236,13 @@ class pjAdminBookings extends pjAdmin
         $pjAuctionModel = pjAuctionModel::factory();
 
         $booking = $pjBookingModel->find($booking_id)->getData();
-
+        $total = (float) $booking['total'];
+        // 🔹 Calculate commission amount
+        if ($commission_type == 'percent') {
+            $commission_amount = ($total * $commission) / 100;
+        } else {
+            $commission_amount = $commission;
+        }
         if (!$booking) {
             self::jsonResponse(['status' => 'ERR', 'code' => 104, 'text' => 'Booking not found']);
         }
@@ -1224,6 +1252,8 @@ class pjAdminBookings extends pjAdmin
         ->where('id', $booking_id)
         ->modifyAll([
             'commission' => $commission,
+            'commission_type' => $commission_type,
+            'commission_amount' => $commission_amount, 
             'is_auction' => 1,
             'auctioned_on' => date('Y-m-d H:i:s'),
             'supplier_id' => NULL

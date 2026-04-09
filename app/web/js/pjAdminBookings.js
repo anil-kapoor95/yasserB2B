@@ -954,14 +954,59 @@ var jQuery_1_8_2 = jQuery_1_8_2 || $.noConflict();
 				},
 			});
 		}
+		$(document).on("change", "#commissionTypeSelect", function () {
 
-		$(document).on("click", ".add_auction", function (e) {
+			var type = $(this).val();
+
+			if(type === "percent"){
+				$('#commissionLabel').text("Enter Percentage");
+				$('#commissionSymbol').html("%");
+			}else{
+				$('#commissionLabel').text("Commission Amount");
+				$('#commissionSymbol').html('<i class="fa fa-money"></i>');
+			}
+
+		});
+
+		$(document).on("click", ".add_auction", function () {
+
 			var $this = $(this);
 			var bid = $this.data('id');
-			$(document).find('#commissionModal').modal('show');
+
+			$('#commissionModal').modal('show');
+
 			if(bid){
-				$(document).find('.currentBookingId').val(bid);
+				$('.currentBookingId').val(bid);
 			}
+
+			if(typeof defaultCommissionType !== "undefined")
+			{
+				$('#commissionTypeSelect').val(defaultCommissionType).trigger("change");
+				$('#commissionInput').val(defaultCommissionAmount);
+			}
+
+		});
+
+		$(document).on("click",".edit_auction",function(){
+
+			var bookingId = $(this).data("id");
+			var type = $(this).data("type");
+			var amount = $(this).data("amount");
+
+			$(".currentBookingId").val(bookingId);
+
+			$("#commissionTypeSelect").val(type);
+			$("#commissionInput").val(amount);
+
+			if(type === "percent"){
+				$("#commissionLabel").text("Enter Percentage");
+				$("#commissionSymbol").text("%");
+			} else {
+				$("#commissionLabel").text("Commission Amount");
+				$("#commissionSymbol").text("₹");
+			}
+
+			$("#commissionModal").modal("show");
 		});
 
 		$('#saveCommissionBtn').on('click', function () {
@@ -974,9 +1019,14 @@ var jQuery_1_8_2 = jQuery_1_8_2 || $.noConflict();
 		    }
 
 		    // 🔽 AJAX save (example)
-		    var params = {
-			    booking_id: currentBookingId,
-			    commission: $('#commissionInput').val()
+		    // var params = {
+			//     booking_id: currentBookingId,
+			//     commission: $('#commissionInput').val()
+			// };
+			var params = {
+				booking_id: currentBookingId,
+				commission: $('#commissionInput').val(),
+				commission_type: $('#commissionTypeSelect').val()
 			};
 		    $.post(
 			    ["index.php?controller=pjAdminBookings&action=pjActionPutBookingInAuction"].join(""),

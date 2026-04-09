@@ -114,6 +114,7 @@ $hasAccessScriptOptions                 = pjAuth::factory('pjAdminOptions')->has
 $hasAccessScriptOptionsBooking          = pjAuth::factory('pjAdminOptions', 'pjActionBooking')->hasAccess();
 $hasAccessScriptOptionsBookingForm      = pjAuth::factory('pjAdminOptions', 'pjActionBookingForm')->hasAccess();
 $hasAccessScriptOptionsTerm             = pjAuth::factory('pjAdminOptions', 'pjActionTerm')->hasAccess();
+$hasAccessScriptOptionsCommission             = pjAuth::factory('pjAdminOptions', 'pjActionTerm')->hasAccess();
 $hasAccessScriptOptionsNotifications    = pjAuth::factory('pjAdminOptions', 'pjActionNotifications')->hasAccess();
 
 
@@ -209,6 +210,9 @@ $roleId = $auth->getRoleId();
             
             <?php if ($hasAccessScriptOptionsTerm): ?>
                 <li<?php echo $isScriptOptionsTerm ? ' class="active"' : NULL; ?>><a href="<?php echo $_SERVER['PHP_SELF']; ?>?controller=pjAdminOptions&amp;action=pjActionTerm"><?php __('menuTerms');?></a></li>
+            <?php endif; ?>
+            <?php if ($hasAccessScriptOptionsCommission): ?>
+                <li<?php echo $isScriptOptionsTerm ? ' class="active"' : NULL; ?>><a href="<?php echo $_SERVER['PHP_SELF']; ?>?controller=pjAdminOptions&amp;action=pjActionCommission"><?php __('script_menu_commission');?></a></li>
             <?php endif; ?>
         </ul>
     </li>

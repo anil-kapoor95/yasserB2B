@@ -9,27 +9,27 @@ $get = $controller->_get->raw();
 ?>
 
 <style>
-.auction_links{
-	text-decoration: underline;
-  cursor: pointer;
-  color: #0a5114;
-}
-.bg-completed {
-    background-color: #8E44AD !important; /* Purple (example) */
-    color: #fff !important;
-}
+	.auction_links{
+		text-decoration: underline;
+	cursor: pointer;
+	color: #0a5114;
+	}
+	.bg-completed {
+		background-color: #8E44AD !important; /* Purple (example) */
+		color: #fff !important;
+	}
 
-/* Mobile / iPhone */
-@media (max-width: 768px) {
-.list-view {
-    width: 56%;
-    float: left;
-}
-.cal-view {
-    width: 44%;
-    float: left;
-}
-}
+	/* Mobile / iPhone */
+	@media (max-width: 768px) {
+	.list-view {
+		width: 56%;
+		float: left;
+	}
+	.cal-view {
+		width: 44%;
+		float: left;
+	}
+	}
 
 </style>
 <div id="datePickerOptions" style="display:none;" data-wstart="<?php echo (int) $tpl['option_arr']['o_week_start']; ?>" data-format="<?php echo $tpl['date_format']; ?>" data-months="<?php echo implode("_", $months);?>" data-days="<?php echo implode("_", $short_days);?>"></div>
@@ -141,96 +141,144 @@ $get = $controller->_get->raw();
 			</div>
 		</div>
 	</div>
+	<?php
+	$commission_type = isset($tpl['option_arr']['o_commission_type']) 
+		? $tpl['option_arr']['o_commission_type'] 
+		: 'percent';
 
-
+	$commission_amount = isset($tpl['option_arr']['o_commission_amount']) 
+		? $tpl['option_arr']['o_commission_amount'] 
+		: '0';
+	?>
 	<!-- Commission Modal -->
-	<div class="modal fade" id="commissionModal" tabindex="-1" role="dialog" aria-hidden="true">
-	  <div class="modal-dialog modal-dialog-centered">
-	    <div class="modal-content">
+	<div class="modal fade" id="commissionModal" tabindex="-1" role="dialog">
+		<div class="modal-dialog modal-dialog-centered">
+			<div class="modal-content">
 
-	      <div class="modal-header">
-	        <button type="button" class="close" data-dismiss="modal">
-	          &times;
-	        </button>
-	        <h4 class="modal-title">Enter Commission</h4>
-	      </div>
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal">&times;</button>
+					<h4 class="modal-title">Enter Commission</h4>
+				</div>
 
-	      <div class="modal-body">
-	        <div class="form-group">
-	          <label for="commissionInput">Commission Amount</label>
-	          <input
-	            type="number"
-	            class="form-control"
-	            id="commissionInput"
-	            placeholder="Enter commission"
-	            min="0"
-	            step="0.01"
-	          >
-	        </div>
-	      </div>
+				<div class="modal-body">
 
-	      <div class="modal-footer">
-	      	<input type="hidden" class="currentBookingId" value="">
-	        <button type="button" class="btn btn-default" data-dismiss="modal">
-	          Cancel
-	        </button>
-	        <button type="button" class="btn btn-primary" id="saveCommissionBtn">
-	          Save
-	        </button>
-	      </div>
+					<!-- Commission Type -->
+					<div class="form-group">
+						<label>Commission Type</label>
 
-	    </div>
-	  </div>
+						<select id="commissionTypeSelect" class="form-control">
+
+							<option value="percent"
+							<?php echo $commission_type == 'percent' ? 'selected' : ''; ?>>
+							Percent
+							</option>
+
+							<option value="fixed"
+							<?php echo $commission_type == 'fixed' ? 'selected' : ''; ?>>
+							Fixed
+							</option>
+
+						</select>
+					</div>
+
+					<!-- Commission Value -->
+					<div class="form-group">
+
+						<label id="commissionLabel">
+							<?php echo $commission_type == 'percent' ? 'Enter Percentage' : 'Commission Amount'; ?>
+						</label>
+
+						<div class="input-group">
+
+							<input
+								type="number"
+								class="form-control"
+								id="commissionInput"
+								value="<?php echo $commission_amount; ?>"
+								min="0"
+								step="0.01"
+							>
+
+							<span class="input-group-addon" id="commissionSymbol">
+								<?php echo $commission_type == 'percent' ? '%' : '<i class="fa fa-money"></i>'; ?>
+							</span>
+
+						</div>
+
+					</div>
+
+				</div>
+
+				<div class="modal-footer">
+
+					<input type="hidden" class="currentBookingId" value="">
+
+					<button type="button" class="btn btn-default" data-dismiss="modal">
+						Cancel
+					</button>
+
+					<button type="button" class="btn btn-primary" id="saveCommissionBtn">
+						Save
+					</button>
+
+				</div>
+
+			</div>
+		</div>
 	</div>
 </div>
+<script>
+var defaultCommissionType = "<?php echo $tpl['option_arr']['o_commission_type']; ?>";
+var defaultCommissionAmount = "<?php echo $tpl['option_arr']['o_commission_amount']; ?>";
+</script>
 <script type="text/javascript">
-var pjGrid = pjGrid || {};
-pjGrid.queryString = "";
-<?php
-if ($controller->_get->toInt('fleet_id') > 0)
-{
-    ?>pjGrid.queryString += "&fleet_id=<?php echo $controller->_get->toInt('fleet_id'); ?>";<?php
-}
-if ($controller->_get->toInt('client_id') > 0)
-{
-    ?>pjGrid.queryString += "&client_id=<?php echo $controller->_get->toInt('client_id'); ?>";<?php
-}
-if ($controller->_get->has('date'))
-{
-    ?>pjGrid.queryString += "&date=<?php echo $controller->_get->toString('date'); ?>";<?php
-}
-if ($controller->_get->has('date_from') && $controller->_get->toString('date_from') != '')
-{
-    ?>pjGrid.queryString += "&date_from=<?php echo $controller->_get->toString('date_from'); ?>";<?php
-}
-if ($controller->_get->has('date_to') && $controller->_get->toString('date_to') != '')
-{
-    ?>pjGrid.queryString += "&date_to=<?php echo $controller->_get->toString('date_to'); ?>";<?php
-}
-?>
-var myLabel = myLabel || {};
-myLabel.client = <?php x__encode('lblClient', false, true); ?>;
-myLabel.fleet = <?php x__encode('lblFleet', false, true); ?>;
-myLabel.pickup_address = <?php x__encode('plugin_base_lbl_pickup', false, true); ?>;
-myLabel.return_address = <?php x__encode('plugin_base_lbl_dropoff', false, true); ?>;
-myLabel.passengers = <?php x__encode('lblPassengers', false, true); ?>;
-myLabel.extras = <?php x__encode('plugin_base_lbl_extras', false, true); ?>;
+	var pjGrid = pjGrid || {};
+	pjGrid.queryString = "";
+	<?php
+	if ($controller->_get->toInt('fleet_id') > 0)
+	{
+		?>pjGrid.queryString += "&fleet_id=<?php echo $controller->_get->toInt('fleet_id'); ?>";<?php
+	}
+	if ($controller->_get->toInt('client_id') > 0)
+	{
+		?>pjGrid.queryString += "&client_id=<?php echo $controller->_get->toInt('client_id'); ?>";<?php
+	}
+	if ($controller->_get->has('date'))
+	{
+		?>pjGrid.queryString += "&date=<?php echo $controller->_get->toString('date'); ?>";<?php
+	}
+	if ($controller->_get->has('date_from') && $controller->_get->toString('date_from') != '')
+	{
+		?>pjGrid.queryString += "&date_from=<?php echo $controller->_get->toString('date_from'); ?>";<?php
+	}
+	if ($controller->_get->has('date_to') && $controller->_get->toString('date_to') != '')
+	{
+		?>pjGrid.queryString += "&date_to=<?php echo $controller->_get->toString('date_to'); ?>";<?php
+	}
+	?>
+	var myLabel = myLabel || {};
+	myLabel.client = <?php x__encode('lblClient', false, true); ?>;
+	myLabel.fleet = <?php x__encode('lblFleet', false, true); ?>;
+	myLabel.pickup_address = <?php x__encode('plugin_base_lbl_pickup', false, true); ?>;
+	myLabel.return_address = <?php x__encode('plugin_base_lbl_dropoff', false, true); ?>;
+	myLabel.passengers = <?php x__encode('lblPassengers', false, true); ?>;
+	myLabel.extras = <?php x__encode('plugin_base_lbl_extras', false, true); ?>;
 
-myLabel.payment_method = <?php x__encode('lblPaymentMethod', false, true); ?>;
-myLabel.total = <?php x__encode('plugin_base_lbl_price', false, true); ?>;
-myLabel.distance = <?php x__encode('lblDistance', false, true); ?>;
-myLabel.date_time = <?php x__encode('lblDateTime', false, false); ?>;
-myLabel.email = <?php x__encode('email', false, true); ?>;
-myLabel.driver_name = <?php x__encode('plugin_base_lbl_driver', false, true); ?>;
-myLabel.supplier_name = <?php x__encode('plugin_base_lbl_supplier_name', false, true); ?>;
-myLabel.is_auction = <?php x__encode('plugin_base_lbl_in_auction', false, true); ?>;
-myLabel.status = <?php x__encode('lblStatus'); ?>;
-myLabel.exported = <?php x__encode('lblExport', false, true); ?>;
-myLabel.print = <?php x__encode('lblPrint', false, true); ?>;
-myLabel.delete_selected = <?php x__encode('delete_selected', false, true); ?>;
-myLabel.delete_confirmation = <?php x__encode('delete_confirmation', false, true); ?>;
-myLabel.pending = <?php echo x__encode('booking_statuses_ARRAY_pending'); ?>;
-myLabel.confirmed = <?php echo x__encode('booking_statuses_ARRAY_confirmed'); ?>;
-myLabel.cancelled = <?php echo x__encode('booking_statuses_ARRAY_cancelled'); ?>;
-myLabel.completed = <?php echo x__encode('plugin_base_lbl_completed'); ?>;
+	myLabel.payment_method = <?php x__encode('lblPaymentMethod', false, true); ?>;
+	myLabel.total = <?php x__encode('plugin_base_lbl_price', false, true); ?>;
+	myLabel.distance = <?php x__encode('lblDistance', false, true); ?>;
+	myLabel.date_time = <?php x__encode('lblDateTime', false, false); ?>;
+	myLabel.email = <?php x__encode('email', false, true); ?>;
+	myLabel.driver_name = <?php x__encode('plugin_base_lbl_driver', false, true); ?>;
+	myLabel.supplier_name = <?php x__encode('plugin_base_lbl_supplier_name', false, true); ?>;
+	myLabel.is_auction = <?php x__encode('plugin_base_lbl_in_auction', false, true); ?>;
+	myLabel.status = <?php x__encode('lblStatus'); ?>;
+	myLabel.exported = <?php x__encode('lblExport', false, true); ?>;
+	myLabel.print = <?php x__encode('lblPrint', false, true); ?>;
+	myLabel.delete_selected = <?php x__encode('delete_selected', false, true); ?>;
+	myLabel.delete_confirmation = <?php x__encode('delete_confirmation', false, true); ?>;
+	myLabel.pending = <?php echo x__encode('booking_statuses_ARRAY_pending'); ?>;
+	myLabel.confirmed = <?php echo x__encode('booking_statuses_ARRAY_confirmed'); ?>;
+	myLabel.cancelled = <?php echo x__encode('booking_statuses_ARRAY_cancelled'); ?>;
+	myLabel.completed = <?php echo x__encode('plugin_base_lbl_completed'); ?>;
 </script>

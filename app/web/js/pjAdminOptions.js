@@ -395,6 +395,41 @@ var jQuery_1_8_2 = jQuery_1_8_2 || $.noConflict();
 		
 		$('input[name="recipient"]:checked').trigger("change");
 		
+		function updateCommissionUI(){
+
+			var raw = jQuery_1_8_2("#commission_type").val();
+			if(!raw) return;
+
+			var type = raw.split("::")[1]; // get actual value
+
+			if(type === "percent"){
+				jQuery_1_8_2("#commission_amount_label").text("Enter Percentage");
+				jQuery_1_8_2("#commission_icon").html('<i class="fa fa-percent"></i>');
+				jQuery_1_8_2("#commission_amount").attr("placeholder","e.g. 10");
+			}else{
+				jQuery_1_8_2("#commission_amount_label").text("Commission Amount");
+				jQuery_1_8_2("#commission_icon").html('<i class="fa fa-money"></i>');
+				jQuery_1_8_2("#commission_amount").attr("placeholder","e.g. 500");
+			}
+
+		}
+
+		// run on page load
+		updateCommissionUI();
+
+		// run when dropdown changes
+		jQuery_1_8_2(document).on("change","#commission_type",function(){
+			updateCommissionUI();
+		});
+
+		// Run when page loads
+		updateCommissionUI();
+
+		// Run when select changes
+		jQuery_1_8_2(document).on("change", "#commission_type", function(){
+			updateCommissionUI();
+		});
+
 		$(window).on("popstate", function (e) {
 			var state = e.originalEvent.state;
 			if (state !== null) {
