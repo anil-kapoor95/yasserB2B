@@ -826,38 +826,45 @@ var jQuery_1_8_2 = jQuery_1_8_2 || $.noConflict();
 				          	sortable: false,
 
 				          	renderer: function (val, row) {
-				          	const supplierVehicleCategories = getSupplierVehicleCategories();
+								const supplierVehicleCategories = getSupplierVehicleCategories();
+								const bookingCategory = parseInt(row.fleet_category_id, 10);
 
-				          	//console.log('supplierVehicleCategories',supplierVehicleCategories);
-    						let html = '';
+								const hasCategory =
+									Array.isArray(supplierVehicleCategories) &&
+									supplierVehicleCategories.includes(bookingCategory);
 
-						    // 👁 View button (always visible)
-						    html += `
-						      <a href="index.php?controller=pjAdminSuppliers&action=pjActionRideDetails&id=${row.id}"
-						         class="pj-button pj-button-eye"
-						         title="">
-						        <i class="fa fa-eye"></i>
-						      </a>
-						    `;
+								let html = '';
 
-						    // ✔ Assign button (conditional)
-						    if (
-						      Array.isArray(supplierVehicleCategories) &&
-						      supplierVehicleCategories.length > 0 &&
-						      supplierVehicleCategories.includes(parseInt(row.fleet_category_id, 10))
-						    ) {
-						      html += `
-						        <a href="javascript:void(0);"
-						           class="pj-button pj-button-check accept_ride"
-						      	   data-id="${row.id}"
-						           title="">
-						          <i class="fa fa-check"></i>
-						        </a>
-						      `;
-						    }
+								// 👁 View button
+								html += `
+								<a href="index.php?controller=pjAdminSuppliers&action=pjActionRideDetails&id=${row.id}"
+									class="pj-button pj-button-eye">
+									<i class="fa fa-eye"></i>
+								</a>
+								`;
 
-						    return html;
-						    }
+								if (hasCategory) {
+									// ✅ Enabled
+									html += `
+									<a href="javascript:void(0);"
+										class="pj-button pj-button-check accept_ride"
+										data-id="${row.id}"
+										title="Accept Ride">
+										<i class="fa fa-check"></i>
+									</a>
+									`;
+								} else {
+									// ❌ Disabled + hover tooltip
+									html += `
+									<span class="pj-button pj-button-check disabled-btn"
+											title="You can't accept this ride because you don't have this vehicle category">
+										<i class="fa fa-check"></i>
+									</span>
+									`;
+								}
+
+								return html;
+							}
 				          },
 				          // {text: myLabel.driver_name, type: "text", sortable: false},
 				          // {text: myLabel.supplier_name, type: "text", sortable: false},
@@ -869,7 +876,7 @@ var jQuery_1_8_2 = jQuery_1_8_2 || $.noConflict();
 
 				dataType: "json",
 
-				fields: ['client', 'fleet','pickup_address', 'return_address', 'passengers', 'extras', 'payment_method', 'total','commission', 'distance', 'date_time','actions'],
+				fields: ['client', 'fleet','pickup_address', 'return_address', 'passengers', 'extras', 'payment_method', 'total','commission_amount', 'distance', 'date_time','actions'],
 
 				paginator: {
 
@@ -908,6 +915,12 @@ var jQuery_1_8_2 = jQuery_1_8_2 || $.noConflict();
 			});
 
 		}
+
+		$(document).on("click", ".pj-button-check.disabled", function (e) {
+			e.preventDefault();
+
+			swal("Not Allowed", "You can't accept this ride because your vehicle category does not match.", "warning");
+		});
 
 		if ($("#griddeleted").length > 0) {
 			function formatExtras(val, obj) {
@@ -1300,7 +1313,7 @@ var jQuery_1_8_2 = jQuery_1_8_2 || $.noConflict();
 		                    // Reload grid correctly
 		                    $grid.datagrid(
 							    "load",
-							    "index.php?controller=pjAdminSuppliers&action=pjActionAvailableRides" + pjGrid.queryString
+							    "index.php?controller=pjAdminSuppliers&action=pjActionGetAvailableBooking" + pjGrid.queryString
 							);
 
 		                } else {

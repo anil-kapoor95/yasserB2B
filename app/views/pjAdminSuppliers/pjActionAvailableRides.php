@@ -18,18 +18,23 @@ $get = $controller->_get->raw();
 	.bg-completed {
     background-color: #8E44AD !important; /* Purple (example) */
     color: #fff !important;
-}
+	}
+	.disabled-btn {
+		opacity: 0.4;
+		cursor: not-allowed;
+		pointer-events: auto; /* needed for hover */
+	}
 
-/* Mobile / iPhone */
-@media (max-width: 768px) {
-.list-view {
-    width: 56%;
-    float: left;
-}
-.cal-view {
-    width: 44%;
-    float: left;
-}
+	/* Mobile / iPhone */
+	@media (max-width: 768px) {
+	.list-view {
+		width: 56%;
+		float: left;
+	}
+	.cal-view {
+		width: 44%;
+		float: left;
+	}
 }
 
 </style>

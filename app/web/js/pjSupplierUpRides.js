@@ -827,7 +827,7 @@ var jQuery_1_8_2 = jQuery_1_8_2 || $.noConflict();
 
 				dataType: "json",
 
-				fields: ['client', 'fleet','pickup_address', 'return_address', 'passengers', 'extras', 'payment_method', 'total','commission', 'distance', 'date_time'],
+				fields: ['client', 'fleet','pickup_address', 'return_address', 'passengers', 'extras', 'payment_method', 'total','commission_amount', 'distance', 'date_time'],
 
 				paginator: {
 
