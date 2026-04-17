@@ -160,6 +160,21 @@ var jQuery_1_8_2 = jQuery_1_8_2 || $.noConflict();
 				$('.datetimepick_from').datetimepicker(dateOnlyOptions);
 				$('.datetimepick_to').datetimepicker(dateOnlyOptions);
 
+				// ✅ ADD HERE ↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓
+
+				var startOfMonth = moment().startOf('month');
+				var endOfMonth = moment().endOf('month');
+
+				$('#from_date').val(startOfMonth.format('YYYY-MM-DD'));
+				$('#to_date').val(endOfMonth.format('YYYY-MM-DD'));
+
+				$('#from_date').data("DateTimePicker").date(startOfMonth);
+				$('#to_date').data("DateTimePicker").date(endOfMonth);
+
+				setTimeout(function () {
+					$('.frm-filter').trigger('submit');
+				}, 200);
+
 				$('#from_date').on('click', function () {
 					$(this).data("DateTimePicker").show();
 				});

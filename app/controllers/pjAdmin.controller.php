@@ -558,9 +558,121 @@ class pjAdmin extends pjAppController
 		$this->set('bookings_per_day', $bookings_per_day);
 		$this->set('booking_analysis', $booking_analysis);
 		$this->set('revenue_by_vehicle', [
-					'labels' => $chart_labels,
-					'data'   => $chart_data
-				]);
+			'labels' => $chart_labels,
+			'data'   => $chart_data
+		]);
+		
+
+		/* ================= B2B / AUCTION SUMMARY (ADMIN) ================= */
+
+		$today = date('Y-m-d H:i:s');
+
+		$applyAuctionFilters = function($model) use (
+			$driverId, $booking_status, $payment_status, 
+			$dateFrom, $dateTo, $time_type, $city, $fleet_id
+		) {
+
+			if ($driverId) {
+				$model->where("t1.driver_id", $driverId);
+			}
+
+			if (!empty($booking_status)) {
+				$model->where("t1.status", $booking_status);
+			}
+
+			if (!empty($payment_status)) {
+				$model->where("t1.payment_method", $payment_status);
+			}
+
+			if (!empty($fleet_id)) {
+				$model->where("t1.fleet_id", $fleet_id);
+			}
+
+			if (!empty($city)) {
+				$cityEscaped = pjSanitize::clean($city);
+				$model->where("(t1.pickup_address LIKE '%$cityEscaped%' OR t1.return_address LIKE '%$cityEscaped%')");
+			}
+
+			if ($time_type == "past") {
+				$model->where("t1.booking_date <", date('Y-m-d H:i:s'));
+			} elseif ($time_type == "future") {
+				$model->where("t1.booking_date >", date('Y-m-d H:i:s'));
+			} elseif ($time_type == "present") {
+				$model->where("DATE(t1.booking_date)", date('Y-m-d'));
+			}
+
+			// ALWAYS KEEP DATE FILTER
+			$model->where("t1.booking_date >=", $dateFrom)
+				->where("t1.booking_date <=", $dateTo);
+
+			return $model;
+		};
+
+		/* ================= AVAILABLE RIDES ================= */
+		// Same as your code but global
+		$available_rides = $applyAuctionFilters(
+			$pjBookingModel->reset()
+				->join('pjAuction AS t2', "t2.booking_id = t1.id", 'inner')
+				->where('t1.is_auction', 1)
+				->where('t1.supplier_id IS NULL')
+				->where('t1.status', 'confirmed')
+				->where('t1.is_deleted', 0)
+		)->findCount()->getData();
+
+		/* ================= UPCOMING RIDES ================= */
+		$upcoming_rides = $applyAuctionFilters(
+			$pjBookingModel->reset()
+				->join('pjAuction AS t2', "t2.booking_id = t1.id", 'inner')
+				->where('t1.is_auction', 1)
+				->where('t1.status', 'confirmed')
+				->where('t1.supplier_id IS NOT NULL')
+				->where('t1.is_deleted', 0)
+		)->findCount()->getData();
+
+
+		/* ================= COMPLETED BOOKINGS ================= */
+		$completedBookings = $applyAuctionFilters(
+			$pjBookingModel->reset()
+				->select("t1.id, t1.total, t1.commission_amount")
+				->join('pjAuction AS t2', "t2.booking_id = t1.id", 'inner')
+				->where('t1.is_auction', 1)
+				->where('t1.status', 'completed')
+				->where('t1.supplier_id IS NOT NULL')
+				->where('t1.is_deleted', 0)
+				->groupBy("t1.id")
+		)->findAll()->getData();
+
+		$completed_rides = count($completedBookings);
+
+
+		/* ================= EARNINGS ================= */
+		$total_amount = 0;
+		$total_commission = 0;
+		$total_paid_to_partners = 0;
+
+		foreach ($completedBookings as $b) {
+
+			$amount = (float) $b['total'];
+			$commission = (float) $b['commission_amount'];
+
+			$paid = $amount - $commission;
+
+			$total_amount += $amount;
+			$total_commission += $commission;
+			$total_paid_to_partners += $paid;
+		}
+
+
+		/* ================= PASS DATA ================= */
+		$this->set('b2b_summary', [
+			'available'  => $available_rides,
+			'upcoming'   => $upcoming_rides,
+			'completed'  => $completed_rides,
+    		'total'      => number_format($available_rides + $upcoming_rides + $completed_rides, 2),
+    		'commission' => number_format($total_commission, 2),
+    		'paid'       => number_format($total_paid_to_partners, 2)
+		]);
+
 		// -------------------------------
 		// 2️⃣1️⃣ Append JS/CSS files for dashboard
 		// -------------------------------

@@ -33,6 +33,10 @@ $isScriptSupplierPastRides = $isScriptPastRidesController && in_array($action_na
 $isScriptSupplierDriverController = in_array($controller_name, array('pjAdminSuppliers'));
 $isScriptSupplierDriverIndex = $isScriptSupplierDriverController && in_array($action_name, array('pjActionDrivers', 'pjActionDriverCreate', 'pjActionDriverUpdate'));
 
+//Suplier payoutReport
+$isScriptSupplierReportController = in_array($controller_name, array('pjAdminSuppliers'));
+$isScriptSupplierReportIndex = $isScriptSupplierReportController && in_array($action_name, array('pjActionReport'));
+
 // Driver
 $isScriptDriversController = in_array($controller_name, array('pjAdminDrivers'));
 $isScriptDriversIndex = $isScriptDriversController && in_array($action_name, array('pjActionIndex', 'pjActionCreate', 'pjActionUpdate'));
@@ -54,8 +58,11 @@ $isScriptCitiesIndex = $isScriptCitiesController && in_array($action_name, array
 
 // Extras
 $isScriptExtrasController         = in_array($controller_name, array('pjAdminExtras'));
-// Category
+// Category 
 $isScriptCategoryController         = in_array($controller_name, array('pjAdminCategory'));
+
+// Report 
+$isScriptReportController         = in_array($controller_name, array('pjAdminReport'));
 
 // Payments
 $isScriptPaymentsController = in_array($controller_name, array('pjPayments'));
@@ -106,6 +113,9 @@ $hasAccessScriptExtras       = pjAuth::factory('pjAdminExtras')->hasAccess();
 // Permissions - Category
 $hasAccessScriptCategory       = pjAuth::factory('pjAdminCategory')->hasAccess();
 
+// Permissions - Report
+$hasAccessScriptReport       = pjAuth::factory('pjAdminReport')->hasAccess();
+
 // Permissions - Payments
 $hasAccessScriptPayments = pjAuth::factory('pjPayments', 'pjActionIndex')->hasAccess();
 
@@ -145,6 +155,12 @@ $roleId = $auth->getRoleId();
 <?php if ($hasAccessScriptCategory): ?>
     <li<?php echo $isScriptCategoryController ? ' class="active"' : NULL; ?>>
         <a href="<?php echo $_SERVER['PHP_SELF']; ?>?controller=pjAdminCategory&amp;action=pjActionIndex"><i class="fa fa-tag"></i> <span class="nav-label"><?php __('menuCategory');?></span></a>
+    </li>
+<?php endif; ?>
+
+<?php if ($hasAccessScriptReport): ?>
+    <li<?php echo $isScriptReportController ? ' class="active"' : NULL; ?>>
+        <a href="<?php echo $_SERVER['PHP_SELF']; ?>?controller=pjAdminReport&amp;action=pjActionIndex"><i class="fa fa-file-text"></i> <span class="nav-label"><?php __('menuReport');?></span></a>
     </li>
 <?php endif; ?>
 
@@ -230,38 +246,44 @@ if ((int)$roleId === 4): ?>
  <!-- supplier menu -->
 <?php 
 if ((int)$roleId === 5): ?>
-<li<?php echo $isScriptSupplierIndex ? ' class="active"' : NULL; ?>>
-    <a href="<?php echo $_SERVER['PHP_SELF']; ?>?controller=pjAdminSuppliers&amp;action=pjActionIndex">
-        <i class="fa fa-th-large"></i>
-        <span class="nav-label"><?php __('plugin_base_menu_dashboard');?></span>
-    </a>
-</li>
+    <li<?php echo $isScriptSupplierIndex ? ' class="active"' : NULL; ?>>
+        <a href="<?php echo $_SERVER['PHP_SELF']; ?>?controller=pjAdminSuppliers&amp;action=pjActionIndex">
+            <i class="fa fa-th-large"></i>
+            <span class="nav-label"><?php __('plugin_base_menu_dashboard');?></span>
+        </a>
+    </li>
 
-<li<?php echo $isScriptSupplierAvailableRides ? ' class="active"' : NULL; ?>>
-    <a href="<?php echo $_SERVER['PHP_SELF']; ?>?controller=pjAdminSuppliers&amp;action=pjActionAvailableRides">
-        <i class="fa fa-car"></i> 
-        <span class="nav-label"><?php __('plugin_base_menu_available_rides');?></span>
-    </a>
-</li>
+    <li<?php echo $isScriptSupplierAvailableRides ? ' class="active"' : NULL; ?>>
+        <a href="<?php echo $_SERVER['PHP_SELF']; ?>?controller=pjAdminSuppliers&amp;action=pjActionAvailableRides">
+            <i class="fa fa-car"></i> 
+            <span class="nav-label"><?php __('plugin_base_menu_available_rides');?></span>
+        </a>
+    </li>
 
-<li<?php echo $isScriptSupplierUpcomingRides ? ' class="active"' : NULL; ?>>
-    <a href="<?php echo $_SERVER['PHP_SELF']; ?>?controller=pjAdminSuppliers&amp;action=pjActionUpcomingRides">
-        <i class="fa fa-calendar-check-o"></i> 
-        <span class="nav-label"><?php __('plugin_base_menu_upcoming_rides');?></span>
-    </a>
-</li>
+    <li<?php echo $isScriptSupplierUpcomingRides ? ' class="active"' : NULL; ?>>
+        <a href="<?php echo $_SERVER['PHP_SELF']; ?>?controller=pjAdminSuppliers&amp;action=pjActionUpcomingRides">
+            <i class="fa fa-calendar-check-o"></i> 
+            <span class="nav-label"><?php __('plugin_base_menu_upcoming_rides');?></span>
+        </a>
+    </li>
 
-<li<?php echo $isScriptSupplierPastRides ? ' class="active"' : NULL; ?>>
-    <a href="<?php echo $_SERVER['PHP_SELF']; ?>?controller=pjAdminSuppliers&amp;action=pjActionPastRides">
-        <i class="fa fa-history"></i> 
-        <span class="nav-label"><?php __('plugin_base_menu_past_rides');?></span>
-    </a>
-</li>
+    <li<?php echo $isScriptSupplierPastRides ? ' class="active"' : NULL; ?>>
+        <a href="<?php echo $_SERVER['PHP_SELF']; ?>?controller=pjAdminSuppliers&amp;action=pjActionPastRides">
+            <i class="fa fa-history"></i> 
+            <span class="nav-label"><?php __('plugin_base_menu_past_rides');?></span>
+        </a>
+    </li>
 
-<li<?php echo $isScriptSupplierDriverIndex ? ' class="active"' : NULL; ?>>
-    <a href="<?php echo $_SERVER['PHP_SELF']; ?>?controller=pjAdminSuppliers&amp;action=pjActionDrivers">
-        <i class="fa fa-users"></i>
-        <span class="nav-label"><?php __('menuDrivers'); ?></span>
-    </a>
-</li>
+    <li<?php echo $isScriptSupplierDriverIndex ? ' class="active"' : NULL; ?>>
+        <a href="<?php echo $_SERVER['PHP_SELF']; ?>?controller=pjAdminSuppliers&amp;action=pjActionDrivers">
+            <i class="fa fa-users"></i>
+            <span class="nav-label"><?php __('menuDrivers'); ?></span>
+        </a>
+    </li>
+    <li<?php echo $isScriptSupplierReportIndex ? ' class="active"' : NULL; ?>>
+        <a href="<?php echo $_SERVER['PHP_SELF']; ?>?controller=pjAdminSuppliers&amp;action=pjActionReport">
+            <i class="fa fa-file-text"></i>
+            <span class="nav-label"><?php __('menuReport'); ?></span>
+        </a>
+    </li>
 <?php endif; ?>

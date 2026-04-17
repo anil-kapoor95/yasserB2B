@@ -408,76 +408,76 @@ $roleId = $auth->getRoleId();
 		<input type="hidden" name="analysis" value="<?= isset($get["analysis"])
 		? htmlspecialchars($get["analysis"])
 		: "date" ?>">
-			<div style="flex: 1; margin: 0;">
-				<input type="text" name="from_date" id="from_date" class="form-control datetimepick_from" placeholder="From" value="<?php echo isset(
-					$get["from_date"]
-				)
-					? htmlspecialchars($get["from_date"])
-					: $tpl["filter_from"]; ?>"  readonly>
-			</div>
-			<div style="flex: 1; margin: 0;">
-				<input type="text" name="to_date" id="to_date" class="form-control datetimepick_to" placeholder="To" value="<?php echo isset(
-					$get["to_date"]
-				)
-					? htmlspecialchars($get["to_date"])
-					: $tpl["filter_to"]; ?>" readonly>
-			</div>
-			<div style="flex: 1; margin: 0;">
-				<select name="booking_status" class="form-control">
-					<option value="">-- <?php __("lblAllStatus"); ?> --</option>
-					<?php foreach ($bs as $k => $v) { ?>
-					<option value="<?php echo $k; ?>" <?php echo isset($get["booking_status"]) && $get["booking_status"] === $k ? "selected"    : ""; ?>>
-					<?php echo pjSanitize::html($v); ?>
-					<?php } ?>
-				</select>
-			</div>
-			<div style="flex: 1; margin: 0;">
-				<select name="payment_status" class="form-control">
-					<option value="">-- <?php __("lblALlPayments"); ?> --</option>
-					<?php foreach ($ps as $k => $v) { ?>
-					<option value="<?php echo $k; ?>" <?php echo isset($get["payment_status"]) && $get["payment_status"] === $k ? "selected"    : ""; ?>>
-					<?php echo pjSanitize::html($v); ?>
-					<?php } ?>
-				</select>
-			</div>
-			<div style="flex: 1; margin: 0;">
-				<select name="time_type" class="form-control">
-					<option value="">-- <?php __("lblTimeType"); ?> --</option>
-					<?php foreach ($tt as $k => $v) { ?>
-					<option value="<?php echo $k; ?>" <?php echo isset($get["time_type"]) && $get["time_type"] === $k ? "selected"    : ""; ?>>
-					<?php echo pjSanitize::html($v); ?>
-					<?php } ?>
-				</select>
-			</div>
+		<div style="flex: 1; margin: 0;">
+			<input type="text" name="from_date" id="from_date" class="form-control datetimepick_from" placeholder="From" value="<?php echo isset(
+				$get["from_date"]
+			)
+				? htmlspecialchars($get["from_date"])
+				: $tpl["filter_from"]; ?>"  readonly>
+		</div>
+		<div style="flex: 1; margin: 0;">
+			<input type="text" name="to_date" id="to_date" class="form-control datetimepick_to" placeholder="To" value="<?php echo isset(
+				$get["to_date"]
+			)
+				? htmlspecialchars($get["to_date"])
+				: $tpl["filter_to"]; ?>" readonly>
+		</div>
+		<div style="flex: 1; margin: 0;">
+			<select name="booking_status" class="form-control">
+				<option value="">-- <?php __("lblAllStatus"); ?> --</option>
+				<?php foreach ($bs as $k => $v) { ?>
+				<option value="<?php echo $k; ?>" <?php echo isset($get["booking_status"]) && $get["booking_status"] === $k ? "selected"    : ""; ?>>
+				<?php echo pjSanitize::html($v); ?>
+				<?php } ?>
+			</select>
+		</div>
+		<div style="flex: 1; margin: 0;">
+			<select name="payment_status" class="form-control">
+				<option value="">-- <?php __("lblALlPayments"); ?> --</option>
+				<?php foreach ($ps as $k => $v) { ?>
+				<option value="<?php echo $k; ?>" <?php echo isset($get["payment_status"]) && $get["payment_status"] === $k ? "selected"    : ""; ?>>
+				<?php echo pjSanitize::html($v); ?>
+				<?php } ?>
+			</select>
+		</div>
+		<div style="flex: 1; margin: 0;">
+			<select name="time_type" class="form-control">
+				<option value="">-- <?php __("lblTimeType"); ?> --</option>
+				<?php foreach ($tt as $k => $v) { ?>
+				<option value="<?php echo $k; ?>" <?php echo isset($get["time_type"]) && $get["time_type"] === $k ? "selected"    : ""; ?>>
+				<?php echo pjSanitize::html($v); ?>
+				<?php } ?>
+			</select>
+		</div>
 
-			<div style="flex: 1; margin: 0;">
-				<select name="city" class="form-control">
-					<option value="">-- City --</option>
-					<?php foreach($tpl['cities'] as $city){ ?>
-							<option value="<?= pjSanitize::html($city['name']) ?>"
-							<?= isset($get['city']) && $get['city']==$city['name'] ? 'selected':'' ?>>
-							<?= pjSanitize::html($city['name']) ?>
-						</option>
-					<?php } ?>
-				</select>
-			</div>
+		<div style="flex: 1; margin: 0;">
+			<select name="city" class="form-control">
+				<option value="">-- City --</option>
+				<?php foreach($tpl['cities'] as $city){ ?>
+						<option value="<?= pjSanitize::html($city['name']) ?>"
+						<?= isset($get['city']) && $get['city']==$city['name'] ? 'selected':'' ?>>
+						<?= pjSanitize::html($city['name']) ?>
+					</option>
+				<?php } ?>
+			</select>
+		</div>
 
-			<div style="flex: 1; margin: 0;">
-				<select name="fleet_id" class="form-control">
-					<option value="">Vehicle Type</option>
+		<div style="flex: 1; margin: 0;">
+			<select name="fleet_id" class="form-control">
+				<option value="">Vehicle Type</option>
 
-					<?php foreach ($tpl['fleets'] as $fleet): ?>
-						<option value="<?php echo $fleet['id']; ?>"
-							<?php echo (isset($get['fleet_id']) && $get['fleet_id'] == $fleet['id']) ? 'selected' : ''; ?>>
-							<?php echo pjSanitize::html($fleet['fleet']); ?>
-						</option>
-					<?php endforeach; ?>
+				<?php foreach ($tpl['fleets'] as $fleet): ?>
+					<option value="<?php echo $fleet['id']; ?>"
+						<?php echo (isset($get['fleet_id']) && $get['fleet_id'] == $fleet['id']) ? 'selected' : ''; ?>>
+						<?php echo pjSanitize::html($fleet['fleet']); ?>
+					</option>
+				<?php endforeach; ?>
 
-				</select>
-			</div>
-			<div class="col-md-1">
-				<button type="submit" class="btn btn-primary"><i class="fa fa-search"></i></button>
-			</div>
+			</select>
+		</div>
+		<div class="col-md-1">
+			<button type="submit" class="btn btn-primary"><i class="fa fa-search"></i></button>
+		</div>
 	</form>
 
 	<div id="dashboardContent">
@@ -600,19 +600,6 @@ $roleId = $auth->getRoleId();
 					</div>
 				</div>
 			</div>
-
-			<div class="col-lg-3">
-				<div class="ibox">
-					<div class="ibox-title"><h4><?php __(
-						"dash_payment_methods"
-					); ?></h4></div>
-					<div class="ibox-content">
-						<canvas id="paymentChart"></canvas>
-					</div>
-				</div>
-			</div>
-		</div>
-		<div class="row m-t-lg">
 			<div class="col-lg-3">
 				<div class="ibox">
 					<div class="ibox-title"><h4><?php __("dash_revenue_vehicle_type"); ?></h4></div>
@@ -622,6 +609,30 @@ $roleId = $auth->getRoleId();
 				</div>
 			</div>
 		</div>
+		<div class="row m-t-lg">
+			<div class="col-lg-3">
+				<div class="ibox">
+					<div class="ibox-title">
+						<h4>B2B Ride Status</h4>
+					</div>
+					<div class="ibox-content">
+						<canvas id="b2bChart"></canvas>
+					</div>
+				</div>
+			</div>
+
+			<div class="col-lg-3">
+				<div class="ibox">
+					<div class="ibox-title">
+						<h4>B2B Earnings</h4>
+					</div>
+					<div class="ibox-content">
+						<canvas id="b2bRevenueChart"></canvas>
+					</div>
+				</div>
+			</div>
+		</div>
+		
 	</div> 
 	<!-- end dashboardContent -->
 	<!-- ================= STYLES ================= -->
@@ -737,5 +748,13 @@ $roleId = $auth->getRoleId();
 		peakBookingChart: <?= json_encode($tpl["booking_analysis"]) ?>,
 		revenueByVehicleChart: <?= json_encode($tpl["revenue_by_vehicle"]) ?>
 	};
+	window.b2bChartData = {
+    available: <?= (int)$tpl['b2b_summary']['available'] ?>,
+    upcoming: <?= (int)$tpl['b2b_summary']['upcoming'] ?>,
+    completed: <?= (int)$tpl['b2b_summary']['completed'] ?>,
+    total: <?= (int)$tpl['b2b_summary']['total'] ?>,
+    commission: <?= (float)$tpl['b2b_summary']['commission'] ?>,
+    paid: <?= (float)$tpl['b2b_summary']['paid'] ?>
+};
 	</script>
 <?php } ?>

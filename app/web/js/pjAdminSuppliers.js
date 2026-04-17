@@ -6,6 +6,42 @@ var jQuery_1_8_2 = jQuery_1_8_2 || $.noConflict();
 
 		"use strict";
 
+		const $datePickerOptions = $("#datePickerOptions");
+
+        /* ================= DATEPICKER ================= */
+        if ($datePickerOptions.length && $.fn.datetimepicker && typeof moment !== "undefined") {
+
+            const weekStart = parseInt($datePickerOptions.data("wstart"), 10) || 0;
+            const months    = ($datePickerOptions.data("months") || "").split("_");
+            const days      = ($datePickerOptions.data("days") || "").split("_");
+            const format    = $datePickerOptions.data("format") || "YYYY-MM-DD";
+
+            moment.updateLocale("en", {
+                week: { dow: weekStart },
+                months: months,
+                weekdaysMin: days
+            });
+
+            const dateOptions = {
+                format: format,
+                locale: moment.locale("en"),
+                allowInputToggle: true,
+                ignoreReadonly: true,
+                useCurrent: false
+            };
+
+            $(".datetimepick_from").datetimepicker(dateOptions);
+            $(".datetimepick_to").datetimepicker(dateOptions);
+
+            $("#from_date").on("dp.change", function(e){
+                $("#to_date").data("DateTimePicker")?.minDate(e.date);
+            });
+
+            $("#to_date").on("dp.change", function(e){
+                $("#from_date").data("DateTimePicker")?.maxDate(e.date);
+            });
+        }
+
 		var 
 
 			$frmCreateBooking = $('#frmCreateBooking'),
@@ -21,10 +57,6 @@ var jQuery_1_8_2 = jQuery_1_8_2 || $.noConflict();
 			datagrid = ($.fn.datagrid !== undefined),
 
 			datetimeOptions = null;;
-
-	
-
-		
 
 		if($frmUpdateBooking.length > 0)
 
@@ -69,34 +101,6 @@ var jQuery_1_8_2 = jQuery_1_8_2 || $.noConflict();
 			}
 
 		}
-
-		
-
-		// function calcDistance() {
-		// 	var start = document.getElementById('pickup_address').value;
-		// 	var end = document.getElementById('return_address').value;
-		// 	if(start != '' && end != '')
-		// 	{
-		// 		var request = {
-		// 			origin: start,
-		// 		    destination: end,
-		// 		    travelMode: 'DRIVING'
-		// 		};
-		// 		directionsService.route(request, function(response, status) {
-		// 			if (status == google.maps.DirectionsStatus.OK) {
-		// 				var distanceinkm = parseInt(response.routes[0].legs[0].distance.value / 1000, 10);
-		// 				var durationInMin = parseInt(response.routes[0].legs[0].duration.value / 60, 10);
-		// 				$('#distance').val(distanceinkm);
-		// 				$('#pjTbsDurationInMinFiled').val(durationInMin);
-		// 		    }
-		// 		});
-		// 	}else{
-		// 		$('#distance').val("");
-		// 		$('#pjTbsDurationInMinFiled').val("");
-		// 	}
-
-		// 	calcPrice();
-		// }
 
 		function calcDistance() {
 		    var start = document.getElementById('pickup_address').value;
@@ -1147,19 +1151,7 @@ var jQuery_1_8_2 = jQuery_1_8_2 || $.noConflict();
 			        $('.returnDateTime').hide();
 			    }
 			getExtras();
-		})
-		// .on('input', '#deposit', function () {
-		//     // Get total and deposit values
-		//     var total = parseFloat($('#total').val()) || 0;
-		//     var deposit = parseFloat($(this).val()) || 0;
-
-		//     // Calculate remaining balance
-		//     var remaining = total - deposit;
-
-		//     // Update remaining balance field
-		//     $('#remainingBalance').val(remaining.toFixed(2));
-		// })
-		.on('input', '#sub_total, #tax, #total, #deposit', function () {
+		}).on('input', '#sub_total, #tax, #total, #deposit', function () {
 		    // Get numeric values or default to 0
 		    var subTotal = parseFloat($('#sub_total').val()) || 0;
 		    var tax = parseFloat($('#tax').val()) || 0;
@@ -1193,7 +1185,6 @@ var jQuery_1_8_2 = jQuery_1_8_2 || $.noConflict();
 		    var remaining = total - deposit;
 		    $('#remainingBalance').val(remaining.toFixed(2));
 		})
-
 		.on("change", ".pjAvailExtra", function (e) {
 
 					calcPrice();
@@ -1227,7 +1218,6 @@ var jQuery_1_8_2 = jQuery_1_8_2 || $.noConflict();
 		});
 
 		
-
 		$("#grid").on("click", 'a.pj-paginator-action:last', function (e) {
 
 			e.preventDefault();
@@ -1400,8 +1390,6 @@ var jQuery_1_8_2 = jQuery_1_8_2 || $.noConflict();
 			}
 
 		}
-
-		
 
 		function attachTinyMce(options) {
 
@@ -1585,8 +1573,6 @@ var jQuery_1_8_2 = jQuery_1_8_2 || $.noConflict();
 
 		}
 
-		
-
 		if ($modalSmsConfirmation.length > 0) {
 
 			$modalSmsConfirmation.on("show.bs.modal", function(e) {
@@ -1657,6 +1643,26 @@ var jQuery_1_8_2 = jQuery_1_8_2 || $.noConflict();
 
 		}
 
+		$(document).on("submit", ".supplier-frm-filter", function(e) {
+            e.preventDefault(); // prevent normal form submission
+
+            const $form = $(this);
+            const startDate = $form.find("input[name='from_date']").val();
+            const endDate   = $form.find("input[name='to_date']").val();
+            const bookingStatus = $form.find("select[name='booking_status']").val();
+            const city = $form.find("select[name='city']").val();
+
+            // Build query string
+            const params = new URLSearchParams({
+                from_date: startDate,
+                to_date: endDate,
+                booking_status: bookingStatus,
+                city: city,
+            });
+
+            // Redirect to URL with query params
+            window.location.href = "index.php?controller=pjAdminSuppliers&action=pjActionIndex&" + params.toString();
+        });
 	});
 
 })(jQuery_1_8_2);

@@ -41,6 +41,8 @@ var jQuery_1_8_2 = jQuery_1_8_2 || $.noConflict();
         }
 
         /* ================= DASHBOARD CHARTS ================= */
+        /* ================= B2B CHART ================= */
+        
         if (window.dashboardData && typeof Chart !== "undefined") {
             const data = window.dashboardData;
 
@@ -207,6 +209,131 @@ var jQuery_1_8_2 = jQuery_1_8_2 || $.noConflict();
                     responsive:true,
                     maintainAspectRatio:false
                 }
+            });
+        }
+        if (window.b2bChartData && typeof Chart !== "undefined") {
+            
+            function createChart(id, config) {
+                const canvas = document.getElementById(id);
+                if (!canvas) return;
+                new Chart(canvas, config);
+            }
+            /* B2B Ride Status (Donut) */
+            createChart("b2bChart", {
+                type: "doughnut",
+                data: {
+                    labels: ["Available", "Upcoming", "Completed"],
+                    datasets: [{
+                        data: [
+                            window.b2bChartData.available || 0,
+                            window.b2bChartData.upcoming || 0,
+                            window.b2bChartData.completed || 0
+                        ],
+                        backgroundColor: ["#4C786B", "#9BD0C0", "#569EAC"]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: "55%",
+                    plugins: {
+                        legend: {
+                            position: "right"
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.label + ": " + context.raw;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            createChart("b2bRevenueChart", {
+                type: "bar",
+                data: {
+                    labels: ["Commission", "Paid"],
+                    datasets: [{
+                        data: [
+                            Number(window.b2bChartData.commission || 0),
+                            Number(window.b2bChartData.paid || 0)
+                        ],
+                        backgroundColor: ["#569eac", "#4c786b"],
+                        borderWidth: 0,
+                        borderRadius: 6,
+                        barThickness: 40
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+
+                    scales: {
+                        x: {
+                            grid: { display: false },
+                            border: { display: false },
+                            ticks: { display: false }
+                        },
+                        y: {
+                            grid: { display: false },
+                            border: { display: false },
+                            ticks: { display: false } // 👈 hide left labels (optional)
+                        }
+                    },
+
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        datalabels: {
+                            color: function(context) {
+                                const value = context.dataset.data[context.dataIndex];
+                                const max = Math.max(...context.dataset.data);
+
+                                // If bar is small → dark text (outside)
+                                return value < max * 0.25 ? "#333" : "#fff";
+                            },
+
+                            anchor: function(context) {
+                                const value = context.dataset.data[context.dataIndex];
+                                const max = Math.max(...context.dataset.data);
+
+                                return value < max * 0.25 ? "end" : "center";
+                            },
+
+                            align: function(context) {
+                                const value = context.dataset.data[context.dataIndex];
+                                const max = Math.max(...context.dataset.data);
+
+                                return value < max * 0.25 ? "right" : "center";
+                            },
+
+                            offset: function(context) {
+                                const value = context.dataset.data[context.dataIndex];
+                                const max = Math.max(...context.dataset.data);
+
+                                return value < max * 0.25 ? 8 : 0;
+                            },
+
+                            formatter: function(value, context) {
+                                const label = context.chart.data.labels[context.dataIndex];
+                                return `${label} €${value.toLocaleString()}`;
+                            },
+
+                            font: {
+                                weight: "bold",
+                                size: 12
+                            },
+
+                            clamp: true,
+                            clip: false
+                        }
+                    }
+                },
+                plugins: [ChartDataLabels] // 👈 REQUIRED
             });
         }
         $('#bookingTabs button').on('click', function(){

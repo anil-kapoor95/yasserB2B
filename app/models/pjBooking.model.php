@@ -82,9 +82,9 @@ class pjBookingModel extends pjAppModel
 		array('name' => 'net_total', 'type' => 'varchar', 'default' => ':NULL'),
 		array('name' => 'is_auction', 'type' => 'TINYINT', 'default' => 0),
 		array('name' => 'auctioned_on', 'type' => 'datetime', 'default' => ':NULL'),
-		array('name' => 'commission', 'type' => 'varchar', 'default' => ':NULL'),
+		array('name' => 'commission', 'type' => 'decimal', 'default' => ':NULL'),
 		array('name' => 'commission_type', 'type' => 'varchar', 'default' => ':NULL'),
-		array('name' => 'commission_amount', 'type' => 'varchar', 'default' => ':NULL'),
+		array('name' => 'commission_amount', 'type' => 'decimal', 'default' => ':NULL'),
 		array('name' => 'supplier_id', 'type' => 'int', 'default' => ':NULL'),
 	);
 

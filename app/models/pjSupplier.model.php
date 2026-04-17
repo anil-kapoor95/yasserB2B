@@ -18,9 +18,6 @@ class pjSupplierModel extends pjAppModel
             array('name' => 'company_name', 'type' => 'varchar', 'default' => ':NULL'),
             // NEW ADDRESS FIELDS
             array('name' => 'street', 'type' => 'varchar', 'default' => ':NULL'),
-
-            array('name' => 'city', 'type' => 'varchar', 'default' => ':NULL'),
-
             array('name' => 'state', 'type' => 'varchar', 'default' => ':NULL'),
             array('name' => 'zip', 'type' => 'varchar', 'default' => ':NULL'),
 

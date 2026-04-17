@@ -586,6 +586,15 @@ class pjFrontPublic extends pjFront
 				$email = $this->_post->toString('email');
 				$password = $this->_post->toString('password');
 
+				// 👉 Handle empty input
+				if (empty($email) || empty($password))
+				{
+					pjAppController::jsonResponse(array(
+						'status' => 'ERR',
+						'msg' => 'Invalid credentials'
+					));
+				}
+
 				$user = pjAuthUserModel::factory()
 					->where('email', $email)
 					->where('role_id', 5)
