@@ -2,6 +2,7 @@
 mt_srand();
 $index = mt_rand(1, 9999);
 $theme = $controller->_get->check('theme') ? $controller->_get->toString('theme') : $tpl['option_arr']['o_theme'];
+$reg = $controller->_get->check('reg') ? $controller->_get->toString('reg') : 0;
 
 $time_ampm = 0;
 if(strpos($tpl['option_arr']['o_time_format'], 'a') > -1)
@@ -14,12 +15,15 @@ if(strpos($tpl['option_arr']['o_time_format'], 'A') > -1)
 }
 ?>
 <div id="pjWrapperTaxiBooking_<?php echo $theme;?>">
-	<div id="registerLink"  style="padding-left:30px">
-		<a href="#!/SupplierRegister" class="btn btn-primary">
-			<?php __('btnRegister');?>
-		</a>
-	</div>
 	<div id="pjTbsContainer_<?php echo $index; ?>" class="container-fluid"></div>
+
+	<div id="registerLink"  style="padding-left:30px; display:none;">
+		    <?php if(isset($reg) && (int)$reg == 1): ?>
+				<a href="#!/SupplierRegister" class="btn btn-primary">
+					<?php __('btnRegister');?>
+				</a>
+		 <?php endif; ?>
+	</div>
 	<div class="modal fade pjTbModal" id="pjNcbTermModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
 	  	<div class="modal-dialog">
 	    	<div class="modal-content">
@@ -241,7 +245,9 @@ var pjQ = pjQ || {},
 		time_format: "<?php echo $time_ampm > 0 ? 'LT' : "HH:mm";?>",
 		lat: <?php echo isset($tpl['option_arr']['o_latitude']) ? (float) $tpl['option_arr']['o_latitude'] : 51.509865; ?>,
 		lng: <?php echo isset($tpl['option_arr']['o_longitude']) ? (float) $tpl['option_arr']['o_longitude'] : -0.118092; ?>,
-		zoom: <?php echo isset($tpl['option_arr']['o_zoom']) ? (float) $tpl['option_arr']['o_zoom'] : 13; ?>,		
+		zoom: <?php echo isset($tpl['option_arr']['o_zoom']) ? (float) $tpl['option_arr']['o_zoom'] : 13; ?>,	
+		reg: <?php echo isset($reg ) ? (int)$reg  : 0; ?>
+	
 	};
 	<?php
 	$dm = new pjDependencyManager(PJ_INSTALL_PATH, PJ_THIRD_PARTY_PATH);

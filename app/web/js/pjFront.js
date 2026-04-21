@@ -803,11 +803,17 @@
 			}
 
 			pjQ.$.get([this.opts.folder, "index.php?controller=pjFrontPublic&action=pjActionSearch"].join(""), params).done(function (data) {
-				pjQ.$("#registerLink").show(); 
-
-				self.$container.html(data);
-
-				self.bindSearch.call(self);
+				 if(self.opts.reg == 1) {
+					// Show register button, hide booking form
+					pjQ.$("#registerLink").show();
+					self.$container.hide();  // <-- hide the booking form
+				} else {
+					// Hide register button, show booking form
+					pjQ.$("#registerLink").hide();
+					self.$container.html(data);
+					self.$container.show();  // <-- show the booking form
+					self.bindSearch.call(self);
+				}
 
 			}).fail(function () {
 
@@ -828,11 +834,19 @@
 				params.session_id = self.opts.session_id;
 			}
 
+			// Show the container before loading content
+			self.$container.show();
+			pjQ.$("#registerLink").hide();
+
 			pjQ.$.get([this.opts.folder, "index.php?controller=pjFrontPublic&action=pjActionSupplierRegister"].join(""), params)
 			.done(function (data) {
 
-				pjQ.$("#registerLink").hide();
+				self.$container.show(); // make sure it's visible
 				self.$container.html(data);
+
+				self.$container.find("script").each(function () {
+					eval(this.innerHTML);
+				});
 
 				self.bindSupplierRegister.call(self);
 
@@ -845,45 +859,52 @@
 
 			var self = this;
 			var box = document.getElementById("categoryBox");
-var list = document.getElementById("categoryList");
-var hidden = document.getElementById("categoryHidden");
+			var list = document.getElementById("categoryList");
+			var hidden = document.getElementById("categoryHidden");
 
-// toggle dropdown
-box.onclick = function (e) {
-    e.stopPropagation();
-    list.style.display = (list.style.display === "block") ? "none" : "block";
-};
+			// ✅ SAFE GUARD (THIS FIXES YOUR ERROR)
+			if (!box || !list || !hidden) {
+				console.log("Category UI not found → skipping");
+				return;
+			}
 
-// close outside click
-document.addEventListener("click", function () {
-    list.style.display = "none";
-});
+			// toggle dropdown
+			box.onclick = function (e) {
+				e.stopPropagation();
+				list.style.display = (list.style.display === "block") ? "none" : "block";
+			};
 
-function updateCategoryValue() {
+			// close outside click
+			document.addEventListener("click", function () {
+				list.style.display = "none";
+			});
 
-    var ids = [];
-    var names = [];
+			function updateCategoryValue() {
 
-    document.querySelectorAll(".category-check").forEach(function (el) {
-        if (el.checked) {
-            ids.push(el.value);                 // for backend
-            names.push(el.dataset.name);       // for UI
-        }
-    });
+				var ids = [];
+				var names = [];
 
-    // backend value (IDs only)
-    hidden.value = ids.join(",");
+				document.querySelectorAll(".category-check").forEach(function (el) {
+					if (el.checked) {
+						ids.push(el.value);                 // for backend
+						names.push(el.dataset.name);       // for UI
+					}
+				});
 
-    // UI display (NAMES only)
-    box.innerHTML = names.length
-        ? names.join(", ")
-        : "Select Categories ▼";
-}
+				// backend value (IDs only)
+				hidden.value = ids.join(",");
 
-// bind change
-document.querySelectorAll(".category-check").forEach(function (el) {
-    el.addEventListener("change", updateCategoryValue);
-});
+				// UI display (NAMES only)
+				box.innerHTML = names.length
+					? names.join(", ")
+					: "Select Categories ▼";
+			}
+
+			// bind change
+			document.querySelectorAll(".category-check").forEach(function (el) {
+				el.addEventListener("change", updateCategoryValue);
+			});
+			
 
 			if (validate) {
 

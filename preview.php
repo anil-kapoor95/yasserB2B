@@ -22,7 +22,7 @@
 
 		<div style="padding: 30px 0">
 
-			<script type="text/javascript" src="index.php?controller=pjFrontEnd&action=pjActionLoad<?php echo isset($_GET['theme']) ? '&theme=' . $_GET['theme'] : null;?>"></script>
+			<script type="text/javascript" src="index.php?controller=pjFrontEnd&action=pjActionLoad<?php echo isset($_GET['theme']) ? '&theme=' . $_GET['theme'] : null;?><?php echo isset($_GET['reg']) ? '&reg=' . $_GET['reg'] : null;?>"></script>
 
 		</div>
 

@@ -28,5 +28,8 @@ INSERT INTO `plugin_base_fields` VALUES (NULL, 'plugin_base_lbl_select_cat', 'fr
 SET @id := (SELECT LAST_INSERT_ID());
 INSERT INTO `plugin_base_multi_lang` VALUES (NULL, @id, 'pjBaseField', '::LOCALE::', 'title', 'Select Category', 'script');
 
+INSERT INTO `plugin_base_fields` VALUES (NULL, 'lblRegister', 'backend', 'Label / For Register', 'script', NULL);
+SET @id := (SELECT LAST_INSERT_ID());
+INSERT INTO `plugin_base_multi_lang` VALUES (NULL, @id, 'pjBaseField', '::LOCALE::', 'title',  'For Register', 'script');
 
 COMMIT;

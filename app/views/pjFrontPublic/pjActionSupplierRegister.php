@@ -8,88 +8,88 @@
 </head>
 
 <style>
-body{
-    background:#f5f7fb;
-}
-.card{
-    padding:30px;
-    border:1px solid #eee;
-    border-radius:8px;
-    box-shadow:0 2px 10px rgba(0,0,0,0.05);
-}
-.text-danger{
-    color:#dc3545;
-    font-size:13px;
-    margin-top:5px;
-}
+    body{
+        background:#f5f7fb;
+    }
+    .card{
+        padding:30px;
+        border:1px solid #eee;
+        border-radius:8px;
+        box-shadow:0 2px 10px rgba(0,0,0,0.05);
+    }
+    .text-danger{
+        color:#dc3545;
+        font-size:13px;
+        margin-top:5px;
+    }
 
-.is-invalid{
-    border-color:#dc3545;
-}
-#supplierSnackbar{
-    visibility: hidden;
-    min-width: 320px;
-    background-color: #28a745; /* success green */
-    color: #fff;
-    text-align: center;
-    border-radius: 6px;
-    padding: 14px 20px;
-    position: fixed;
-    z-index: 9999;
-    left: 50%;
-    bottom: 30px;
-    transform: translateX(-50%);
-    font-size: 15px;
-    font-weight: 500;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-}
+    .is-invalid{
+        border-color:#dc3545;
+    }
+    #supplierSnackbar{
+        visibility: hidden;
+        min-width: 320px;
+        background-color: #28a745; /* success green */
+        color: #fff;
+        text-align: center;
+        border-radius: 6px;
+        padding: 14px 20px;
+        position: fixed;
+        z-index: 9999;
+        left: 50%;
+        bottom: 30px;
+        transform: translateX(-50%);
+        font-size: 15px;
+        font-weight: 500;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    }
 
-#supplierSnackbar.show{
-    visibility: visible;
-    animation: fadeIn 0.4s, fadeOut 0.4s 3s;
-}
+    #supplierSnackbar.show{
+        visibility: visible;
+        animation: fadeIn 0.4s, fadeOut 0.4s 3s;
+    }
 
-.multi-dropdown {
-    position: relative;
-    width: 100%;
-}
+    .multi-dropdown {
+        position: relative;
+        width: 100%;
+    }
 
-.multi-select-box {
-    border: 1px solid #ccc;
-    padding: 10px;
-    background: #fff;
-    cursor: pointer;
-}
+    .multi-select-box {
+        border: 1px solid #ccc;
+        padding: 10px;
+        background: #fff;
+        cursor: pointer;
+    }
 
-.multi-select-list {
-    display: none;
-    position: absolute;
-    width: 100%;
-    max-height: 200px;
-    overflow-y: auto;
-    border: 1px solid #ccc;
-    background: #fff;
-    z-index: 9999;
-}
+    .multi-select-list {
+        display: none;
+        position: absolute;
+        width: 100%;
+        max-height: 200px;
+        overflow-y: auto;
+        border: 1px solid #ccc;
+        background: #fff;
+        z-index: 9999;
+    }
 
-.multi-item {
-    display: block;
-    padding: 8px;
-    cursor: pointer;
-}
+    .multi-item {
+        display: block;
+        padding: 8px;
+        cursor: pointer;
+    }
 
-.multi-item:hover {
-    background: #f2f2f2;
-}
-@keyframes fadeIn{
-    from{bottom:0; opacity:0;}
-    to{bottom:30px; opacity:1;}
-}
+    .multi-item:hover {
+        background: #f2f2f2;
+    }
+    @keyframes fadeIn{
+        from{bottom:0; opacity:0;}
+        to{bottom:30px; opacity:1;}
+    }
 
-@keyframes fadeOut{
-    from{bottom:30px; opacity:1;}
-    to{bottom:0; opacity:0;}
-}
+    @keyframes fadeOut{
+        from{bottom:30px; opacity:1;}
+        to{bottom:0; opacity:0;}
+    }
 </style>
 
 <div class="container" style="max-width:700px;margin-top:40px;margin-bottom:40px;">
