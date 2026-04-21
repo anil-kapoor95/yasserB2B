@@ -518,6 +518,61 @@ class pjAdmin extends pjAppController
 			$chart_data[] = (float) $row['total_revenue'];
 		}
 
+		// ================= EXPORT ALL BOOKINGS =================
+		if (isset($_REQUEST['export']) && $_REQUEST['export'] === 'bookings') {
+
+			// 🔥 Clear output buffer (VERY IMPORTANT)
+			while (ob_get_level()) {
+				ob_end_clean();
+			}
+
+			set_time_limit(0);
+			ini_set('memory_limit', '-1');
+
+			// ================= FETCH ALL DATA =================
+			$exportData = $applyBookingFilters(
+				$pjBookingModel->reset()
+					->join('pjFleet', 't2.id = t1.fleet_id', 'left')
+					->join(
+						'pjMultiLang',
+						"t3.model='pjFleet' 
+						AND t3.foreign_id=t2.id 
+						AND t3.field='fleet' 
+						AND t3.locale='".$this->getLocaleId()."'",
+						'left'
+					)
+					->select("t1.*, t3.content AS fleet_name", false) // 🔥 ALL columns
+					->groupBy("t1.id")
+					->orderBy("t1.booking_date DESC")
+			)->findAll()->getData();
+
+			// ================= HEADERS =================
+			header('Content-Type: text/csv; charset=utf-8');
+			header('Content-Disposition: attachment; filename="bookings_' . date('Y-m-d_H-i-s') . '.csv"');
+			header('Pragma: no-cache');
+			header('Expires: 0');
+
+			$output = fopen('php://output', 'w');
+
+			// ================= NO DATA =================
+			if (empty($exportData)) {
+				fputcsv($output, ['No data found']);
+				fclose($output);
+				exit;
+			}
+
+			// ================= AUTO HEADERS =================
+			fputcsv($output, array_keys($exportData[0]));
+
+			// ================= DATA =================
+			foreach ($exportData as $row) {
+				fputcsv($output, $row);
+			}
+
+			fclose($output);
+			exit;
+		}
+
 
 		/* ================= PASS DATA TO VIEW ================= */
 		$pjFleetModel = pjFleetModel::factory();
@@ -665,12 +720,12 @@ class pjAdmin extends pjAppController
 
 		/* ================= PASS DATA ================= */
 		$this->set('b2b_summary', [
-			'available'  => $available_rides,
-			'upcoming'   => $upcoming_rides,
-			'completed'  => $completed_rides,
-    		'total'      => number_format($available_rides + $upcoming_rides + $completed_rides, 2),
-    		'commission' => number_format($total_commission, 2),
-    		'paid'       => number_format($total_paid_to_partners, 2)
+			'available'  => (int)$available_rides,
+			'upcoming'   => (int)$upcoming_rides,
+			'completed'  => (int)$completed_rides,
+			'total'      => (float)($available_rides + $upcoming_rides + $completed_rides),
+			'commission' => (float)$total_commission,
+			'paid'       => (float)$total_paid_to_partners
 		]);
 
 		// -------------------------------

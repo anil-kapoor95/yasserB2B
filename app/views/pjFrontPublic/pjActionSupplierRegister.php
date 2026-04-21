@@ -49,6 +49,38 @@ body{
     animation: fadeIn 0.4s, fadeOut 0.4s 3s;
 }
 
+.multi-dropdown {
+    position: relative;
+    width: 100%;
+}
+
+.multi-select-box {
+    border: 1px solid #ccc;
+    padding: 10px;
+    background: #fff;
+    cursor: pointer;
+}
+
+.multi-select-list {
+    display: none;
+    position: absolute;
+    width: 100%;
+    max-height: 200px;
+    overflow-y: auto;
+    border: 1px solid #ccc;
+    background: #fff;
+    z-index: 9999;
+}
+
+.multi-item {
+    display: block;
+    padding: 8px;
+    cursor: pointer;
+}
+
+.multi-item:hover {
+    background: #f2f2f2;
+}
 @keyframes fadeIn{
     from{bottom:0; opacity:0;}
     to{bottom:30px; opacity:1;}
@@ -109,27 +141,35 @@ body{
             <input type="text" name="city" class="form-control"
             value="<?php echo isset($post['city']) ? pjSanitize::html($post['city']) : ''; ?>">
             </div>
+            
+            <div class="form-group">
+                <label class="control-label"><label><?php __('plugin_base_lbl_vehicle_cat', false, true); ?></label></label>
 
-            <!-- <div class="form-group">
-            <label><?php __('plugin_base_lbl_vehicles', false, true); ?></label>
-            <input type="number" name="total_vehicles" class="form-control"
-            value="<?php echo isset($post['total_vehicles']) ? pjSanitize::html($post['total_vehicles']) : ''; ?>">
-            </div> -->
+                <div class="multi-dropdown" id="categoryDropdown">
 
+                    <div class="multi-select-box" id="categoryBox">
+                        <?php __('plugin_base_lbl_select_cat', false, true); ?> ▼
+                    </div>
 
-            <!-- <div class="form-group">
-                <label class="control-label">Vehicle Category</label>
+                    <div class="multi-select-list" id="categoryList">
 
-                <select name="category[]" id="vfront_category" multiple="multiple" size="5" class="form-control" data-msg-required="<?php __('plugin_base_this_field_is_required', false, true);?>">
-                    
-                    <option value="1">sdddss></option>
-                    <option value="1">sdddss></option>
-                    <option value="1">sdddss></option>
-                    <option value="1">sdddss></option>
-                    
-                </select>
-            </div> -->
-                        
+                        <?php foreach ($tpl['v_cats'] as $v): ?>
+                            <label class="multi-item">
+                                <input 
+                                    type="checkbox" 
+                                    class="category-check"
+                                    value="<?php echo $v['id']; ?>"
+                                    data-name="<?php echo stripslashes($v['category']); ?>"
+                                >
+                                <?php echo stripslashes($v['category']); ?>
+                            </label>
+                        <?php endforeach; ?>
+
+                    </div>
+
+                </div>
+                <input type="hidden" name="category" id="categoryHidden">
+            </div>
 
             <div class="form-group">
             <label><?php __('plugin_base_login_password', false, true); ?></label>

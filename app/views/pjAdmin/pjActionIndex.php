@@ -476,9 +476,29 @@ $roleId = $auth->getRoleId();
 			</select>
 		</div>
 		<div class="col-md-1">
-			<button type="submit" class="btn btn-primary"><i class="fa fa-search"></i></button>
+			<button type="submit" class="btn btn-primary" title="Filter"><i class="fa fa-search"></i></button>
+			<!-- EXPORT BUTTON -->
+			<button type="button" id="btnExportBookings" class="btn btn-success" title="Export CSV">
+				<i class="fa fa-download"></i>
+			</button>
 		</div>
 	</form>
+	<form id="exportForm" method="GET" target="_blank" action="index.php" style="display:none;">
+		<input type="hidden" name="controller" value="pjAdmin">
+		<input type="hidden" name="action" value="pjActionIndex">
+		<input type="hidden" name="export" value="bookings">
+
+		<input type="hidden" name="from_date">
+		<input type="hidden" name="to_date">
+		<input type="hidden" name="booking_status">
+		<input type="hidden" name="payment_status">
+		<input type="hidden" name="time_type">
+		<input type="hidden" name="city">
+		<input type="hidden" name="fleet_id">
+	</form>
+	<!-- <button type="button" id="btnExportBookings" class="btn btn-success">
+		<i class="fa fa-download"></i> Export Bookings
+	</button> -->
 
 	<div id="dashboardContent">
 		<!-- ================= Summary ================= -->
@@ -613,7 +633,7 @@ $roleId = $auth->getRoleId();
 			<div class="col-lg-3">
 				<div class="ibox">
 					<div class="ibox-title">
-						<h4>B2B Ride Status</h4>
+						<h4><?php __("dash_b2b_rides_overview"); ?></h4>
 					</div>
 					<div class="ibox-content">
 						<canvas id="b2bChart"></canvas>
@@ -624,7 +644,7 @@ $roleId = $auth->getRoleId();
 			<div class="col-lg-3">
 				<div class="ibox">
 					<div class="ibox-title">
-						<h4>B2B Earnings</h4>
+						<h4><?php __("dash_b2b_earnings"); ?></h4>
 					</div>
 					<div class="ibox-content">
 						<canvas id="b2bRevenueChart"></canvas>

@@ -128,12 +128,72 @@ $roleId = $auth->getRoleId();
         </div>
 
     </div>
+
+    <div class="row m-t-lg">
+        <div class="col-lg-4">
+            <div class="ibox">
+                <div class="ibox-title">
+                    <h4><?php __("supplier_dash_rides_overview"); ?></h4>
+                </div>
+                <div class="ibox-content">
+                    <canvas id="bookingChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="ibox">
+                <div class="ibox-title">
+                    <h4><?php __("supplier_dash_trend_analysis"); ?></h4>
+                </div>
+                <div class="ibox-content">
+                    <canvas id="trendChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="ibox">
+                <div class="ibox-title">
+                    <h4><?php __("supplier_dash_earning_overview"); ?></h4>
+                </div>
+                <div class="ibox-content">
+                    <canvas id="earningChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+    </div>
+    
 </div>
 <style>
+    .ibox {
+        background: #fff;
+        border: 1px solid #e7eaec;
+        border-radius: 8px;
+        padding: 15px;
+    }
+
+    .ibox-title {
+        margin-bottom: 10px;
+        font-weight: 600;
+    }
+
+    .ibox-content {
+        position: relative;
+        height: 300px;
+    }
+    .chart-box {
+        height: 320px;
+        position: relative;
+        margin-bottom: 20px;
+        margin-top: 20px;
+    }
     .kpi-row{
         display: flex;
         flex-wrap: wrap;
         gap: 15px;
+        margin-bottom:20px
     }
 
     .kpi-col{
@@ -175,3 +235,10 @@ $roleId = $auth->getRoleId();
     .kpi-net i { color: #27ae60; }
 
 </style>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
+<script>
+const bookingData = <?= json_encode($tpl['chart_booking_counts']); ?>;
+const earningData = <?= json_encode($tpl['chart_earnings']); ?>;
+const trendData   = <?= json_encode($tpl['chart_trend']); ?>;
+</script>

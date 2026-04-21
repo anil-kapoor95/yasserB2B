@@ -1663,6 +1663,122 @@ var jQuery_1_8_2 = jQuery_1_8_2 || $.noConflict();
             // Redirect to URL with query params
             window.location.href = "index.php?controller=pjAdminSuppliers&action=pjActionIndex&" + params.toString();
         });
+
+		// ================= BOOKING BAR =================
+		new Chart(document.getElementById('bookingChart'), {
+		type: 'line',
+		data: {
+			labels: ['Available', 'Upcoming', 'Completed'],
+			datasets: [{
+				label: 'Bookings',
+				data: [
+					bookingData.available,
+					bookingData.upcoming,
+					bookingData.completed
+				],
+				borderColor: '#3498db',
+				backgroundColor: 'rgba(52, 152, 219, 0.2)',
+				fill: true,
+				tension: 0.4, // smooth curve
+				pointRadius: 5,
+				pointBackgroundColor: '#3498db'
+			}]
+		},
+		options: {
+			responsive: true,
+			maintainAspectRatio: false,
+			plugins: {
+				legend: {
+					position: "bottom",
+					align: "center"
+				}
+			},
+			scales: {
+				y: {
+					beginAtZero: true,
+					min: 0,
+					suggestedMax: 10,
+					ticks: {
+						stepSize: 2,
+						precision: 0
+					}
+				}
+			}
+		}
+	});
+
+		// ================= EARNING PIE =================
+		let earning = parseFloat(earningData.earning) || 0;
+		let commission = parseFloat(earningData.commission) || 0;
+
+		// 👉 If both are zero → show equal dummy values
+		let pieValues = (earning === 0 && commission === 0) 
+			? [1, 1]   // equal slices
+			: [earning, commission];
+
+		new Chart(document.getElementById('earningChart'), {
+			type: 'doughnut',
+			data: {
+				labels: ['Earnings', 'Commission'],
+				datasets: [{
+					data: pieValues
+				}]
+			},
+			options: {
+				responsive: true,
+				maintainAspectRatio: false,
+				cutout: "35%",
+				plugins: {
+					legend: {
+                            position: "bottom",
+                            align: "center"
+					},
+					tooltip: {
+						callbacks: {
+							label: function(context) {
+								// Show actual values (not dummy)
+								return context.label + ': ' + 
+									(context.dataIndex === 0 ? earning : commission);
+							}
+						}
+					}
+				}
+			}
+		});
+
+		// ================= TREND LINE =================
+		new Chart(document.getElementById('trendChart'), {
+			type: 'line',
+			data: {
+				labels: trendData.map(t => t.date),
+				datasets: [{
+					label: 'Completed Bookings',
+					data: trendData.map(t => t.count),
+					fill: false
+				}]
+			},
+			options: {
+				responsive: true,
+				maintainAspectRatio: false,
+				 plugins: {
+					legend: {
+						position: "bottom",
+						align: "center"
+					}
+				},
+				scales: {
+					y: {
+						beginAtZero: true,
+						min: 0,
+						suggestedMax: 10,   // 👈 THIS fixes your problem
+						ticks: {
+							stepSize: 2,    // cleaner spacing
+							precision: 0    // no decimals
+						}
+					}
+				}
+			}
+		});
 	});
 
 })(jQuery_1_8_2);

@@ -649,6 +649,12 @@ class pjFrontPublic extends pjFront
 
 	public function pjActionSupplierRegister()
     {
+		$this->set('v_cats', pjCategoryModel::factory()
+        ->select('t1.*')
+        ->orderBy('category ASC')
+        ->findAll()
+        ->getData());
+
         // Initialize variables for the view
         $this->set('post', array());
         $this->set('errors', array());
@@ -668,6 +674,8 @@ class pjFrontPublic extends pjFront
                 'phone',
                 'company_name',
                 'city',
+				'category'
+
                 //'total_vehicles'
             );
 
@@ -701,6 +709,24 @@ class pjFrontPublic extends pjFront
             {
                 $errors[] = "Passwords do not match";
             }
+
+			/* =========================
+           CATEGORY FIX START
+			==========================*/
+			$category = '';
+
+			if (!empty($post['category']))
+			{
+				$category = implode(
+					',',
+					array_filter(
+						array_map('trim', explode(',', $post['category']))
+					)
+				);
+			}
+			/* =========================
+			CATEGORY FIX END
+			==========================*/
 
             if (!empty($errors))
 			{
@@ -736,6 +762,8 @@ class pjFrontPublic extends pjFront
                     'city'           => $post['city'],
                     // 'total_vehicles' => $post['total_vehicles'],
                     'status'         => 'T',
+					// ✅ SAVE CATEGORY HERE (comma separated)
+                	'vehicle_category'=> $category
                 );
 
                 $supplierId = pjSupplierModel::factory()

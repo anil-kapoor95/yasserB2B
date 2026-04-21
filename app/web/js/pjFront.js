@@ -56,7 +56,6 @@
 			x.removeClass("show");
 		}, 3500);
 	}
-
 	
 
 	function assert() {
@@ -845,6 +844,46 @@
 		bindSupplierRegister: function () {
 
 			var self = this;
+			var box = document.getElementById("categoryBox");
+var list = document.getElementById("categoryList");
+var hidden = document.getElementById("categoryHidden");
+
+// toggle dropdown
+box.onclick = function (e) {
+    e.stopPropagation();
+    list.style.display = (list.style.display === "block") ? "none" : "block";
+};
+
+// close outside click
+document.addEventListener("click", function () {
+    list.style.display = "none";
+});
+
+function updateCategoryValue() {
+
+    var ids = [];
+    var names = [];
+
+    document.querySelectorAll(".category-check").forEach(function (el) {
+        if (el.checked) {
+            ids.push(el.value);                 // for backend
+            names.push(el.dataset.name);       // for UI
+        }
+    });
+
+    // backend value (IDs only)
+    hidden.value = ids.join(",");
+
+    // UI display (NAMES only)
+    box.innerHTML = names.length
+        ? names.join(", ")
+        : "Select Categories ▼";
+}
+
+// bind change
+document.querySelectorAll(".category-check").forEach(function (el) {
+    el.addEventListener("change", updateCategoryValue);
+});
 
 			if (validate) {
 
@@ -876,6 +915,9 @@
 					confirm_password: {
 						required: true,
 						equalTo: "[name='password']"
+					},
+					category: {
+						required: true
 					}
 				},
 
@@ -919,6 +961,15 @@
 									var $form = pjQ.$('#frmSupplierRegister_' + self.opts.index);
 
 									$form[0].reset();
+									
+									// clear category checkboxes
+									pjQ.$('.cat-checkbox').prop('checked', false);
+
+									// reset dropdown label
+									pjQ.$('#categoryBox').html('Select Categories ▼');
+
+									// clear hidden field
+									pjQ.$('#categoryHidden').val('');
 
 									self.$container.find('.alert-danger').hide();
 									showSnackbar(data.message);

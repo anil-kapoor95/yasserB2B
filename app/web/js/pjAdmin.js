@@ -211,23 +211,25 @@ var jQuery_1_8_2 = jQuery_1_8_2 || $.noConflict();
                 }
             });
         }
+        
         if (window.b2bChartData && typeof Chart !== "undefined") {
-            
+
             function createChart(id, config) {
                 const canvas = document.getElementById(id);
                 if (!canvas) return;
                 new Chart(canvas, config);
             }
-            /* B2B Ride Status (Donut) */
+
+            /* ================= B2B Ride Status (Donut) ================= */
             createChart("b2bChart", {
                 type: "doughnut",
                 data: {
                     labels: ["Available", "Upcoming", "Completed"],
                     datasets: [{
                         data: [
-                            window.b2bChartData.available || 0,
-                            window.b2bChartData.upcoming || 0,
-                            window.b2bChartData.completed || 0
+                            Number(window.b2bChartData.available || 0),
+                            Number(window.b2bChartData.upcoming || 0),
+                            Number(window.b2bChartData.completed || 0)
                         ],
                         backgroundColor: ["#4C786B", "#9BD0C0", "#569EAC"]
                     }]
@@ -251,90 +253,120 @@ var jQuery_1_8_2 = jQuery_1_8_2 || $.noConflict();
                 }
             });
 
-            createChart("b2bRevenueChart", {
-                type: "bar",
-                data: {
-                    labels: ["Commission", "Paid"],
-                    datasets: [{
-                        data: [
-                            Number(window.b2bChartData.commission || 0),
-                            Number(window.b2bChartData.paid || 0)
-                        ],
-                        backgroundColor: ["#569eac", "#4c786b"],
-                        borderWidth: 0,
-                        borderRadius: 6,
-                        barThickness: 40
-                    }]
-                },
-                options: {
-                    indexAxis: 'y',
-                    responsive: true,
-                    maintainAspectRatio: false,
+            /* ================= B2B Earnings (Bar Chart) ================= */
 
-                    scales: {
-                        x: {
-                            grid: { display: false },
-                            border: { display: false },
-                            ticks: { display: false }
+            const rawCommission = Number(window.b2bChartData.commission || 0);
+            const rawPaid = Number(window.b2bChartData.paid || 0);
+
+            // 👉 If both are zero → show "No Data"
+            if (rawCommission === 0 && rawPaid === 0) {
+                const container = document.getElementById("b2bRevenueChart");
+                if (container) {
+                    container.parentNode.innerHTML =
+                        "<div style='text-align:center;padding:50px;color:#999;font-size:14px;'>No Earnings Data</div>";
+                }
+            } else {
+
+                // 👉 Prevent invisible bars (Chart.js issue)
+                const chartCommission = rawCommission === 0 ? 0.01 : rawCommission;
+                const chartPaid = rawPaid === 0 ? 0.01 : rawPaid;
+
+                createChart("b2bRevenueChart", {
+                    type: "bar",
+                    data: {
+                        labels: ["Commission", "Paid"],
+                        datasets: [{
+                            data: [chartCommission, chartPaid],
+                            backgroundColor: ["#569eac", "#4c786b"],
+                            borderWidth: 0,
+                            borderRadius: 6,
+                            barThickness: 40
+                        }]
+                    },
+                    options: {
+                        indexAxis: 'y',
+                        responsive: true,
+                        maintainAspectRatio: false,
+
+                        scales: {
+                            x: {
+                                beginAtZero: true,
+                                min: 0,
+                                suggestedMax: Math.max(chartCommission, chartPaid) * 1.5,
+                                grid: { display: false },
+                                border: { display: false },
+                                ticks: { display: false }
+                            },
+                            y: {
+                                grid: { display: false },
+                                border: { display: false },
+                                ticks: { display: false }
+                            }
                         },
-                        y: {
-                            grid: { display: false },
-                            border: { display: false },
-                            ticks: { display: false } // 👈 hide left labels (optional)
+
+                        plugins: {
+                            legend: {
+                                display: false
+                            },
+
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        const values = [rawCommission, rawPaid];
+                                        const realValue = values[context.dataIndex];
+                                        return context.label + ": €" + realValue.toFixed(2);
+                                    }
+                                }
+                            },
+
+                            datalabels: {
+                                color: function(context) {
+                                    const values = [chartCommission, chartPaid];
+                                    const value = values[context.dataIndex];
+                                    const max = Math.max(...values);
+                                    return value < max * 0.25 ? "#333" : "#fff";
+                                },
+
+                                anchor: function(context) {
+                                    const values = [chartCommission, chartPaid];
+                                    const value = values[context.dataIndex];
+                                    const max = Math.max(...values);
+                                    return value < max * 0.25 ? "end" : "center";
+                                },
+
+                                align: function(context) {
+                                    const values = [chartCommission, chartPaid];
+                                    const value = values[context.dataIndex];
+                                    const max = Math.max(...values);
+                                    return value < max * 0.25 ? "right" : "center";
+                                },
+
+                                offset: function(context) {
+                                    const values = [chartCommission, chartPaid];
+                                    const value = values[context.dataIndex];
+                                    const max = Math.max(...values);
+                                    return value < max * 0.25 ? 8 : 0;
+                                },
+
+                                formatter: function(value, context) {
+                                    const labels = context.chart.data.labels;
+                                    const values = [rawCommission, rawPaid];
+                                    return `${labels[context.dataIndex]} €${values[context.dataIndex].toFixed(2)}`;
+                                },
+
+                                font: {
+                                    weight: "bold",
+                                    size: 12
+                                },
+
+                                clamp: true,
+                                clip: false
+                            }
                         }
                     },
-
-                    plugins: {
-                        legend: {
-                            display: false
-                        },
-                        datalabels: {
-                            color: function(context) {
-                                const value = context.dataset.data[context.dataIndex];
-                                const max = Math.max(...context.dataset.data);
-
-                                // If bar is small → dark text (outside)
-                                return value < max * 0.25 ? "#333" : "#fff";
-                            },
-
-                            anchor: function(context) {
-                                const value = context.dataset.data[context.dataIndex];
-                                const max = Math.max(...context.dataset.data);
-
-                                return value < max * 0.25 ? "end" : "center";
-                            },
-
-                            align: function(context) {
-                                const value = context.dataset.data[context.dataIndex];
-                                const max = Math.max(...context.dataset.data);
-
-                                return value < max * 0.25 ? "right" : "center";
-                            },
-
-                            offset: function(context) {
-                                const value = context.dataset.data[context.dataIndex];
-                                const max = Math.max(...context.dataset.data);
-
-                                return value < max * 0.25 ? 8 : 0;
-                            },
-
-                            formatter: function(value, context) {
-                                const label = context.chart.data.labels[context.dataIndex];
-                                return `${label} €${value.toLocaleString()}`;
-                            },
-
-                            font: {
-                                weight: "bold",
-                                size: 12
-                            },
-
-                            clamp: true,
-                            clip: false
-                        }
-                    }
-                },
-                plugins: [ChartDataLabels] // 👈 REQUIRED
-            });
+                    plugins: [ChartDataLabels]
+                });
+            }
         }
         $('#bookingTabs button').on('click', function(){
 
@@ -411,6 +443,28 @@ var jQuery_1_8_2 = jQuery_1_8_2 || $.noConflict();
             }
         });
 
+       $(document).ready(function () {
+
+            $(document).on("click", "#btnExportBookings", function () {
+
+                console.log("Export clicked"); // DEBUG
+
+                let form = $("#exportForm");
+
+                form.find("[name=from_date]").val($("#from_date").val());
+                form.find("[name=to_date]").val($("#to_date").val());
+                form.find("[name=booking_status]").val($("[name=booking_status]").val());
+                form.find("[name=payment_status]").val($("[name=payment_status]").val());
+                form.find("[name=time_type]").val($("[name=time_type]").val());
+                form.find("[name=city]").val($("[name=city]").val());
+                form.find("[name=fleet_id]").val($("[name=fleet_id]").val());
+
+                console.log(form.serialize()); // DEBUG
+
+                form.submit();
+            });
+
+        });
     });
 
 })(jQuery_1_8_2);

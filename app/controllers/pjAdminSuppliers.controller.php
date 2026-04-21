@@ -149,6 +149,52 @@ class pjAdminSuppliers extends pjAdmin
         $this->set('filter_from', $filter_from);
         $this->set('filter_to', $filter_to);
 
+        // =========================
+        // CHART DATA
+        // =========================
+
+        // 1. Booking Counts
+        $this->set('chart_booking_counts', [
+            'available' => $available_rides,
+            'upcoming' => $upcoming_rides,
+            'completed' => $completed_rides
+        ]);
+
+        // 2. Earnings Breakdown
+        $this->set('chart_earnings', [
+            'earning' => $supplier_earning,
+            'commission' => $total_commission
+        ]);
+
+        // 3. Daily Trend (simple version)
+        $trendData = [];
+
+        $period = new DatePeriod(
+            new DateTime($filter_from),
+            new DateInterval('P1D'),
+            (new DateTime($filter_to))->modify('+1 day')
+        );
+
+        foreach ($period as $date) {
+            $dayStart = $date->format("Y-m-d 00:00:00");
+            $dayEnd   = $date->format("Y-m-d 23:59:59");
+
+            $count = $applyFilters(
+                $pjBookingModel->reset()
+                    ->where('t1.is_deleted', 0)
+                    ->where('t1.status', 'completed')
+                    ->where("t1.booking_date >=", $dayStart)
+                    ->where("t1.booking_date <=", $dayEnd)
+            )->findCount()->getData();
+
+            $trendData[] = [
+                'date' => $date->format("d M"),
+                'count' => $count
+            ];
+        }
+
+        $this->set('chart_trend', $trendData);
+
         $version = rand(0,9) . '.' . rand(0,9) . '.' . rand(0,9);
 		$this->appendJs('index.global.js', PJ_THIRD_PARTY_PATH . 'fullcalendar/');
 		$this->appendJs('index.global.min.js', PJ_THIRD_PARTY_PATH . 'fullcalendar/');
@@ -1409,6 +1455,9 @@ class pjAdminSuppliers extends pjAdmin
            if (!$this->_get->isEmpty('status') && in_array($this->_get->toString('status'), array('confirmed','cancelled','pending', 'completed')))
            {
                $pjBookingModel->where('t1.status', $this->_get->toString('status'));
+           } else {
+                $pjBookingModel->where('t1.status', 'confirmed');
+
            }
            
            if (!$this->_get->isEmpty('name'))
