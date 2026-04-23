@@ -181,16 +181,18 @@ class pjBaseUsers extends pjBase
 			}
 
 			$response = pjAuth::init(array_merge($post,$data))->updateUser();
-
+			
 			/* ===== SEND NOTIFICATION IF ROLE = 5 AND STATUS = ACTIVE ===== */
 			if ($data['role_id'] == 5 && $data['status'] == 'T')
 			{
-				pjAppController::pjActionSupplierAccountSend(
-					$this->option_arr,
-					$data['id'],
+				$controller = new pjAppController();
+
+				$controller->pjActionSupplierAccountSend(
+					$option_arr,
+					$supplier_id,
 					PJ_SALT,
 					'activeaccount',
-					$this->getLocaleId()
+					$locale_id
 				);
 			}
 			pjUtil::redirect(PJ_INSTALL_URL . "index.php?controller=pjBaseUsers&action=pjActionIndex&err=" . $response['code']);

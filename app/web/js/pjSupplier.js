@@ -24,7 +24,7 @@ var jQuery_1_8_2 = jQuery_1_8_2 || $.noConflict();
 					"email": {
 						required: true,
 						email: true,
-						remote: "index.php?controller=pjAdminClients&action=pjActionCheckEmail"
+						remote: "index.php?controller=pjSupplier&action=pjActionCheckEmail"
 					}
 				},
 				messages: {
@@ -40,7 +40,7 @@ var jQuery_1_8_2 = jQuery_1_8_2 || $.noConflict();
 					"email": {
 						required: true,
 						email: true,
-						remote: "index.php?controller=pjAdminClients&action=pjActionCheckEmail&id=" + $frmUpdateClient.find("input[name='id']").val()
+						remote: "index.php?controller=pjSupplier&action=pjActionCheckEmail&id=" + $frmUpdateClient.find("input[name='id']").val()
 					}
 				},
 				messages: {

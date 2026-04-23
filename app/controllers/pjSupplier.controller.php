@@ -12,6 +12,38 @@ if (!defined("ROOT_PATH"))
 
 class pjSupplier extends pjAdmin{
 
+    public function pjActionCheckEmail()
+    {
+        $this->setAjax(true);
+
+        if ($this->isXHR())
+        {
+            $email = $this->_get->toString('email');
+            $id = $this->_get->toInt('id'); // supplier id
+
+            if (!$email) {
+                echo 'false';
+                exit;
+            }
+
+            $model = pjSupplierModel::factory()
+                ->join('pjAuthUser', 't2.id = t1.auth_id', 'inner')
+                ->where('t2.email', $email);
+
+            // 🔥 exclude current supplier (via supplier.id)
+            if ($id) {
+                $model->where('t1.id !=', $id);
+            }
+
+            $exists = $model->findCount()->getData();
+
+            echo $exists == 0 ? 'true' : 'false';
+            exit;
+        }
+
+        exit;
+    }
+
 	public function pjActionIndex(){
 
 		$this->checkLogin();
