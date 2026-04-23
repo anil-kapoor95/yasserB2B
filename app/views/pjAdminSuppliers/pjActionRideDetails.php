@@ -132,7 +132,7 @@ foreach ($airport_keywords as $keyword) {
 
 	<div class="tabs-container tabs-reservations m-b-lg">
 
-		<form action="<?php echo $_SERVER['PHP_SELF']; ?>?controller=pjAdminBookings&amp;action=pjActionUpdate" method="post" class="form pj-form" id="frmUpdateBooking" autocomplete="off">
+		<form action="<?php echo $_SERVER['PHP_SELF']; ?>?controller=pjAdminSuppliers&amp;action=pjActionAssignDriverToBooking" method="post" class="form pj-form" id="frmUpdateBooking" autocomplete="off">
 
 			<input type="hidden" name="booking_update" value="1" />
 
@@ -1596,13 +1596,13 @@ foreach ($airport_keywords as $keyword) {
 
 				        <div class="clearfix">
 
-				            <!-- <button type="submit" class="ladda-button btn btn-primary btn-lg btn-phpjabbers-loader pull-left" data-style="zoom-in" style="margin-right: 15px;">
+				            <button type="submit" class="ladda-button btn btn-primary btn-lg btn-phpjabbers-loader pull-left" data-style="zoom-in" style="margin-right: 15px;">
 
 				                <span class="ladda-label"><?php __('btnSave'); ?></span>
 
 				                <?php include $controller->getConstant('pjBase', 'PLUGIN_VIEWS_PATH') . 'pjLayouts/elements/button-animation.php'; ?>
 
-				            </button> -->
+				            </button>
 
 				            <a class="btn btn-white btn-lg pull-right" href="<?php echo PJ_INSTALL_URL; ?>index.php?controller=pjAdminSuppliers&action=pjActionAvailableRides"><?php __('btnCancel'); ?></a>
 

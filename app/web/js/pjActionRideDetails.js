@@ -579,41 +579,41 @@ var jQuery_1_8_2 = jQuery_1_8_2 || $.noConflict();
 
 					},
 
-					c_email: {
+					// c_email: {
 
-						email: true,
+					// 	email: true,
 
-						remote: {
+					// 	remote: {
 
-							type: 'post',
+					// 		type: 'post',
 
-							url: "index.php?controller=pjAdminBookings&action=pjActionCheckEmail",
+					// 		url: "index.php?controller=pjAdminBookings&action=pjActionCheckEmail",
 
-							data:{
+					// 		data:{
 
-								c_email: function()
+					// 			c_email: function()
 
-						        {
+					// 	        {
 
-									if($frmUpdateBooking.find("input[name='new_client']").is(":checked"))
+					// 				if($frmUpdateBooking.find("input[name='new_client']").is(":checked"))
 
-									{
+					// 				{
 
-										return $frmUpdateBooking.find("input[name='c_email']").val();	
+					// 					return $frmUpdateBooking.find("input[name='c_email']").val();	
 
-									}else{
+					// 				}else{
 
-										return false;
+					// 					return false;
 
-									}
+					// 				}
 
-						        }
+					// 	        }
 
-							}
+					// 		}
 
-						}
+					// 	}
 
-					}
+					// }
 
 
 

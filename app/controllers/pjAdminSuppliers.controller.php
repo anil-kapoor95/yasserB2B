@@ -205,6 +205,89 @@ class pjAdminSuppliers extends pjAdmin
 		$this->appendJs("pjAdminSuppliers.js?v=1");        
     }
 
+    public function pjActionAssignDriverToBooking()
+    {
+        $this->checkLogin();
+
+        if (!pjAuth::factory()->hasAccess())
+        {
+            $this->sendForbidden();
+            return;
+        }
+
+        if (self::isPost() && $this->_post->toInt('id'))
+        {
+            $pjBookingModel = pjBookingModel::factory();
+
+            $id = $this->_post->toInt('id');
+            $driver_id = $this->_post->toInt('driver_id');
+            $status = $this->_post->toString('status');
+
+            $arr = $pjBookingModel->find($id)->getData();
+
+            if (empty($arr))
+            {
+                pjUtil::redirect($_SERVER['PHP_SELF'] . "?controller=pjAdminSuppliers&action=pjActionUpcomingRides&err=ABB08");
+            }
+
+            // ✅ 1. Update booking with driver
+            $pjBookingModel
+                ->reset()
+                ->where('id', $id)
+                ->limit(1)
+                ->modifyAll(array(
+                    'driver_id' => $driver_id
+                ));
+
+            // ✅ 2. EMAIL (CONFIRMED)
+            if (!empty($driver_id) && $status == 'confirmed') {
+                $arr = $pjBookingModel
+                    ->reset()
+                    ->select("
+                        t1.*, 
+                        AES_DECRYPT(t1.cc_type, '".PJ_SALT."') as cc_type,
+                        AES_DECRYPT(t1.cc_num, '".PJ_SALT."') as cc_num,
+                        AES_DECRYPT(t1.cc_exp_month, '".PJ_SALT."') as cc_exp_month,
+                        AES_DECRYPT(t1.cc_exp_year, '".PJ_SALT."') as cc_exp_year,
+                        AES_DECRYPT(t1.cc_code, '".PJ_SALT."') as cc_code,
+                        t2.content as fleet, 
+                        t3.email as driver_email
+                    ")
+                    ->join('pjMultiLang', "t2.model='pjFleet' AND t2.foreign_id=t1.fleet_id AND t2.field='fleet' AND t2.locale='".$this->getLocaleId()."'", 'left outer')
+                    ->join('pjDriver', "t1.driver_id=t3.id")
+                    ->find($id)
+                    ->getData();
+
+                pjAppController::pjActionDriverConfirmSend($this->option_arr, $arr, PJ_SALT, 'driverconfirmation', $this->getLocaleId());
+                pjAppController::pjActionDriverConfirmSend($this->option_arr, $arr, PJ_SALT, 'driverassingconfirmation', $this->getLocaleId());
+            }
+
+            // ✅ 3. EMAIL (CANCELLED)
+            if ($status == 'cancelled'){
+                $arr = $pjBookingModel
+                    ->reset()
+                    ->select("
+                        t1.*, 
+                        AES_DECRYPT(t1.cc_type, '".PJ_SALT."') as cc_type,
+                        AES_DECRYPT(t1.cc_num, '".PJ_SALT."') as cc_num,
+                        AES_DECRYPT(t1.cc_exp_month, '".PJ_SALT."') as cc_exp_month,
+                        AES_DECRYPT(t1.cc_exp_year, '".PJ_SALT."') as cc_exp_year,
+                        AES_DECRYPT(t1.cc_code, '".PJ_SALT."') as cc_code,
+                        t2.content as fleet, 
+                        t3.email as driver_email
+                    ")
+                    ->join('pjMultiLang', "t2.model='pjFleet' AND t2.foreign_id=t1.fleet_id AND t2.field='fleet' AND t2.locale='".$this->getLocaleId()."'", 'left outer')
+                    ->join('pjDriver', "t1.driver_id=t3.id")
+                    ->find($id)
+                    ->getData();
+
+                pjAppController::pjActionDriverConfirmSend($this->option_arr, $arr, PJ_SALT, 'drivercancel', $this->getLocaleId());
+            }
+
+            pjUtil::redirect(PJ_INSTALL_URL . "index.php?controller=pjAdminSuppliers&action=pjActionUpcomingRides&err=ABB01");
+        }
+    }
+
     public function pjActionAcceptRide()
     {
         $this->checkLogin();
