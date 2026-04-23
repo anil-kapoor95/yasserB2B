@@ -32,4 +32,18 @@ INSERT INTO `plugin_base_fields` VALUES (NULL, 'lblRegister', 'backend', 'Label 
 SET @id := (SELECT LAST_INSERT_ID());
 INSERT INTO `plugin_base_multi_lang` VALUES (NULL, @id, 'pjBaseField', '::LOCALE::', 'title',  'For Register', 'script');
 
+INSERT INTO `plugin_base_fields` VALUES (NULL, 'notifications_ARRAY_suppliers_email_confirmation', 'arrays', 'notifications_ARRAY_suppliers_email_confirmation', 'script', '2022-02-14 10:39:13');
+SET @id := (SELECT LAST_INSERT_ID());
+INSERT INTO `plugin_base_multi_lang` VALUES (NULL, @id, 'pjBaseField', '::LOCALE::', 'title', 'New enquiry received email', 'script');
+
+INSERT INTO `plugin_base_fields` VALUES (NULL, 'notifications_titles_ARRAY_suppliers_email_confirmation', 'arrays', 'notifications_titles_ARRAY_suppliers_email_confirmation', 'script', '2022-02-14 10:54:07');
+SET @id := (SELECT LAST_INSERT_ID());
+INSERT INTO `plugin_base_multi_lang` VALUES (NULL, @id, 'pjBaseField', '::LOCALE::', 'title', 'New Enquiry Received email sent to supplier', 'script');
+
+INSERT INTO `plugin_base_fields` VALUES (NULL, 'notifications_subtitles_ARRAY_suppliers_email_confirmation', 'arrays', 'notifications_subtitles_ARRAY_suppliers_email_confirmation', 'script', '2022-02-14 10:55:16');
+SET @id := (SELECT LAST_INSERT_ID());
+INSERT INTO `plugin_base_multi_lang` VALUES (NULL, @id, 'pjBaseField', '::LOCALE::', 'title', 'This message is sent to the supplier when a new supplier accept the Ride.', 'script');
+
+INSERT INTO `notifications` VALUES (NULL, 'suppliers', 'email', 'confirmation', 1);
+
 COMMIT;

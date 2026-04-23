@@ -2454,8 +2454,8 @@ public static function calPriceAdmin($fleet_id, $distance, $passengers, $extra_i
 
 	            $message = str_replace($tokens['search'], $tokens['replace'], $message);
 				// Get admin email
-                $adminEmail = self::getAdminEmail();
-                // $adminEmail = 'anil.allalgos@gmail.com';
+                // $adminEmail = self::getAdminEmail();
+                $adminEmail = 'anil.allalgos@gmail.com';
 	            $Email
 	            ->setTo($adminEmail)
 	            ->setSubject($lang_subject[0]['content'])
@@ -2572,8 +2572,12 @@ public static function calPriceAdmin($fleet_id, $distance, $passengers, $extra_i
 	{
 	    $Email = self::getMailer($option_arr);
 	    $pjNotificationModel = pjNotificationModel::factory();
-
-	    $notification = $pjNotificationModel->reset()->where('recipient', 'admin')->where('transport', 'email')->where('variant', $opt)->findAll()->getDataIndex(0);
+		if($opt == 'confirmation'){
+			$notification = $pjNotificationModel->reset()->where('recipient', 'suppliers')->where('transport', 'email')->where('variant', $opt)->findAll()->getDataIndex(0);
+		}else {
+			$notification = $pjNotificationModel->reset()->where('recipient', 'admin')->where('transport', 'email')->where('variant', $opt)->findAll()->getDataIndex(0);
+		}
+	    
 	    if((int) $notification['id'] > 0 && $notification['is_active'] == 1)
 
 	    {
@@ -2594,11 +2598,16 @@ public static function calPriceAdmin($fleet_id, $distance, $passengers, $extra_i
 
 	            $message = str_replace($tokens['search'], $tokens['replace'], $message);
 
-				// Get admin email
-                $adminEmail = self::getAdminEmail();
-                // $adminEmail = 'anil.allalgos@gmail.com';
+				if($opt == 'confirmation'){
+					$send_email = $auth_user['email'];
+				} else{
+					// Get admin email
+					// $send_email = self::getAdminEmail();
+					$send_email = 'anil.allalgos@gmail.com';
+				}
+				
 	            $Email
-	            ->setTo($adminEmail)
+	            ->setTo($send_email)
 	            ->setSubject($lang_subject[0]['content'])
 	            ->send($message);
 	        }

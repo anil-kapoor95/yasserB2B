@@ -277,6 +277,14 @@ class pjAdminSuppliers extends pjAdmin
             'bookingaccept',
             $this->getLocaleId()
         );
+        pjAppController::pjActionBookingAcceptBySupplierSend(
+            $this->option_arr,
+            $booking,
+            $login_id,
+            PJ_SALT,
+            'confirmation',
+            $this->getLocaleId()
+        );
 
         exit;
     }

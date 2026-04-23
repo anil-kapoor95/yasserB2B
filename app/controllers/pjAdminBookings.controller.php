@@ -1178,12 +1178,12 @@ class pjAdminBookings extends pjAdmin
             ->reset()
             ->where('id', $booking_id)
             ->modifyAll([
-                'commission'  => NULL,      // or 0
-                'commission_type'  => NULL,      // or 0
-                'commission_amount'  => NULL,      // or 0
-                'is_auction'  => 0,
-                'auctioned_on'=> NULL
-                // 'supplier_id' => $someSupplierId (only if needed)
+                'commission'        => ':NULL',
+                'commission_type'   => ':NULL',
+                'commission_amount' => ':NULL',
+                'auctioned_on'      => ':NULL',
+                'supplier_id'       => ':NULL',
+                'is_auction'        => 0
             ]);
 
         $deleted = $pjAuctionModel
@@ -1256,7 +1256,6 @@ class pjAdminBookings extends pjAdmin
             'commission_amount' => $commission_amount, 
             'is_auction' => 1,
             'auctioned_on' => date('Y-m-d H:i:s'),
-            'supplier_id' => NULL
         ]);
 
         $auction = $pjAuctionModel->setAttributes(

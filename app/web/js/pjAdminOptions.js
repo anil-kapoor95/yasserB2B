@@ -323,17 +323,39 @@ var jQuery_1_8_2 = jQuery_1_8_2 || $.noConflict();
 				
 			});
 		}
-		
-		$("#boxNotificationsWrapper").on("change", 'input[name="recipient"]', function () {
-			var recipient = $(this).val();
 
-			if(recipient === "suppliers"){
+		function toggleTokens() {
+			var recipient = $('input[name="recipient"]:checked').val();
+			var variant = $('input[name="variant"]:checked').val();
+
+			// If supplier + confirmation → show default tokens
+			if (recipient === "suppliers" && variant === "confirmation") {
+				$(".default-tokens").show();
+				$(".supplier-tokens").hide();
+			} 
+			// If supplier + NOT confirmation → show supplier tokens
+			else if (recipient === "suppliers") {
 				$(".default-tokens").hide();
 				$(".supplier-tokens").show();
-			}else{
+			} 
+			// All other recipients → default tokens
+			else {
 				$(".default-tokens").show();
 				$(".supplier-tokens").hide();
 			}
+		}
+		
+		$("#boxNotificationsWrapper").on("change", 'input[name="recipient"]', function () {
+			  toggleTokens();
+			// var recipient = $(this).val();
+
+			// if(recipient === "suppliers"){
+			// 	$(".default-tokens").hide();
+			// 	$(".supplier-tokens").show();
+			// }else{
+			// 	$(".default-tokens").show();
+			// 	$(".supplier-tokens").hide();
+			// }
 			var search = window.location.search,
 				recipient = search.match(/&?recipient=(\w+)/),
 				variant = search.match(/&?variant=(\w+)/),
@@ -371,6 +393,7 @@ var jQuery_1_8_2 = jQuery_1_8_2 || $.noConflict();
 			}, null, url);
 			
 			notificationsGetContent.call(null);
+			toggleTokens();
 			
 		}).on("change", '#is_active', function () {
 			
