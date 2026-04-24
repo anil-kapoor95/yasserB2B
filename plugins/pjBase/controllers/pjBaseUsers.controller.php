@@ -183,18 +183,18 @@ class pjBaseUsers extends pjBase
 			$response = pjAuth::init(array_merge($post,$data))->updateUser();
 			
 			/* ===== SEND NOTIFICATION IF ROLE = 5 AND STATUS = ACTIVE ===== */
-			if ($data['role_id'] == 5 && $data['status'] == 'T')
-			{
-				$controller = new pjAppController();
+			// if ($data['role_id'] == 5 && $data['status'] == 'T')
+			// {
+			// 	$controller = new pjAppController();
 
-				$controller->pjActionSupplierAccountSend(
-					$option_arr,
-					$supplier_id,
-					PJ_SALT,
-					'activeaccount',
-					$locale_id
-				);
-			}
+			// 	$controller->pjActionSupplierAccountSend(
+			// 		$option_arr,
+			// 		$supplier_id,
+			// 		PJ_SALT,
+			// 		'activeaccount',
+			// 		$locale_id
+			// 	);
+			// }
 			pjUtil::redirect(PJ_INSTALL_URL . "index.php?controller=pjBaseUsers&action=pjActionIndex&err=" . $response['code']);
 		}
 		if (self::isGet() && $this->_get->toInt('id'))
@@ -386,40 +386,40 @@ class pjBaseUsers extends pjBase
 		/* ===== UPDATE USER ===== */
 		$result = pjAuth::init($params)->updateUser();
 		/* ===== SEND EMAIL IF STATUS = T ===== */
-		if ($result['status'] == 'OK' && $params['column'] == 'status' && $params['value'] == 'T') {
+		// if ($result['status'] == 'OK' && $params['column'] == 'status' && $params['value'] == 'T') {
 
-			$user = pjAuthUserModel::factory()
-				->find($params['id'])
-				->getData();
+		// 	$user = pjAuthUserModel::factory()
+		// 		->find($params['id'])
+		// 		->getData();
 
-			if (!empty($user) && (int)$user['role_id'] === 5) {
-				/* GET SUPPLIER USING auth_id */
-				$supplier = pjSupplierModel::factory()
-					->where('auth_id', $params['id'])
-					->limit(1)
-					->findAll()
-					->getData();
-				if (!empty($supplier)) {
-					$supplier_id = $supplier[0]['id'];
-					$option_arr = $this->option_arr;
-                	$locale_id = $this->getLocaleId();
+		// 	if (!empty($user) && (int)$user['role_id'] === 5) {
+		// 		/* GET SUPPLIER USING auth_id */
+		// 		$supplier = pjSupplierModel::factory()
+		// 			->where('auth_id', $params['id'])
+		// 			->limit(1)
+		// 			->findAll()
+		// 			->getData();
+		// 		if (!empty($supplier)) {
+		// 			$supplier_id = $supplier[0]['id'];
+		// 			$option_arr = $this->option_arr;
+        //         	$locale_id = $this->getLocaleId();
 
-					register_shutdown_function(function() use ($supplier_id, $option_arr, $locale_id) {
+		// 			register_shutdown_function(function() use ($supplier_id, $option_arr, $locale_id) {
 
-						$controller = new pjAppController();
+		// 				$controller = new pjAppController();
 
-						$controller->pjActionSupplierAccountSend(
-							$option_arr,
-							$supplier_id,
-							PJ_SALT,
-							'activeaccount',
-							$locale_id
-						);
-					});
-				}
-			}
+		// 				$controller->pjActionSupplierAccountSend(
+		// 					$option_arr,
+		// 					$supplier_id,
+		// 					PJ_SALT,
+		// 					'activeaccount',
+		// 					$locale_id
+		// 				);
+		// 			});
+		// 		}
+		// 	}
 			
-		}
+		// }
 
 		self::jsonResponse($result);
 	}

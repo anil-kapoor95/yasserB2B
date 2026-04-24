@@ -174,21 +174,21 @@ class pjSupplier extends pjAdmin{
             pjAuth::init($data)->updateUser();
 
             /* ===== SEND EMAIL ONLY IF STATUS CHANGED F -> T ===== */
-            if ($old_status == 'F' && $data['status'] == 'T') {
+            // if ($old_status == 'F' && $data['status'] == 'T') {
 
-                $option_arr = $this->option_arr;
-                $locale_id = $this->getLocaleId();
+            //     $option_arr = $this->option_arr;
+            //     $locale_id = $this->getLocaleId();
 
-                register_shutdown_function(function() use ($id, $option_arr, $locale_id) {
-                    pjAppController::pjActionSupplierAccountSend(
-                        $option_arr,
-                        $id,
-                        PJ_SALT,
-                        'activeaccount',
-                        $locale_id
-                    );
-                });
-            }
+            //     register_shutdown_function(function() use ($id, $option_arr, $locale_id) {
+            //         pjAppController::pjActionSupplierAccountSend(
+            //             $option_arr,
+            //             $id,
+            //             PJ_SALT,
+            //             'activeaccount',
+            //             $locale_id
+            //         );
+            //     });
+            // }
 
             /* ===== REDIRECT ===== */
             pjUtil::redirect(PJ_INSTALL_URL . "index.php?controller=pjSupplier&action=pjActionUpdate&id=".$id."&err=AC01");
@@ -372,7 +372,7 @@ class pjSupplier extends pjAdmin{
         // self::jsonResponse(array('status' => 'OK', 'code' => 200, 'text' => 'Supplier has been updated!'));
          /* ================= SEND EMAIL IF STATUS = T ================= */
 
-        if ($params['column'] == 'status' && $params['value'] == 'T') {
+        if ($params['column'] == 'is_approved' && $params['value'] == 'T') {
 
             $supplier = pjSupplierModel::factory()
                 ->find($this->_get->toInt('id'))

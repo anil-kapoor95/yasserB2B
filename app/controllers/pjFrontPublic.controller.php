@@ -612,7 +612,7 @@ class pjFrontPublic extends pjFront
 
 				$user = $user[0];
 
-				if ($user['status'] != 'T')
+				if ($user['is_approved'] != 'T')
 				{
 					pjAppController::jsonResponse(array(
 						'status' => 'ERR',
@@ -744,8 +744,9 @@ class pjFrontPublic extends pjFront
                 'password'  => $post['password'],
                 'name'      => trim($post['first_name'] . ' ' . $post['last_name']),
                 'phone'     => $post['phone'],
-                'status'    => 'F',
+                'status'    => 'T',
                 'is_active' => 'T',
+				'is_approved' => 'F',
                 'ip'        => pjUtil::getClientIp()
             );
 
