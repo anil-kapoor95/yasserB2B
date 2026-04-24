@@ -767,14 +767,15 @@ $roleId = $auth->getRoleId();
 		bookingsPerDay: <?= json_encode($tpl["bookings_per_day"]) ?>,
 		peakBookingChart: <?= json_encode($tpl["booking_analysis"]) ?>,
 		revenueByVehicleChart: <?= json_encode($tpl["revenue_by_vehicle"]) ?>
-	};
+	}
 	window.b2bChartData = {
     available: <?= (int)$tpl['b2b_summary']['available'] ?>,
     upcoming: <?= (int)$tpl['b2b_summary']['upcoming'] ?>,
     completed: <?= (int)$tpl['b2b_summary']['completed'] ?>,
     total: <?= (int)$tpl['b2b_summary']['total'] ?>,
-    commission: <?= (float)$tpl['b2b_summary']['commission'] ?>,
-    paid: <?= (float)$tpl['b2b_summary']['paid'] ?>
-};
+
+    commission: "<?= $tpl['b2b_summary']['commission'] ?>",
+    paid: "<?= $tpl['b2b_summary']['paid'] ?>"
+}
 	</script>
 <?php } ?>

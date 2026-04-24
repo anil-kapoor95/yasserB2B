@@ -253,120 +253,74 @@ var jQuery_1_8_2 = jQuery_1_8_2 || $.noConflict();
                 }
             });
 
-            /* ================= B2B Earnings (Bar Chart) ================= */
+           /* ================= B2B Earnings (Bar Chart) ================= */
 
-            const rawCommission = Number(window.b2bChartData.commission || 0);
-            const rawPaid = Number(window.b2bChartData.paid || 0);
+            function decodeHtml(html) {
+                const txt = document.createElement("textarea");
+                txt.innerHTML = html;
+                return txt.value;
+            }
 
-            // 👉 If both are zero → show "No Data"
-            if (rawCommission === 0 && rawPaid === 0) {
-                const container = document.getElementById("b2bRevenueChart");
-                if (container) {
-                    container.parentNode.innerHTML =
-                        "<div style='text-align:center;padding:50px;color:#999;font-size:14px;'>No Earnings Data</div>";
-                }
-            } else {
+            const commissionLabel = decodeHtml(window.b2bChartData.commission || "0");
+            const paidLabel = decodeHtml(window.b2bChartData.paid || "0");
 
-                // 👉 Prevent invisible bars (Chart.js issue)
-                const chartCommission = rawCommission === 0 ? 0.01 : rawCommission;
-                const chartPaid = rawPaid === 0 ? 0.01 : rawPaid;
+            // 👉 IMPORTANT: real values for chart scaling (simple fallback)
+            const chartValues = [1, 1];
 
-                createChart("b2bRevenueChart", {
-                    type: "bar",
-                    data: {
-                        labels: ["Commission", "Paid"],
-                        datasets: [{
-                            data: [chartCommission, chartPaid],
-                            backgroundColor: ["#569eac", "#4c786b"],
-                            borderWidth: 0,
-                            borderRadius: 6,
-                            barThickness: 40
-                        }]
+            createChart("b2bRevenueChart", {
+                type: "bar",
+                data: {
+                    labels: ["Commission", "Paid"],
+                    datasets: [{
+                        data: chartValues,
+                        backgroundColor: ["#569eac", "#4c786b"],
+                        borderRadius: 6,
+                        barThickness: 40
+                    }]
+                },
+
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+
+                    scales: {
+                        x: { display: false },
+                        y: { display: false }
                     },
-                    options: {
-                        indexAxis: 'y',
-                        responsive: true,
-                        maintainAspectRatio: false,
 
-                        scales: {
-                            x: {
-                                beginAtZero: true,
-                                min: 0,
-                                suggestedMax: Math.max(chartCommission, chartPaid) * 1.5,
-                                grid: { display: false },
-                                border: { display: false },
-                                ticks: { display: false }
-                            },
-                            y: {
-                                grid: { display: false },
-                                border: { display: false },
-                                ticks: { display: false }
+                    plugins: {
+                        legend: { display: false },
+
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const values = [commissionLabel, paidLabel];
+                                    return values[context.dataIndex];
+                                }
                             }
                         },
 
-                        plugins: {
-                            legend: {
-                                display: false
+                        datalabels: {
+                            formatter: function(value, context) {
+                                const labels = [commissionLabel, paidLabel];
+                                return labels[context.dataIndex];
                             },
 
-                            tooltip: {
-                                callbacks: {
-                                    label: function(context) {
-                                        const values = [rawCommission, rawPaid];
-                                        const realValue = values[context.dataIndex];
-                                        return context.label + ": €" + realValue.toFixed(2);
-                                    }
-                                }
+                            color: "#fff",
+                            font: {
+                                weight: "bold",
+                                size: 14
                             },
 
-                            datalabels: {
-                                color: function(context) {
-                                    const values = [chartCommission, chartPaid];
-                                    const value = values[context.dataIndex];
-                                    const max = Math.max(...values);
-                                    return value < max * 0.25 ? "#333" : "#fff";
-                                },
-
-                                anchor: function(context) {
-                                    const values = [chartCommission, chartPaid];
-                                    const value = values[context.dataIndex];
-                                    const max = Math.max(...values);
-                                    return value < max * 0.25 ? "end" : "center";
-                                },
-
-                                align: function(context) {
-                                    const values = [chartCommission, chartPaid];
-                                    const value = values[context.dataIndex];
-                                    const max = Math.max(...values);
-                                    return value < max * 0.25 ? "right" : "center";
-                                },
-
-                                offset: function(context) {
-                                    const values = [chartCommission, chartPaid];
-                                    const value = values[context.dataIndex];
-                                    const max = Math.max(...values);
-                                    return value < max * 0.25 ? 8 : 0;
-                                },
-
-                                formatter: function(value, context) {
-                                    const labels = context.chart.data.labels;
-                                    const values = [rawCommission, rawPaid];
-                                    return `${labels[context.dataIndex]} €${values[context.dataIndex].toFixed(2)}`;
-                                },
-
-                                font: {
-                                    weight: "bold",
-                                    size: 12
-                                },
-
-                                clamp: true,
-                                clip: false
-                            }
+                            anchor: "center",
+                            align: "center"
                         }
-                    },
-                    plugins: [ChartDataLabels]
-                });
-            }
+                    }
+                },
+
+                plugins: [ChartDataLabels]
+            });
         }
         $('#bookingTabs button').on('click', function(){
 

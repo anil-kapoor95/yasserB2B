@@ -1461,6 +1461,8 @@ class pjAdminSuppliers extends pjAdmin
                 $v['client'] = $fullName = trim($v['c_fname'] . ' ' . $v['c_lname']);
 
                 $v['client'] = pjSanitize::clean($fullName !== '' ? $fullName : $v['name']); // pjSanitize::clean($v['name']);
+                $v['total'] = pjCurrency::formatPriceOnly($v['total'], (int)$this->option_arr['o_price_format']);
+                $v['commission_amount'] = pjCurrency::formatPriceOnly($v['commission_amount'], (int)$this->option_arr['o_price_format']);
 
                 $v['date_time']  = date($this->option_arr['o_date_format'] . ', ' . $this->option_arr['o_time_format'] , strtotime($v['booking_date']));
                 $v['distance'] = (int) $v['distance'] . ' km';
@@ -1642,7 +1644,8 @@ class pjAdminSuppliers extends pjAdmin
                 $v['client'] = $fullName = trim($v['c_fname'] . ' ' . $v['c_lname']);
 
                 $v['client'] = pjSanitize::clean($fullName !== '' ? $fullName : $v['name']); // pjSanitize::clean($v['name']);
-
+                $v['total'] = pjCurrency::formatPriceOnly($v['total'], (int)$this->option_arr['o_price_format']);
+                $v['commission_amount'] = pjCurrency::formatPriceOnly($v['commission_amount'], (int)$this->option_arr['o_price_format']);
                 $v['date_time']  = date($this->option_arr['o_date_format'] . ', ' . $this->option_arr['o_time_format'] , strtotime($v['booking_date']));
                 $v['distance'] = (int) $v['distance'] . ' km';
                 $v['driver_name'] = pjSanitize::clean($v['driver_name'] ? $v['driver_name'] : 'NA');
@@ -1820,6 +1823,8 @@ class pjAdminSuppliers extends pjAdmin
                     $v['client'] = $fullName = trim($v['c_fname'] . ' ' . $v['c_lname']);
 
                     $v['client'] = pjSanitize::clean($fullName !== '' ? $fullName : $v['name']); // pjSanitize::clean($v['name']);
+                    $v['total'] = pjCurrency::formatPriceOnly($v['total'], (int)$this->option_arr['o_price_format']);
+                    $v['commission_amount'] = pjCurrency::formatPriceOnly($v['commission_amount'], (int)$this->option_arr['o_price_format']);
 
                     $v['date_time']  = date($this->option_arr['o_date_format'] . ', ' . $this->option_arr['o_time_format'] , strtotime($v['booking_date']));
                     $v['distance'] = (int) $v['distance'] . ' km';
@@ -2053,36 +2058,61 @@ class pjAdminSuppliers extends pjAdmin
             ->getData();
 
         // ✅ Post-processing (lightweight)
-        foreach ($data as $k => $v) {
-            $fullName = trim($v['c_fname'] . ' ' . $v['c_lname']);
-
-            $data[$k]['client'] = pjSanitize::clean($fullName);
-            $data[$k]['fleet'] = pjSanitize::clean($v['fleet'] ?? 'NA');
-            $data[$k]['date_time'] = date(
-                $this->option_arr['o_date_format'] . ', ' . $this->option_arr['o_time_format'],
-                strtotime($v['booking_date'])
-            );
-            $data[$k]['distance'] = (int) $v['distance'] . ' km';
-            $data[$k]['commission_amount'] = number_format((float)$v['commission_amount'], 2, '.', '');
-            $data[$k]['supplier_amount'] = number_format(
-                (float)$v['total'] - (float)$v['commission_amount'],
-                2,
-                '.',
-                ''
-            );
-        }
         $total_price = 0;
         $total_commission = 0;
         $total_supplier_amount = 0;
 
-        foreach ($data as $k => $v)
-        {
-            $total_price += (float)$v['total'];
-            $total_commission += (float)$v['commission_amount'];
-            $total_supplier_amount += (float)$v['supplier_amount'];
+        $format = (int)$this->option_arr['o_price_format'];
+
+        foreach ($data as $k => $v) {
+
+            // 🔹 Client name
+            $fullName = trim($v['c_fname'] . ' ' . $v['c_lname']);
+            $data[$k]['client'] = pjSanitize::clean($fullName);
+
+            // 🔥 SAFE RAW NUMBERS (IMPORTANT FIX FOR COMMAS)
+            $totalRaw = (float) str_replace(',', '', $v['total']);
+            $commissionRaw = (float) str_replace(',', '', $v['commission_amount']);
+            $supplierRaw = $totalRaw - $commissionRaw;
+
+            // 🔹 Totals (calculation on RAW values only)
+            $total_price += $totalRaw;
+            $total_commission += $commissionRaw;
+            $total_supplier_amount += $supplierRaw;
+
+            // 🔹 Display formatting (ONLY HERE)
+            $data[$k]['total'] = pjCurrency::formatPriceOnly($totalRaw, $format);
+
+            $data[$k]['commission_amount'] = pjCurrency::formatPriceOnly($commissionRaw, $format);
+
+            $data[$k]['supplier_amount'] = pjCurrency::formatPriceOnly($supplierRaw, $format);
+
+            // 🔹 Date & time
+            $data[$k]['date_time'] = date(
+                $this->option_arr['o_date_format'] . ', ' . $this->option_arr['o_time_format'],
+                strtotime($v['booking_date'])
+            );
+
+            // 🔹 Distance
+            $data[$k]['distance'] = (int)$v['distance'] . ' km';
         }
 
-        self::jsonResponse(compact('data', 'total', 'pages', 'page', 'rowCount','total_price','total_commission',   'total_supplier_amount'));
+        // 🔹 Format totals AFTER loop
+        $total_price = pjCurrency::formatPriceOnly($total_price, $format);
+        $total_commission = pjCurrency::formatPriceOnly($total_commission, $format);
+        $total_supplier_amount = pjCurrency::formatPriceOnly($total_supplier_amount, $format);
+
+        // 🔹 Response
+        self::jsonResponse(compact(
+            'data',
+            'total',
+            'pages',
+            'page',
+            'rowCount',
+            'total_price',
+            'total_commission',
+            'total_supplier_amount'
+        ));
     }
 
     public function pjActionExport()

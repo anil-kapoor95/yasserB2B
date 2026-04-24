@@ -139,9 +139,9 @@ var jQuery_1_8_2 = jQuery_1_8_2 || $.noConflict();
 					{ text: myLabel.return_address, type: "text", sortable: false },
 					{ text: myLabel.distance, type: "text", sortable: false },
 					{ text: myLabel.date_time, type: "text", sortable: false },
-					{ text: myLabel.total, type: "text", sortable: false },
-					{text: myLabel.commission, type: "text", sortable: false},
-					{text: myLabel.price_after_commission, type: "text", sortable: false},
+					{text: myLabel.total + "(" + (window.appCurrency || '')+ ")", type: "text", sortable: false},
+					{text: myLabel.commission + "(" + (window.appCurrency || '')+ ")", type: "text", sortable: false},
+					{text: myLabel.price_after_commission + "(" + (window.appCurrency || '')+ ")", type: "text", sortable: false},
 				],
 
 				dataUrl: "index.php?controller=pjAdminSuppliers&action=pjActionGetBooking" + pjGrid.queryString,
@@ -236,9 +236,9 @@ var jQuery_1_8_2 = jQuery_1_8_2 || $.noConflict();
 					{ text: myLabel.return_address, type: "text", sortable: false },
 					{ text: myLabel.distance, type: "text", sortable: false },
 					{ text: myLabel.date_time, type: "text", sortable: false },
-					{ text: myLabel.total, type: "text", sortable: false },
-					{ text: myLabel.commission, type: "text", sortable: false },
-					{ text: myLabel.price_after_commission, type: "text", sortable: false },
+					{text: myLabel.total + "(" + (window.appCurrency || '')+ ")", type: "text", sortable: false},
+					{text: myLabel.commission + "(" + (window.appCurrency || '')+ ")", type: "text", sortable: false},
+					{text: myLabel.price_after_commission + "(" + (window.appCurrency || '')+ ")", type: "text", sortable: false},
 				],
 				dataUrl: "index.php?controller=pjAdminSuppliers&action=pjActionGetDeletedBooking" + pjGrid.queryString,
 				dataType: "json",
@@ -734,10 +734,12 @@ var jQuery_1_8_2 = jQuery_1_8_2 || $.noConflict();
                     // ✅ FIXED ALIGNMENT (7 columns before totals)
                     '<td colspan="7" style="text-align:right;">Total:</td>' +
 
-                    '<td>' + parseFloat(data.total_price || 0).toFixed(2) + '</td>' +
-                    '<td>' + parseFloat(data.total_commission || 0).toFixed(2) + '</td>' +
-                    '<td>' + parseFloat(data.total_supplier_amount || 0).toFixed(2) + '</td>' +
-
+                    // '<td>' + parseFloat(data.total_price || 0).toFixed(2) + '</td>' +
+                    // '<td>' + parseFloat(data.total_commission || 0).toFixed(2) + '</td>' +
+                    // '<td>' + parseFloat(data.total_supplier_amount || 0).toFixed(2) + '</td>' +
+					'<td>' + (data.total_price || '0') + '</td>' +
+					'<td>' + (data.total_commission || '0') + '</td>' +
+					'<td>' + (data.total_supplier_amount || '0') + '</td>' +
                 '</tr>' +
             '</tfoot>';
 

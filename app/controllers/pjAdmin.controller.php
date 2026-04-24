@@ -724,8 +724,8 @@ class pjAdmin extends pjAppController
 			'upcoming'   => (int)$upcoming_rides,
 			'completed'  => (int)$completed_rides,
 			'total'      => (float)($available_rides + $upcoming_rides + $completed_rides),
-			'commission' => (float)$total_commission,
-			'paid'       => (float)$total_paid_to_partners
+			'commission' => pjCurrency::formatPrice($total_commission," ",(int)$this->option_arr['o_price_format']),
+			'paid' => pjCurrency::formatPrice($total_paid_to_partners," ",(int)$this->option_arr['o_price_format'])
 		]);
 
 		// -------------------------------

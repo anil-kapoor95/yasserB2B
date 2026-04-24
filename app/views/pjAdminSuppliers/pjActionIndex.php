@@ -112,7 +112,8 @@ $roleId = $auth->getRoleId();
                     <i class="fa fa-money"></i>
                     <h4>Total Earnings</h4>
                 </div>
-                <h2><?php echo number_format($tpl['supplier_earning'] ?? 0, 2); ?></h2>
+                <h2><?php echo pjCurrency::formatPrice($tpl['supplier_earning'] ?? 0); ?>
+</h2>
             </div>
         </div>
 

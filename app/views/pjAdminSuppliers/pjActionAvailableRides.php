@@ -153,4 +153,6 @@ myLabel.completed = <?php echo x__encode('plugin_base_lbl_completed'); ?>;
 <script>
     window.appData = window.appData || {};
     appData.supplierVehicleCategories = <?php echo json_encode($tpl['supplierVehicleCategories']); ?>;
+	window.appCurrency = "<?= pjCurrency::getCurrencySign($tpl['option_arr']['o_currency'], false); ?>";
+
 </script>

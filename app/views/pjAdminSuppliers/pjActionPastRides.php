@@ -180,3 +180,6 @@ myLabel.confirmed = <?php echo x__encode('booking_statuses_ARRAY_confirmed'); ?>
 myLabel.cancelled = <?php echo x__encode('booking_statuses_ARRAY_cancelled'); ?>;
 myLabel.completed = <?php echo x__encode('plugin_base_lbl_completed'); ?>;
 </script>
+<script>
+	window.appCurrency = "<?= pjCurrency::getCurrencySign($tpl['option_arr']['o_currency'], false); ?>";
+</script>

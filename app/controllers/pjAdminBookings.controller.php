@@ -365,6 +365,7 @@ class pjAdminBookings extends pjAdmin
 
                     $v['client'] = pjSanitize::clean($fullName !== '' ? $fullName : $v['name']); // pjSanitize::clean($v['name']);
 
+                    $v['total'] = pjCurrency::formatPriceOnly($v['total'], (int)$this->option_arr['o_price_format']);
                     $v['date_time']  = date($this->option_arr['o_date_format'] . ', ' . $this->option_arr['o_time_format'] , strtotime($v['booking_date']));
                     $v['distance'] = (int) $v['distance'] . ' km';
                     $v['driver_name'] = pjSanitize::clean($v['driver_name'] ? $v['driver_name'] : 'NA');
