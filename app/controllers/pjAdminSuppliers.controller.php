@@ -69,9 +69,11 @@ class pjAdminSuppliers extends pjAdmin
         $available_rides = $applyFilters(
             $pjBookingModel->reset()
                 ->join('pjAuction', "t2.booking_id = t1.id", 'inner')
+                ->where('t1.is_auction', 1)
                 ->where('t1.status', 'confirmed')
                 ->where('t2.status', 'active')
-                ->where('t1.is_deleted', 0),
+                ->where('t1.is_deleted', 0)
+                ->groupBy('t1.id'),
                 'market'
         )->findCount()->getData();
 
@@ -84,6 +86,7 @@ class pjAdminSuppliers extends pjAdmin
             $pjBookingModel->reset()
                 ->join('pjAuction', "t2.booking_id = t1.id", 'inner')
                 ->where('t2.status', 'ended')
+                ->where('t1.status', 'confirmed')
                 ->where('t1.is_deleted', 0)
         )->findCount()->getData();
 
@@ -98,9 +101,11 @@ class pjAdminSuppliers extends pjAdmin
                 ->join('pjAuction', "t2.booking_id = t1.id", 'inner')
                 ->where('t2.status', 'ended')
                 ->where('t1.status', 'completed')
+                ->where('t1.supplier_id IS NOT NULL')
                 ->where('t1.is_deleted', 0)
-        )->findAll()->getData();
-
+                ->groupBy('t1.id')
+        )
+        ->findAll()->getData();
         $completed_rides = count($completedBookings);
         $this->set('completed_rides', $completed_rides);
 
@@ -1500,7 +1505,7 @@ class pjAdminSuppliers extends pjAdmin
                     ->select('t1.*')
                     ->join(
                         'taxi_auctions',
-                        "taxi_auctions.booking_id = t1.id AND taxi_auctions.status = 'active'",
+                        "taxi_auctions.booking_id = t1.id AND taxi_auctions.status = 'ended'",
                         'inner'
                     )
                     ->where('t1.is_auction', 1)

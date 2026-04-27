@@ -195,6 +195,20 @@ var jQuery_1_8_2 = jQuery_1_8_2 || $.noConflict();
 		
 		if ($frmUpdateOptions.length > 0) {
 			$frmUpdateOptions.validate({
+				rules: {
+					"value-float-o_commission_amount": {
+						required: true,
+						number: true,
+						min: 0.01
+					}
+				},
+				messages: {
+					"value-float-o_commission_amount": {
+						required: "This field is required",
+						number: "Only numbers allowed",
+						min: "Must be greater than 0"
+					}
+				}
 				
 			});
 		}

@@ -740,8 +740,10 @@ class pjJabbApi extends pjAppController
             ->join('pjClient', "t3.id=t1.client_id", 'left')
             ->join('pjAuthUser', "t4.id=t3.foreign_id", 'left')
             ->join('taxi_auctions', "taxi_auctions.booking_id = t1.id AND taxi_auctions.status = 'active'", 'inner')
-            ->where("t1.is_deleted", 0)
-            ->where('t1.is_auction', 1);
+            ->where('t1.is_auction', 1)
+            ->where('t1.supplier_id IS NULL')
+            ->where('t1.status', 'confirmed')
+            ->where("t1.is_deleted", 0);
 
         // ---------------- FILTERS ----------------
 
@@ -788,8 +790,18 @@ class pjJabbApi extends pjAppController
             ->findAll()
             ->getData();
 
-        // ---------------- FORMAT DATA ----------------
+        // ---------------- CURRENCY ----------------
+        pjCurrency::factory()->setCurrencyData(); // IMPORTANT
 
+        $options = pjRegistry::getInstance()->get('options');
+        $currency = $options['o_currency'];
+        $currencySymbol = html_entity_decode(
+            pjCurrency::getCurrencySign($currency, false),
+            ENT_QUOTES,
+            'UTF-8'
+        );        
+
+        // ---------------- FORMAT DATA ----------------
         foreach ($data as $k => $v) {
 
             $fullName = trim($v['c_fname'] . ' ' . $v['c_lname']);
@@ -797,8 +809,12 @@ class pjJabbApi extends pjAppController
             $data[$k]['client'] = $fullName ?: $v['name'];
 
             $data[$k]['distance'] = (int)$v['distance'] . ' km';
+            $data[$k]['date_time']  = date($this->option_arr['o_date_format'] . ', ' . $this->option_arr['o_time_format'] , strtotime($v['booking_date']));
+            $data[$k]['total'] = pjCurrency::formatPriceOnly($v['total'], (int)$this->option_arr['o_price_format']);
+            $data[$k]['commission_amount'] = pjCurrency::formatPriceOnly($v['commission_amount'], (int)$this->option_arr['o_price_format']);
         }
-
+        $options = pjRegistry::getInstance()->get('options');
+        
         // ---------------- RESPONSE ----------------
 
         echo json_encode([
@@ -807,7 +823,8 @@ class pjJabbApi extends pjAppController
             'data' => $data,
             'total' => $total,
             'pages' => $pages,
-            'page' => $page
+            'page' => $page,
+            'currencySymbol' =>$currencySymbol
         ]);
 
         exit;
@@ -857,9 +874,11 @@ class pjJabbApi extends pjAppController
             ->join('pjMultiLang', "t2.model='pjFleet' AND t2.foreign_id=t1.fleet_id AND t2.field='fleet'", 'left')
             ->join('pjClient', "t3.id=t1.client_id", 'left')
             ->join('pjAuthUser', "t4.id=t3.foreign_id", 'left')
-            ->join('auctions', "auctions.booking_id = t1.id AND auctions.supplier_id = $supplier_id AND auctions.status = 'ended'", 'inner')
-            ->where("t1.is_deleted", 0)
-            ->where('t1.is_auction', 1);
+            ->join('taxi_auctions', "taxi_auctions.booking_id = t1.id AND taxi_auctions.status = 'ended' AND taxi_auctions.supplier_id = $supplier_id", 'inner')
+            ->where('t1.is_auction', 1)
+            ->where("t1.status", 'confirmed')
+            ->where("t1.supplier_id IS NOT NULL")
+            ->where('t1.is_deleted', 0);
 
         // ---------------- FILTERS ----------------
 
@@ -914,6 +933,10 @@ class pjJabbApi extends pjAppController
             $data[$k]['client'] = $fullName ?: $v['name'];
 
             $data[$k]['distance'] = (int)$v['distance'] . ' km';
+            $data[$k]['date_time']  = date($this->option_arr['o_date_format'] . ', ' . $this->option_arr['o_time_format'] , strtotime($v['booking_date']));
+            $data[$k]['total'] = pjCurrency::formatPriceOnly($v['total'], (int)$this->option_arr['o_price_format']);
+            $data[$k]['commission_amount'] = pjCurrency::formatPriceOnly($v['commission_amount'], (int)$this->option_arr['o_price_format']);
+
         }
 
         // ---------------- RESPONSE ----------------
@@ -935,6 +958,26 @@ class pjJabbApi extends pjAppController
         header("Content-Type: application/json");
 
         $params = $this->_post->raw();
+
+        // ---------------- DATE FILTER ----------------
+        $from_input = trim($_REQUEST['from_date'] ?? '');
+        $to_input   = trim($_REQUEST['to_date'] ?? '');
+
+        $from_ts = strtotime($from_input);
+        $to_ts   = strtotime($to_input);
+
+       if (!$from_ts || !$to_ts) {
+            // Default: current month
+            $dateFrom = date('Y-m-01 00:00:00');
+            $dateTo   = date('Y-m-t 23:59:59');
+
+        } else {
+
+            // normalize dates safely
+            $dateFrom = date('Y-m-d 00:00:00', $from_ts);
+            $dateTo   = date('Y-m-d 23:59:59', $to_ts);
+        }
+
         $token = $params['api_login_token'] ?? '';
 
         if (empty($token)) {
@@ -966,45 +1009,65 @@ class pjJabbApi extends pjAppController
         $supplier = $user[0];
         $supplier_id = $supplier['id'];
 
-        $now = date('Y-m-d H:i:s');
-
-        // ---------------- TOTAL RIDES (active auctions) ----------------
-        $total_rides = pjBookingModel::factory()
+        // ---------------- TOTAL RIDES (active auctions) --Available Rides--------------
+        $total_available_rides = pjBookingModel::factory()
             ->join('taxi_auctions', "taxi_auctions.booking_id = t1.id AND taxi_auctions.status = 'active'", 'inner')
             ->where('t1.is_auction', 1)
+            ->where('t1.supplier_id IS NULL')
+            ->where('t1.status', 'confirmed')
             ->where('t1.is_deleted', 0)
+            ->where("t1.booking_date >=", $dateFrom)
+            ->where("t1.booking_date <=", $dateTo)
             ->findCount()
             ->getData();
 
         // ---------------- COMPLETED RIDES ----------------
         $completed_rides = pjBookingModel::factory()
-            ->join('taxi_auctions', "taxi_auctions.booking_id = t1.id AND taxi_auctions.status = 'ended' AND taxi_auctions.supplier_id = $supplier_id", 'inner')
+            ->join(
+                'taxi_auctions AS t2',
+                "t2.booking_id = t1.id 
+                AND t2.status = 'ended' 
+                AND t2.supplier_id = t1.supplier_id",
+                'inner'
+            )
+            ->where('t1.status', 'completed')
             ->where('t1.is_auction', 1)
             ->where('t1.is_deleted', 0)
-            ->where('t1.status', 'completed')
+            ->where('t1.supplier_id IS NOT NULL')
+            ->where("t1.booking_date >=", $dateFrom)
+            ->where("t1.booking_date <=", $dateTo)
             ->findCount()
             ->getData();
 
         // ---------------- TOTAL REVENUE ----------------
         $revenue_row = pjBookingModel::factory()
-            ->join('taxi_auctions', "taxi_auctions.booking_id = t1.id AND taxi_auctions.status = 'ended' AND taxi_auctions.supplier_id = $supplier_id", 'inner')
+            ->join('pjAuction', "t2.booking_id = t1.id", 'inner')
+            ->where('t2.status', 'ended')
+            ->where('t2.supplier_id', $supplier_id)
             ->where('t1.is_auction', 1)
-            ->where('t1.is_deleted', 0)
             ->where('t1.status', 'completed')
+            ->where("t1.booking_date >=", $dateFrom)
+            ->where("t1.booking_date <=", $dateTo)
+            ->where('t1.is_deleted', 0)
             ->select("ROUND(SUM(t1.total),2) AS total_revenue")
             ->findAll()
             ->getData();
-
-        $total_revenue = $revenue_row[0]['total_revenue'] ?? 0;
+    
+        $revenue = $revenue_row[0]['total_revenue'] ?? 0;
+        
+       /* ================= FORMATTED REVENUE ================= */
+        $total_revenue = html_entity_decode(pjCurrency::formatPrice($revenue), ENT_QUOTES, 'UTF-8');
 
         // ---------------- UPCOMING RIDES ----------------
         $upcoming_rides = pjBookingModel::factory()
             ->join('taxi_auctions', "taxi_auctions.booking_id = t1.id AND taxi_auctions.status = 'ended' AND taxi_auctions.supplier_id = $supplier_id", 'inner')
             ->where('t1.is_auction', 1)
             ->where('t1.is_deleted', 0)
-            ->where('t1.status <>', 'cancelled')
-            // ->where('t1.booking_date >', $now)
-            ->findCount()
+            ->where('t1.status', 'confirmed')
+            ->where('t1.supplier_id IS NOT NULL')
+            ->where("t1.booking_date >=", $dateFrom)
+            ->where("t1.booking_date <=", $dateTo)
+            ->findAll()
             ->getData();
 
         // ---------------- RESPONSE ----------------
@@ -1012,7 +1075,7 @@ class pjJabbApi extends pjAppController
             'status' => 'OK',
             'code' => 200,
             'data' => [
-                'total_rides'     => (int)$total_rides,
+                'total_available_rides'     => (int)$total_available_rides,
                 'completed_rides' => (int)$completed_rides,
                 'total_revenue'   => $total_revenue,
                 'upcoming_rides'  => (int)$upcoming_rides
@@ -1154,7 +1217,9 @@ class pjJabbApi extends pjAppController
         ignore_user_abort(true);
         /* ===== SEND EMAIL AFTER RESPONSE ===== */
         
-         pjAppController::pjActionBookingAcceptBySupplierSend($this->option_arr, $booking, $supplier_id,  PJ_SALT, 'bookingaccept', $this->getLocaleId());
+        pjAppController::pjActionBookingAcceptBySupplierSend($this->option_arr,$booking,$supplier_id,PJ_SALT,'bookingaccept',$this->getLocaleId());
+
+        pjAppController::pjActionBookingAcceptBySupplierSend($this->option_arr,$booking,$login_id,PJ_SALT,'confirmation',$this->getLocaleId());
 
         exit;
     }
@@ -1906,8 +1971,6 @@ class pjJabbApi extends pjAppController
     
     public function pjActionGetCompletedRides()
     {
-        ini_set('display_startup_errors', '1');
-        error_reporting(E_ALL);
         header("Content-Type: application/json");
 
         $params = $this->_post->raw();
@@ -1971,11 +2034,35 @@ class pjJabbApi extends pjAppController
         $offset = ($page - 1) * $rowCount;
 
         // ---------------- FETCH RIDES ----------------
-        $rides = $pjBookingModel
+        $data = $pjBookingModel
             ->limit($rowCount, $offset)
             ->orderBy('t1.booking_date DESC')
             ->findAll()
             ->getData();
+
+        foreach ($data as $k => $v) {
+
+            $fullName = trim($v['c_fname'] . ' ' . $v['c_lname']);
+
+            $data[$k]['client'] = $fullName ?: $v['name'];
+
+            $data[$k]['distance'] = (int)$v['distance'] . ' km';
+            $data[$k]['date_time']  = date($this->option_arr['o_date_format'] . ', ' . $this->option_arr['o_time_format'] , strtotime($v['booking_date']));
+            $data[$k]['total'] = pjCurrency::formatPriceOnly($v['total'], (int)$this->option_arr['o_price_format']);
+            $data[$k]['commission_amount'] = pjCurrency::formatPriceOnly($v['commission_amount'], (int)$this->option_arr['o_price_format']);
+
+        }
+
+        // ---------------- CURRENCY ----------------
+        pjCurrency::factory()->setCurrencyData(); // IMPORTANT
+
+        $options = pjRegistry::getInstance()->get('options');
+        $currency = $options['o_currency'];
+        $currencySymbol = html_entity_decode(
+            pjCurrency::getCurrencySign($currency, false),
+            ENT_QUOTES,
+            'UTF-8'
+        );
 
         // ---------------- RESPONSE ----------------
         echo json_encode([
@@ -1984,7 +2071,228 @@ class pjJabbApi extends pjAppController
             'total' => $total,
             'pages' => $pages,
             'page' => $page,
-            'data' => $rides
+            'data' => $data,
+            'currencySymbol' =>$currencySymbol
+
+        ]);
+
+        exit;
+    }
+
+    public function pjActionGetPayoutReport()
+    {
+        header("Content-Type: application/json");
+
+        $params = $this->_post->raw();
+        $token = $params['api_login_token'] ?? '';
+
+        if (empty($token)) {
+            echo json_encode([
+                'status' => 'ERR',
+                'code' => 401,
+                'message' => 'API token required'
+            ]);
+            exit;
+        }
+
+        // ---------------- GET SUPPLIER ----------------
+        $supplier = pjAuthUserModel::factory()
+            ->where('api_login_token', $token)
+            ->where('role_id', 5)
+            ->limit(1)
+            ->findAll()
+            ->getDataIndex(0);
+
+        if (empty($supplier)) {
+            echo json_encode([
+                'status' => 'ERR',
+                'code' => 401,
+                'message' => 'Invalid supplier token'
+            ]);
+            exit;
+        }
+
+        $supplier_id = $supplier['id'];
+        $role_id = $supplier['role_id'];
+
+        // ---------------- BOOKING QUERY (WEB API STYLE) ----------------
+        $pjBookingModel = pjBookingModel::factory()
+            ->where('t1.is_auction', 1)
+            ->where('t1.is_deleted', 0);
+
+        // Supplier restriction (same as web API)
+        if ((int)$role_id === 5) {
+            $pjBookingModel->where('t1.supplier_id', $supplier_id);
+        }
+
+        // ---------------- JOINS (same as web API) ----------------
+        $pjBookingModel
+            ->join('taxi_auctions', "taxi_auctions.booking_id = t1.id", 'inner')
+            ->join(
+                'pjMultiLang',
+                "t2.model='pjFleet' AND t2.foreign_id=t1.fleet_id AND t2.field='fleet' AND t2.locale='" . $this->getLocaleId() . "'",
+                'left outer'
+            )
+            ->join('pjAuthUser', "t3.id=t1.supplier_id", 'left outer')
+            ->select("t1.*, t2.content AS fleet");
+
+        // ---------------- SEARCH ----------------
+        if (!empty($params['q'])) {
+            $q = $params['q'];
+            $pjBookingModel->where("(
+                t1.uuid LIKE '%$q%' OR 
+                t1.c_fname LIKE '%$q%' OR 
+                t1.c_lname LIKE '%$q%' OR 
+                t1.c_phone LIKE '%$q%'
+            )");
+        }
+
+        // ---------------- STATUS FILTER ----------------
+        if (!empty($params['status']) &&
+            in_array($params['status'], ['confirmed','cancelled','pending','completed'])) {
+            $pjBookingModel->where('t1.status', $params['status']);
+        }
+
+        // ---------------- DATE FILTERS ----------------
+        // if (!empty($params['start_date'])) {
+        //     $pjBookingModel->where("DATE(t1.booking_date) >=", $params['start_date']);
+        // }
+
+        // if (!empty($params['end_date'])) {
+        //     $pjBookingModel->where("DATE(t1.booking_date) <=", $params['end_date']);
+        // }
+
+        $currentStart = date('Y-m-01');
+        $currentEnd   = date('Y-m-t');
+
+        $start_date = $params['start_date'] ?? null;
+        $end_date   = $params['end_date'] ?? null;
+
+        // ---------------- APPLY FILTER ----------------
+        if ($start_date && $end_date) {
+            $pjBookingModel->where("DATE(t1.booking_date) >=", $start_date);
+            $pjBookingModel->where("DATE(t1.booking_date) <=", $end_date);
+
+        } elseif ($start_date) {
+            $pjBookingModel->where("DATE(t1.booking_date) >=", $start_date);
+
+        } elseif ($end_date) {
+            $pjBookingModel->where("DATE(t1.booking_date) <=", $end_date);
+
+        } else {
+            // DEFAULT = CURRENT MONTH
+            $pjBookingModel->where("DATE(t1.booking_date) >=", $currentStart);
+            $pjBookingModel->where("DATE(t1.booking_date) <=", $currentEnd);
+        }
+
+        // ---------------- PAGINATION ----------------
+        $rowCount = isset($params['rowCount']) ? (int)$params['rowCount'] : 20;
+        $page = isset($params['page']) ? (int)$params['page'] : 1;
+
+        $total = $pjBookingModel->findCount()->getData();
+        $pages = ceil($total / $rowCount);
+        $offset = ($page - 1) * $rowCount;
+
+        // ---------------- DATA FETCH ----------------
+        $data = $pjBookingModel
+            ->orderBy("t1.created DESC")
+            ->limit($rowCount, $offset)
+            ->findAll()
+            ->getData();
+
+        // ---------------- TOTALS ----------------
+        $total_price = 0;
+        $total_commission = 0;
+        $total_supplier_amount = 0;
+
+        $format = (int)$this->option_arr['o_price_format'];
+
+        foreach ($data as $k => $v) {
+
+            // Client name
+            $fullName = trim($v['c_fname'] . ' ' . $v['c_lname']);
+            $data[$k]['client'] = pjSanitize::clean($fullName);
+
+            // RAW values (important fix)
+            $totalRaw = (float) str_replace(',', '', $v['total']);
+            $commissionRaw = (float) str_replace(',', '', $v['commission_amount']);
+            $supplierRaw = $totalRaw - $commissionRaw;
+
+            // Totals
+            $total_price += $totalRaw;
+            $total_commission += $commissionRaw;
+            $total_supplier_amount += $supplierRaw;
+
+            // Formatting
+            // $data[$k]['total'] = pjCurrency::formatPriceOnly($totalRaw, $format);
+            $data[$k]['total'] = html_entity_decode(
+                pjCurrency::formatPrice($totalRaw),
+                ENT_QUOTES,
+                'UTF-8'
+            );
+
+            $data[$k]['commission_amount'] = html_entity_decode(
+                pjCurrency::formatPrice($commissionRaw),
+                ENT_QUOTES,
+                'UTF-8'
+            );
+
+            $data[$k]['supplier_amount'] = html_entity_decode(
+                pjCurrency::formatPrice($supplierRaw),
+                ENT_QUOTES,
+                'UTF-8'
+            );
+
+            // Date
+            $data[$k]['date_time'] = date(
+                $this->option_arr['o_date_format'] . ', ' . $this->option_arr['o_time_format'],
+                strtotime($v['booking_date'])
+            );
+
+            // Distance
+            $data[$k]['distance'] = (int)$v['distance'] . ' km';
+        }
+
+        // Format totals
+        $total_price = html_entity_decode(
+            pjCurrency::formatPrice($total_price),
+            ENT_QUOTES,
+            'UTF-8'
+        );
+        $total_commission = html_entity_decode(
+            pjCurrency::formatPrice($total_commission),
+            ENT_QUOTES,
+            'UTF-8'
+        );
+        $total_supplier_amount = html_entity_decode(
+            pjCurrency::formatPrice($total_supplier_amount),
+            ENT_QUOTES,
+            'UTF-8'
+        );
+
+        // ---------------- CURRENCY ----------------
+        pjCurrency::factory()->setCurrencyData(); // IMPORTANT
+
+        $options = pjRegistry::getInstance()->get('options');
+        $currency = $options['o_currency'];
+        $currencySymbol = html_entity_decode(
+            pjCurrency::getCurrencySign($currency, false),
+            ENT_QUOTES,
+            'UTF-8'
+        ); 
+
+        // ---------------- RESPONSE ----------------
+        echo json_encode([
+            'status' => 'OK',
+            'code' => 200,
+            'total' => $total,
+            'pages' => $pages,
+            'page' => $page,
+            'data' => $data,
+            'total_price' => $total_price,
+            'total_commission' => $total_commission,
+            'total_supplier_amount' => $total_supplier_amount,
+            'currencySymbol' =>$currencySymbol
         ]);
 
         exit;

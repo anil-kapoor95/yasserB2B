@@ -2558,7 +2558,8 @@ public static function calPriceAdmin($fleet_id, $distance, $passengers, $extra_i
 			$supplierCompany = pjSanitize::clean($suppliar['company_name']);
 
 			// Approval URL
-			$url = PJ_INSTALL_URL . 'index.php?controller=pjBaseUsers&action=pjActionUpdate&id=' . $authId;
+			// $url = PJ_INSTALL_URL . 'index.php?controller=pjBaseUsers&action=pjActionUpdate&id=' . $authId;
+			$url = PJ_INSTALL_URL . 'index.php?controller=pjSupplier&action=pjActionIndex';
 			$accountApprovalURL = '<a href="' . $url . '">' . $url . '</a>';
 		}
 

@@ -23,6 +23,7 @@ class pjAuthUserModel extends pjAuthAppModel
     	array('name' => 'pswd_modified', 'type' => 'datetime', 'default' => ':NOW()'),
         array('name' => 'status', 'type' => 'enum', 'default' => 'T'),
         array('name' => 'is_active', 'type' => 'enum', 'default' => 'F'),
+        array('name' => 'is_approved', 'type' => 'enum', 'default' => 'F'),
         array('name' => 'locked', 'type' => 'enum', 'default' => 'F'),
         array('name' => 'login_token', 'type' => 'varchar', 'default' => ':NULL'),
         array('name' => 'api_login_token', 'type' => 'varchar', 'default' => ':NULL'),

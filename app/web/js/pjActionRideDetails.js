@@ -578,6 +578,9 @@ var jQuery_1_8_2 = jQuery_1_8_2 || $.noConflict();
 						maximumNumber: true
 
 					},
+					 driver_id: {
+						required: true   // ✅ ADD THIS
+					}
 
 					// c_email: {
 
@@ -631,6 +634,9 @@ var jQuery_1_8_2 = jQuery_1_8_2 || $.noConflict();
 
 						remote: myLabel.email_already_exist
 
+					},
+					driver_id: {
+						required: "Please select a driver" // optional custom message
 					}
 
 				},

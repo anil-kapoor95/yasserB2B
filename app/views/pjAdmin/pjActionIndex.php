@@ -475,7 +475,7 @@ $roleId = $auth->getRoleId();
 
 			</select>
 		</div>
-		<div class="col-md-1">
+		<div style="display: flex; gap: 5px; align-items: center;">
 			<button type="submit" class="btn btn-primary" title="Filter"><i class="fa fa-search"></i></button>
 			<!-- EXPORT BUTTON -->
 			<button type="button" id="btnExportBookings" class="btn btn-success" title="Export CSV">
