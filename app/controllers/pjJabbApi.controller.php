@@ -2297,4 +2297,88 @@ class pjJabbApi extends pjAppController
 
         exit;
     }
+
+    public function pjActionGetSupplierDetails()
+    {
+        header("Content-Type: application/json");
+
+        $params = $this->_post->raw();
+        $token = $params['api_login_token'] ?? '';
+
+        // ---------------- TOKEN CHECK ----------------
+        if (empty($token)) {
+            echo json_encode([
+                'status' => 'ERR',
+                'code' => 401,
+                'message' => 'API token required'
+            ]);
+            exit;
+        }
+
+        // ---------------- GET AUTH USER ----------------
+        $auth = pjAuthUserModel::factory()
+            ->where('api_login_token', $token)
+            ->limit(1)
+            ->findAll()
+            ->getDataIndex(0);
+
+        if (empty($auth)) {
+            echo json_encode([
+                'status' => 'ERR',
+                'code' => 401,
+                'message' => 'Invalid API token'
+            ]);
+            exit;
+        }
+
+        $authId = $auth['id'];
+
+        // ---------------- GET SUPPLIER ----------------
+        $supplier = pjSupplierModel::factory()
+            ->where('auth_id', $authId)
+            ->limit(1)
+            ->findAll()
+            ->getDataIndex(0);
+
+        if (empty($supplier)) {
+            echo json_encode([
+                'status' => 'ERR',
+                'code' => 404,
+                'message' => 'Supplier not found'
+            ]);
+            exit;
+        }
+
+        // ---------------- RESPONSE ----------------
+        $data = [
+            // ===== AUTH TABLE =====
+            'id'        => $auth['id'],
+            'name'      => $auth['name'],
+            'email'     => $auth['email'],
+            'phone'     => $auth['phone'],
+            'status'    => $auth['status'],
+            'created'   => $auth['created'],
+
+            // ===== SUPPLIER TABLE =====
+            'supplier_id'      => $supplier['id'],
+            'first_name'       => $supplier['first_name'] ?? '',
+            'last_name'        => $supplier['last_name'] ?? '',
+            'company_name'     => $supplier['company_name'] ?? '',
+            'street'           => $supplier['street'] ?? '',
+            'city'             => $supplier['city'] ?? '',
+            'state'            => $supplier['state'] ?? '',
+            'zip'              => $supplier['zip'] ?? '',
+            'vehicle_category' => $supplier['vehicle_category'] ?? '',
+            'status_supplier'  => $supplier['status'] ?? '',
+            'created_supplier' => $supplier['created'] ?? ''
+        ];
+
+        echo json_encode([
+            'status' => 'OK',
+            'code' => 200,
+            'data' => $data
+        ]);
+
+        exit;
+    }
 }
