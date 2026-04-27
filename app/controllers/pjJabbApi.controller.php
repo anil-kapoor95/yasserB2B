@@ -2349,9 +2349,31 @@ class pjJabbApi extends pjAppController
             exit;
         }
 
+        // ---------------- VEHICLE CATEGORY CONVERSION ----------------
+        $vehicleCategories = [];
+
+        if (!empty($supplier['vehicle_category'])) {
+
+            $ids = explode(',', $supplier['vehicle_category']);
+
+            $categories = pjCategoryModel::factory()
+                ->whereIn('id', $ids)
+                ->findAll()
+                ->getData();
+
+            if (!empty($categories)) {
+                foreach ($categories as $cat) {
+                    $vehicleCategories[] = [
+                        'id'   => $cat['id'],
+                        'name' => $cat['category'] ?? $cat['title']
+                    ];
+                }
+            }
+        }
+
         // ---------------- RESPONSE ----------------
         $data = [
-            // ===== AUTH TABLE =====
+            // AUTH TABLE
             'id'        => $auth['id'],
             'name'      => $auth['name'],
             'email'     => $auth['email'],
@@ -2359,7 +2381,7 @@ class pjJabbApi extends pjAppController
             'status'    => $auth['status'],
             'created'   => $auth['created'],
 
-            // ===== SUPPLIER TABLE =====
+            // SUPPLIER TABLE
             'supplier_id'      => $supplier['id'],
             'first_name'       => $supplier['first_name'] ?? '',
             'last_name'        => $supplier['last_name'] ?? '',
@@ -2368,9 +2390,11 @@ class pjJabbApi extends pjAppController
             'city'             => $supplier['city'] ?? '',
             'state'            => $supplier['state'] ?? '',
             'zip'              => $supplier['zip'] ?? '',
-            'vehicle_category' => $supplier['vehicle_category'] ?? '',
             'status_supplier'  => $supplier['status'] ?? '',
-            'created_supplier' => $supplier['created'] ?? ''
+            'created_supplier' => $supplier['created'] ?? '',
+
+            // VEHICLE CATEGORY (CONVERTED)
+            'vehicle_category' => $vehicleCategories
         ];
 
         echo json_encode([
