@@ -23,10 +23,18 @@ var jQuery_1_8_2 = jQuery_1_8_2 || $.noConflict();
 			$frmCreateDriver.validate({
 				
 				rules: {
+					title: "required",
 					first_name: "required",
 					last_name: "required",
 					password: "required",
 					phone: "required",
+					city: "required",
+					address: "required",
+					state: "required",
+					zip: "required",
+					license_number: "required",
+					license_expiry: "required",
+					vehicle_id: "required",
 
 					email: {
 						required: true,
@@ -44,10 +52,18 @@ var jQuery_1_8_2 = jQuery_1_8_2 || $.noConflict();
 				},
 
 				messages: {
+					title: "Title is required",
 					first_name: "First name is required",
 					last_name: "Last name is required",
 					password: "Password is required",
 					phone: "Phone is required",
+					city: "city is required",
+					address: "address is required",
+					state: "state is required",
+					zip: "zip is required",
+					license_number: "license_number is required",
+					license_expiry: "license_expiry is required",
+					vehicle_id: "vehicle_id is required",
 
 					email: {
 						required: "Email is required",
@@ -214,7 +230,15 @@ var jQuery_1_8_2 = jQuery_1_8_2 || $.noConflict();
 				useCurrent: false
 			};
 			$('.datetimepick').datetimepicker(dateOnlyOptions);
-			$('.datetimepick_dob').datetimepicker(dateOnlyOptions);
+			// $('.datetimepick_dob').datetimepicker(dateOnlyOptions);
+			$('.datetimepick_dob').datetimepicker({
+				format: 'YYYY-MM-DD',
+				locale: moment.locale('en'),
+				allowInputToggle: true,
+				ignoreReadonly: true,
+				useCurrent: false,
+				maxDate: moment() // ❌ disables future dates
+			});
 		}
 
 		if ($("#grid-reservations-admin").length > 0 && datagrid) 

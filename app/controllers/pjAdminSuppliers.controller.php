@@ -1507,37 +1507,212 @@ class pjAdminSuppliers extends pjAdmin
        exit;
     }
 
+    // public function pjActionGetUpcomingBooking()
+    // {
+    //     $this->checkLogin();
+    //    $this->setAjax(true);
+       
+    //    if ($this->isXHR())
+    //    {
+    //         $supplier_id = $this->getUserId();
+    //        $pjBookingModel = pjBookingModel::factory()
+    //        ->join('pjMultiLang', "t2.model='pjFleet' AND t2.foreign_id=t1.fleet_id AND t2.field='fleet' AND t2.locale='".$this->getLocaleId()."'", 'left outer')
+    //        ->join('pjClient', "t3.id=t1.client_id", 'left outer')
+    //        ->join('pjAuthUser', "t4.id=t3.foreign_id", 'left outer')
+    //        ->where("t1.is_deleted = 0");
+    //        //->where("t1.supplier_id",$supplier_id);
+
+            
+    //         $role_id = $this->getRoleId();
+
+    //         if ((int) $role_id === 5) {
+    //             $pjBookingModel = $pjBookingModel
+    //                 ->select('t1.*')
+    //                 ->join(
+    //                     'taxi_auctions',
+    //                     "taxi_auctions.booking_id = t1.id AND taxi_auctions.status = 'ended'",
+    //                     'inner'
+    //                 )
+    //                 ->where('t1.is_auction', 1)
+    //                 ->where('t1.supplier_id', $supplier_id)
+    //                 ->where('t1.is_deleted', 0);
+
+    //             // Apply date filter logic
+    //             if (!$this->_get->isEmpty('start_date') || !$this->_get->isEmpty('end_date')) {
+
+    //                 if (!$this->_get->isEmpty('start_date')) {
+    //                     $start_date = $this->_get->toString('start_date') . " 00:00:00";
+    //                     $pjBookingModel->where("t1.booking_date >=", $start_date);
+    //                 }
+
+    //                 if (!$this->_get->isEmpty('end_date')) {
+    //                     $end_date = $this->_get->toString('end_date') . " 23:59:59";
+    //                     $pjBookingModel->where("t1.booking_date <=", $end_date);
+    //                 }
+
+    //             } else {
+    //                 // Default → upcoming only
+    //                 $today = date('Y-m-d 00:00:00');
+    //                 $pjBookingModel->where("t1.booking_date >=", $today);
+    //             }
+    //         }
+         
+    //        if ($this->_get->has('q') && !$this->_get->isEmpty('q'))
+    //        {
+    //            $q = $this->_get->toString('q');
+
+    //            // $pjBookingModel->where("(t4.name LIKE '%$q%' OR t4.email LIKE '%$q%' OR t2.content LIKE '%$q%')");
+    //            $pjBookingModel->where("(t4.name LIKE '%$q%' OR t4.email LIKE '%$q%' OR t2.content LIKE '%$q%' OR t1.uuid LIKE '%$q%' OR t1.c_fname LIKE '%$q%' OR t1.c_lname LIKE '%$q%' OR TRIM(CONCAT(t1.c_fname, ' ', t1.c_lname)) LIKE '%$q%' OR t1.c_phone LIKE '%$q%' OR t1.c_company LIKE '%$q%')");
+    //        }
+           
+    //        if ($this->_get->toInt('fleet_id') > 0)
+    //        {
+    //            $fleet_id = $this->_get->toInt('fleet_id');
+    //            $pjBookingModel->where("(t1.fleet_id='".$fleet_id."')");
+    //        }
+    //        if ($this->_get->toInt('client_id') > 0)
+    //        {
+    //            $client_id = $this->_get->toInt('client_id');
+    //            $pjBookingModel->where("(t1.client_id='".$client_id."')");
+    //        }
+    //        if (!$this->_get->isEmpty('status') && in_array($this->_get->toString('status'), array('confirmed','cancelled','pending', 'completed')))
+    //        {
+    //            $pjBookingModel->where('t1.status', $this->_get->toString('status'));
+    //        } else {
+    //             $pjBookingModel->where('t1.status', 'confirmed');
+
+    //        }
+           
+    //        if (!$this->_get->isEmpty('name'))
+    //        {
+    //            $q = $this->_get->toString('name');
+    //            $pjBookingModel->where("(t4.name LIKE '%$q%')");
+    //        }
+    //        if (!$this->_get->isEmpty('email'))
+    //        {
+    //            $q = $this->_get->toString('email');
+    //            $pjBookingModel->where('t4.email LIKE', "%$q%");
+    //        }
+    //        if (!$this->_get->isEmpty('phone'))
+    //        {
+    //            $q = $this->_get->toString('phone');
+    //            $pjBookingModel->where('t4.phone LIKE', "%$q%");
+    //        }
+    //        if (!$this->_get->isEmpty('date'))
+    //        {
+    //            $pjBookingModel->where("(DATE_FORMAT(t1.booking_date, '%Y-%m-%d')='".$this->_get->toString('date')."')");
+    //        }
+    //        if (!$this->_get->isEmpty('start_date'))
+    //         {
+    //             $start_date = $this->_get->toString('start_date');
+    //             $pjBookingModel->where("DATE(t1.booking_date) >=", $start_date);
+    //         }
+
+    //         // TO DATE
+    //         if (!$this->_get->isEmpty('end_date'))
+    //         {
+    //             $end_date = $this->_get->toString('end_date');
+    //             $pjBookingModel->where("DATE(t1.booking_date) <=", $end_date);
+    //         }
+    //        $column = 'created';
+    //        $direction = 'DESC';
+    //        if ($this->_get->check('column') && in_array(strtoupper($this->_get->toString('direction')), array('ASC', 'DESC')))
+    //        {
+    //            $column = $this->_get->toString('column');
+    //            $direction = strtoupper($this->_get->toString('direction'));
+    //        }
+           
+    //        $total = $pjBookingModel->findCount()->getData();
+           
+    //        $rowCount = $this->_get->toInt('rowCount') ? $this->_get->toInt('rowCount') : 20;
+    //        $pages = ceil($total / $rowCount);
+    //        $page = $this->_get->toInt('page') ? $this->_get->toInt('page') : 1;
+    //        $offset = ((int) $page - 1) * $rowCount;
+    //        if ($page > $pages)
+    //        {
+    //            $page = $pages;
+    //        }
+           
+    //        $data = array();
+           
+    //        $data = $pjBookingModel
+    //        ->select("t1.*, t2.content as fleet, t4.name, t4.email,t4.phone, AES_DECRYPT(t1.cc_type, '".PJ_SALT."') AS `cc_type`,
+    //         AES_DECRYPT(t1.cc_num, '".PJ_SALT."') AS `cc_num`, AES_DECRYPT(t1.cc_exp_month, '".PJ_SALT."') AS `cc_exp_month`, AES_DECRYPT(t1.cc_exp_year, '".PJ_SALT."') AS `cc_exp_year`, AES_DECRYPT(t1.cc_code, '".PJ_SALT."') AS `cc_code`,CONCAT_WS(' ', t5.first_name, t5.last_name) AS driver_name,t6.name AS supplier_name ")
+    //        ->join('pjDriver', "t1.driver_id=t5.id", 'left')
+    //        ->join('pjAuthUser', "t6.id=t1.supplier_id", 'left')
+    //        ->orderBy("$column $direction")
+    //        ->limit($rowCount, $offset)
+    //        ->findAll()
+    //        ->getData();
+
+    //        $booking_ids = array_column($data, 'id');
+    //        $extras_by_booking = [];
+
+    //        if (!empty($booking_ids)) {
+    //            $extras_model = pjBookingExtraModel::factory()
+    //             ->select("t1.*, t2.content AS extra_name")
+    //             ->join(
+    //                 'pjMultiLang',
+    //                 "t2.model='pjExtra' AND t2.foreign_id=t1.extra_id AND t2.field='name' AND t2.locale='".$this->getLocaleId()."'",
+    //                 'left'
+    //             )
+    //             ->whereIn('t1.booking_id', $booking_ids)
+    //             ->where("t1.extra_value > 0")
+    //             ->findAll()
+    //             ->getData();
+
+                
+    //             foreach ($extras_model as $ex) {
+    //                 $extras_by_booking[$ex['booking_id']][] = $ex;
+    //             }
+    //         }
+
+    //         foreach($data as $k => $v)
+    //         {
+    //            // echo "<pre>"; print_r($v); echo "</pre>";
+
+    //             $v['client'] = $fullName = trim($v['c_fname'] . ' ' . $v['c_lname']);
+
+    //             $v['client'] = pjSanitize::clean($fullName !== '' ? $fullName : $v['name']); // pjSanitize::clean($v['name']);
+    //             $v['total'] = pjCurrency::formatPriceOnly($v['total'], (int)$this->option_arr['o_price_format']);
+    //             $v['commission_amount'] = pjCurrency::formatPriceOnly($v['commission_amount'], (int)$this->option_arr['o_price_format']);
+    //             $v['date_time']  = date($this->option_arr['o_date_format'] . ', ' . $this->option_arr['o_time_format'] , strtotime($v['booking_date']));
+    //             $v['distance'] = (int) $v['distance'] . ' km';
+    //             $v['driver_name'] = pjSanitize::clean($v['driver_name'] ? $v['driver_name'] : 'NA');
+    //             $data[$k] = $v;
+    //             $data[$k]['is_auction'] = $v['is_auction'] == 1 ? 'Yes' : 'No';
+    //             $data[$k]['extras'] = $extras_by_booking[$v['id']] ?? [];
+    //         }
+    //         // echo "<pre>"; print_r($data); 
+    //         self::jsonResponse(compact('data', 'total', 'pages', 'page', 'rowCount', 'column', 'direction'));
+    //     }
+    //    exit;
+    // }
+
     public function pjActionGetUpcomingBooking()
     {
         $this->checkLogin();
-       $this->setAjax(true);
-       
-       if ($this->isXHR())
-       {
+        $this->setAjax(true);
+        
+        if ($this->isXHR())
+        {
             $supplier_id = $this->getUserId();
-           $pjBookingModel = pjBookingModel::factory()
-           ->join('pjMultiLang', "t2.model='pjFleet' AND t2.foreign_id=t1.fleet_id AND t2.field='fleet' AND t2.locale='".$this->getLocaleId()."'", 'left outer')
-           ->join('pjClient', "t3.id=t1.client_id", 'left outer')
-           ->join('pjAuthUser', "t4.id=t3.foreign_id", 'left outer')
-           ->where("t1.is_deleted = 0");
-           //->where("t1.supplier_id",$supplier_id);
 
-            
+            $pjBookingModel = pjBookingModel::factory()
+                ->join('pjMultiLang', "t2.model='pjFleet' AND t2.foreign_id=t1.fleet_id AND t2.field='fleet' AND t2.locale='".$this->getLocaleId()."'", 'left outer')
+                ->join('pjClient', "t3.id=t1.client_id", 'left outer')
+                ->join('pjAuthUser', "t4.id=t3.foreign_id", 'left outer')
+                ->where("t1.is_deleted = 0");
+
             $role_id = $this->getRoleId();
 
             if ((int) $role_id === 5) {
                 $pjBookingModel = $pjBookingModel
                     ->select('t1.*')
-                    ->join(
-                        'taxi_auctions',
-                        "taxi_auctions.booking_id = t1.id AND taxi_auctions.status = 'ended'",
-                        'inner'
-                    )
                     ->where('t1.is_auction', 1)
                     ->where('t1.supplier_id', $supplier_id)
                     ->where('t1.is_deleted', 0);
 
-                // Apply date filter logic
                 if (!$this->_get->isEmpty('start_date') || !$this->_get->isEmpty('end_date')) {
 
                     if (!$this->_get->isEmpty('start_date')) {
@@ -1551,143 +1726,175 @@ class pjAdminSuppliers extends pjAdmin
                     }
 
                 } else {
-                    // Default → upcoming only
                     $today = date('Y-m-d 00:00:00');
                     $pjBookingModel->where("t1.booking_date >=", $today);
                 }
             }
-         
-           if ($this->_get->has('q') && !$this->_get->isEmpty('q'))
-           {
-               $q = $this->_get->toString('q');
 
-               // $pjBookingModel->where("(t4.name LIKE '%$q%' OR t4.email LIKE '%$q%' OR t2.content LIKE '%$q%')");
-               $pjBookingModel->where("(t4.name LIKE '%$q%' OR t4.email LIKE '%$q%' OR t2.content LIKE '%$q%' OR t1.uuid LIKE '%$q%' OR t1.c_fname LIKE '%$q%' OR t1.c_lname LIKE '%$q%' OR TRIM(CONCAT(t1.c_fname, ' ', t1.c_lname)) LIKE '%$q%' OR t1.c_phone LIKE '%$q%' OR t1.c_company LIKE '%$q%')");
-           }
-           
-           if ($this->_get->toInt('fleet_id') > 0)
-           {
-               $fleet_id = $this->_get->toInt('fleet_id');
-               $pjBookingModel->where("(t1.fleet_id='".$fleet_id."')");
-           }
-           if ($this->_get->toInt('client_id') > 0)
-           {
-               $client_id = $this->_get->toInt('client_id');
-               $pjBookingModel->where("(t1.client_id='".$client_id."')");
-           }
-           if (!$this->_get->isEmpty('status') && in_array($this->_get->toString('status'), array('confirmed','cancelled','pending', 'completed')))
-           {
-               $pjBookingModel->where('t1.status', $this->_get->toString('status'));
-           } else {
-                $pjBookingModel->where('t1.status', 'confirmed');
-
-           }
-           
-           if (!$this->_get->isEmpty('name'))
-           {
-               $q = $this->_get->toString('name');
-               $pjBookingModel->where("(t4.name LIKE '%$q%')");
-           }
-           if (!$this->_get->isEmpty('email'))
-           {
-               $q = $this->_get->toString('email');
-               $pjBookingModel->where('t4.email LIKE', "%$q%");
-           }
-           if (!$this->_get->isEmpty('phone'))
-           {
-               $q = $this->_get->toString('phone');
-               $pjBookingModel->where('t4.phone LIKE', "%$q%");
-           }
-           if (!$this->_get->isEmpty('date'))
-           {
-               $pjBookingModel->where("(DATE_FORMAT(t1.booking_date, '%Y-%m-%d')='".$this->_get->toString('date')."')");
-           }
-           if (!$this->_get->isEmpty('start_date'))
+            // 🔍 SEARCH
+            if ($this->_get->has('q') && !$this->_get->isEmpty('q'))
             {
-                $start_date = $this->_get->toString('start_date');
-                $pjBookingModel->where("DATE(t1.booking_date) >=", $start_date);
+                $q = $this->_get->toString('q');
+                $pjBookingModel->where("(t4.name LIKE '%$q%' OR t4.email LIKE '%$q%' OR t2.content LIKE '%$q%' OR t1.uuid LIKE '%$q%' OR t1.c_fname LIKE '%$q%' OR t1.c_lname LIKE '%$q%' OR TRIM(CONCAT(t1.c_fname, ' ', t1.c_lname)) LIKE '%$q%' OR t1.c_phone LIKE '%$q%' OR t1.c_company LIKE '%$q%')");
             }
 
-            // TO DATE
+            if ($this->_get->toInt('fleet_id') > 0)
+            {
+                $pjBookingModel->where("t1.fleet_id", $this->_get->toInt('fleet_id'));
+            }
+
+            if ($this->_get->toInt('client_id') > 0)
+            {
+                $pjBookingModel->where("t1.client_id", $this->_get->toInt('client_id'));
+            }
+
+            if (!$this->_get->isEmpty('status') && in_array($this->_get->toString('status'), array('confirmed','cancelled','pending','completed')))
+            {
+                $pjBookingModel->where('t1.status', $this->_get->toString('status'));
+            } else {
+                $pjBookingModel->where('t1.status', 'confirmed');
+            }
+
+            if (!$this->_get->isEmpty('name'))
+            {
+                $pjBookingModel->where("t4.name LIKE '%".$this->_get->toString('name')."%'");
+            }
+
+            if (!$this->_get->isEmpty('email'))
+            {
+                $pjBookingModel->where('t4.email LIKE', "%".$this->_get->toString('email')."%");
+            }
+
+            if (!$this->_get->isEmpty('phone'))
+            {
+                $pjBookingModel->where('t4.phone LIKE', "%".$this->_get->toString('phone')."%");
+            }
+
+            if (!$this->_get->isEmpty('date'))
+            {
+                $pjBookingModel->where("DATE_FORMAT(t1.booking_date, '%Y-%m-%d')='".$this->_get->toString('date')."'");
+            }
+
+            if (!$this->_get->isEmpty('start_date'))
+            {
+                $pjBookingModel->where("DATE(t1.booking_date) >=", $this->_get->toString('start_date'));
+            }
+
             if (!$this->_get->isEmpty('end_date'))
             {
-                $end_date = $this->_get->toString('end_date');
-                $pjBookingModel->where("DATE(t1.booking_date) <=", $end_date);
+                $pjBookingModel->where("DATE(t1.booking_date) <=", $this->_get->toString('end_date'));
             }
-           $column = 'created';
-           $direction = 'DESC';
-           if ($this->_get->check('column') && in_array(strtoupper($this->_get->toString('direction')), array('ASC', 'DESC')))
-           {
-               $column = $this->_get->toString('column');
-               $direction = strtoupper($this->_get->toString('direction'));
-           }
-           
-           $total = $pjBookingModel->findCount()->getData();
-           
-           $rowCount = $this->_get->toInt('rowCount') ? $this->_get->toInt('rowCount') : 20;
-           $pages = ceil($total / $rowCount);
-           $page = $this->_get->toInt('page') ? $this->_get->toInt('page') : 1;
-           $offset = ((int) $page - 1) * $rowCount;
-           if ($page > $pages)
-           {
-               $page = $pages;
-           }
-           
-           $data = array();
-           
-           $data = $pjBookingModel
-           ->select("t1.*, t2.content as fleet, t4.name, t4.email,t4.phone, AES_DECRYPT(t1.cc_type, '".PJ_SALT."') AS `cc_type`,
-            AES_DECRYPT(t1.cc_num, '".PJ_SALT."') AS `cc_num`, AES_DECRYPT(t1.cc_exp_month, '".PJ_SALT."') AS `cc_exp_month`, AES_DECRYPT(t1.cc_exp_year, '".PJ_SALT."') AS `cc_exp_year`, AES_DECRYPT(t1.cc_code, '".PJ_SALT."') AS `cc_code`,CONCAT_WS(' ', t5.first_name, t5.last_name) AS driver_name,t6.name AS supplier_name ")
-           ->join('pjDriver', "t1.driver_id=t5.id", 'left')
-           ->join('pjAuthUser', "t6.id=t1.supplier_id", 'left')
-           ->orderBy("$column $direction")
-           ->limit($rowCount, $offset)
-           ->findAll()
-           ->getData();
 
-           $booking_ids = array_column($data, 'id');
-           $extras_by_booking = [];
+            $column = 'created';
+            $direction = 'DESC';
 
-           if (!empty($booking_ids)) {
-               $extras_model = pjBookingExtraModel::factory()
-                ->select("t1.*, t2.content AS extra_name")
-                ->join(
-                    'pjMultiLang',
-                    "t2.model='pjExtra' AND t2.foreign_id=t1.extra_id AND t2.field='name' AND t2.locale='".$this->getLocaleId()."'",
-                    'left'
-                )
-                ->whereIn('t1.booking_id', $booking_ids)
-                ->where("t1.extra_value > 0")
+            if ($this->_get->check('column') && in_array(strtoupper($this->_get->toString('direction')), array('ASC', 'DESC')))
+            {
+                $column = $this->_get->toString('column');
+                $direction = strtoupper($this->_get->toString('direction'));
+            }
+
+            // ✅ COUNT
+            $total = $pjBookingModel->findCount()->getData();
+
+            // ✅ PAGINATION
+            $rowCount = $this->_get->toInt('rowCount') ?: 20;
+            $pages = ceil($total / $rowCount);
+            $page = $this->_get->toInt('page') ?: 1;
+            $offset = ($page - 1) * $rowCount;
+
+            if ($page > $pages) {
+                $page = $pages;
+            }
+
+            // ✅ FETCH BOOKINGS
+            $data = $pjBookingModel
+                ->select("t1.*, t2.content as fleet, t4.name, t4.email, t4.phone,
+                    AES_DECRYPT(t1.cc_type, '".PJ_SALT."') AS cc_type,
+                    AES_DECRYPT(t1.cc_num, '".PJ_SALT."') AS cc_num,
+                    AES_DECRYPT(t1.cc_exp_month, '".PJ_SALT."') AS cc_exp_month,
+                    AES_DECRYPT(t1.cc_exp_year, '".PJ_SALT."') AS cc_exp_year,
+                    AES_DECRYPT(t1.cc_code, '".PJ_SALT."') AS cc_code,
+                    CONCAT_WS(' ', t5.first_name, t5.last_name) AS driver_name,
+                    t6.name AS supplier_name")
+                ->join('pjDriver', "t1.driver_id=t5.id", 'left')
+                ->join('pjAuthUser', "t6.id=t1.supplier_id", 'left')
+                ->join('pjAuction', "t7.booking_id = t1.id AND t7.status = 'accepted'", 'left')
+                ->orderBy("t7.accepted_on DESC") // 🔥 THIS IS YOUR SORT
+                ->limit($rowCount, $offset)
                 ->findAll()
                 ->getData();
 
-                
+            // =========================
+            // ✅ EXTRAS
+            // =========================
+            $booking_ids = array_column($data, 'id');
+
+            $extras_by_booking = [];
+            if (!empty($booking_ids)) {
+                $extras_model = pjBookingExtraModel::factory()
+                    ->select("t1.*, t2.content AS extra_name")
+                    ->join(
+                        'pjMultiLang',
+                        "t2.model='pjExtra' AND t2.foreign_id=t1.extra_id AND t2.field='name' AND t2.locale='".$this->getLocaleId()."'",
+                        'left'
+                    )
+                    ->whereIn('t1.booking_id', $booking_ids)
+                    ->where("t1.extra_value > 0")
+                    ->findAll()
+                    ->getData();
+
                 foreach ($extras_model as $ex) {
                     $extras_by_booking[$ex['booking_id']][] = $ex;
                 }
             }
 
+            // =========================
+            // ✅ AUCTIONS (NEW)
+            // =========================
+            $auctions_by_booking = [];
+            if (!empty($booking_ids)) {
+                $auction_model = pjAuctionModel::factory()
+                    ->whereIn('t1.booking_id', $booking_ids)
+                    ->orderBy('t1.accepted_on DESC')
+                    ->findAll()
+                    ->getData();
+
+                foreach ($auction_model as $a) {
+                    $auctions_by_booking[$a['booking_id']][] = $a;
+                }
+            }
+
+            // =========================
+            // ✅ FORMAT DATA
+            // =========================
             foreach($data as $k => $v)
             {
-               // echo "<pre>"; print_r($v); echo "</pre>";
+                $fullName = trim($v['c_fname'] . ' ' . $v['c_lname']);
+                $v['client'] = pjSanitize::clean($fullName !== '' ? $fullName : $v['name']);
 
-                $v['client'] = $fullName = trim($v['c_fname'] . ' ' . $v['c_lname']);
-
-                $v['client'] = pjSanitize::clean($fullName !== '' ? $fullName : $v['name']); // pjSanitize::clean($v['name']);
                 $v['total'] = pjCurrency::formatPriceOnly($v['total'], (int)$this->option_arr['o_price_format']);
                 $v['commission_amount'] = pjCurrency::formatPriceOnly($v['commission_amount'], (int)$this->option_arr['o_price_format']);
-                $v['date_time']  = date($this->option_arr['o_date_format'] . ', ' . $this->option_arr['o_time_format'] , strtotime($v['booking_date']));
-                $v['distance'] = (int) $v['distance'] . ' km';
-                $v['driver_name'] = pjSanitize::clean($v['driver_name'] ? $v['driver_name'] : 'NA');
+                $v['date_time']  = date($this->option_arr['o_date_format'] . ', ' . $this->option_arr['o_time_format'], strtotime($v['booking_date']));
+                $v['distance'] = (int)$v['distance'] . ' km';
+                $v['driver_name'] = pjSanitize::clean($v['driver_name'] ?: 'NA');
+
+                $v['is_auction'] = $v['is_auction'] == 1 ? 'Yes' : 'No';
+
+                $v['extras'] = $extras_by_booking[$v['id']] ?? [];
+
+                // ✅ ADD AUCTIONS
+                $v['auctions'] = $auctions_by_booking[$v['id']] ?? [];
+
                 $data[$k] = $v;
-                $data[$k]['is_auction'] = $v['is_auction'] == 1 ? 'Yes' : 'No';
-                $data[$k]['extras'] = $extras_by_booking[$v['id']] ?? [];
             }
-            // echo "<pre>"; print_r($data); 
+
             self::jsonResponse(compact('data', 'total', 'pages', 'page', 'rowCount', 'column', 'direction'));
         }
-       exit;
+
+        exit;
     }
+    
 
     public function pjActionGetAvailableBooking()
     {
