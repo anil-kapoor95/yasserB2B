@@ -829,15 +829,15 @@ var jQuery_1_8_2 = jQuery_1_8_2 || $.noConflict();
 
 				paginator: {
 
-					actions: [
+					// actions: [
 
-					   {text: myLabel.delete_selected, url: "index.php?controller=pjAdminBookings&action=pjActionDeleteBookingBulk", render: true, confirmation: myLabel.delete_confirmation},
+					//    {text: myLabel.delete_selected, url: "index.php?controller=pjAdminBookings&action=pjActionDeleteBookingBulk", render: true, confirmation: myLabel.delete_confirmation},
 
-					   {text: myLabel.exported, url: "index.php?controller=pjAdminBookings&action=pjActionExportBooking", render: false, ajax: false},
+					//    {text: myLabel.exported, url: "index.php?controller=pjAdminBookings&action=pjActionExportBooking", render: false, ajax: false},
 
-					   {text: myLabel.print, url: "javascript:void(0);", render: false}
+					//    {text: myLabel.print, url: "javascript:void(0);", render: false}
 
-					],
+					// ],
 
 					gotoPage: true,
 
@@ -851,15 +851,15 @@ var jQuery_1_8_2 = jQuery_1_8_2 || $.noConflict();
 
 				saveUrl: "index.php?controller=pjAdminBookings&action=pjActionSaveBooking&id={:id}",
 
-				select: {
+				// select: {
 
-					field: "id",
+				// 	field: "id",
 
-					name: "record[]",
+				// 	name: "record[]",
 
-					cellClass: 'cell-width-2'
+				// 	cellClass: 'cell-width-2'
 
-				},
+				// },
 
 			});
 
@@ -932,11 +932,11 @@ var jQuery_1_8_2 = jQuery_1_8_2 || $.noConflict();
 				fields: ['client', 'fleet','pickup_address', 'return_address', 'passengers', 'extras', 'payment_method', 'total', 'distance', 'date_time', 'driver_name', 'status'],
 
 				paginator: {
-					actions: [
-					   {text: myLabel.delete_selected, url: "index.php?controller=pjAdminBookings&action=pjActionDeletePBookingBulk", render: true, confirmation: myLabel.delete_confirmation},
-					   {text: myLabel.exported, url: "index.php?controller=pjAdminBookings&action=pjActionExportBooking", render: false, ajax: false},
-					   {text: myLabel.print, url: "javascript:void(0);", render: false}
-					],
+					// actions: [
+					//    {text: myLabel.delete_selected, url: "index.php?controller=pjAdminBookings&action=pjActionDeletePBookingBulk", render: true, confirmation: myLabel.delete_confirmation},
+					//    {text: myLabel.exported, url: "index.php?controller=pjAdminBookings&action=pjActionExportBooking", render: false, ajax: false},
+					//    {text: myLabel.print, url: "javascript:void(0);", render: false}
+					// ],
 
 					gotoPage: true,
 					paginate: true,
@@ -945,11 +945,11 @@ var jQuery_1_8_2 = jQuery_1_8_2 || $.noConflict();
 				},
 
 				saveUrl: "index.php?controller=pjAdminBookings&action=pjActionSaveBooking&id={:id}",
-				select: {
-					field: "id",
-					name: "record[]",
-					cellClass: 'cell-width-2'
-				},
+				// select: {
+				// 	field: "id",
+				// 	name: "record[]",
+				// 	cellClass: 'cell-width-2'
+				// },
 			});
 		}
 

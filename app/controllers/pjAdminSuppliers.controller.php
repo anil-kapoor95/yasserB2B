@@ -6,6 +6,32 @@ if (!defined("ROOT_PATH"))
 }
 class pjAdminSuppliers extends pjAdmin
 {
+    public function pjActionCheckEmail()
+    {
+        $this->setAjax(true);
+
+        if ($this->isXHR())
+        {
+            $email = $_REQUEST['email'] ?? '';
+
+            if (empty($email)) {
+                echo 'false';
+                exit;
+            }
+
+            $exists = pjDriverModel::factory()
+                ->where('t1.email', $email)
+                ->findCount()
+                ->getData();
+
+            echo ($exists == 0) ? 'true' : 'false';
+            exit;
+        }
+
+        echo 'false';
+        exit;
+    }
+
     public function pjActionIndex()
     {
         $this->checkLogin();
@@ -488,7 +514,7 @@ class pjAdminSuppliers extends pjAdmin
             $this->set('extra_id_arr', $extra_id_arr);
            $pjDriverModel = pjDriverModel::factory();
 
-                $deriver_ids =  $pjDriverModel->where('supplier_id',719)->findAll()->getData();
+                $deriver_ids =  $pjDriverModel->where('supplier_id',$arr['supplier_id'])->findAll()->getData();
                $this->set('deriver_ids', $deriver_ids);
            if(pjObject::getPlugin('pjPayments') !== NULL)
            {
@@ -588,7 +614,6 @@ class pjAdminSuppliers extends pjAdmin
         {
             $post = $this->_post->raw();
             $login_id = $this->getUserId();
-
             $date = $this->_post->toString('license_expiry');
             $bob_date = $this->_post->toString('dob');
             if($this->_post->check('status'))
@@ -1679,6 +1704,7 @@ class pjAdminSuppliers extends pjAdmin
 
                 $supplier_id = $this->getUserId();
                 $role_id = $this->getRoleId();
+                $today = date('Y-m-d 00:00:00');
 
                 if ((int) $role_id === 5) {
                     $pjBookingModel = $pjBookingModel
@@ -1691,6 +1717,7 @@ class pjAdminSuppliers extends pjAdmin
                         ->where('t1.is_auction', 1)
                         ->where('t1.supplier_id IS NULL')
                         ->where('t1.status', 'confirmed')
+                        ->where("t1.booking_date >=", $today)
                         ->where('t1.is_deleted', 0);
 
                     // Apply date filters properly

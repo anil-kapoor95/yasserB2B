@@ -15,6 +15,69 @@ var jQuery_1_8_2 = jQuery_1_8_2 || $.noConflict();
                 allowClear: true
             });
         };
+
+
+        var $frmCreateDriver = $("#frmCreateDriver");
+
+		if ($frmCreateDriver.length > 0) {
+			$frmCreateDriver.validate({
+				
+				rules: {
+					first_name: "required",
+					last_name: "required",
+					password: "required",
+					phone: "required",
+
+					email: {
+						required: true,
+						email: true,
+						remote: {
+							url: "index.php?controller=pjAdminSuppliers&action=pjActionCheckEmail",
+							type: "GET",
+							data: {
+								email: function () {
+									return $("#email").val();
+								}
+							}
+						}
+					}
+				},
+
+				messages: {
+					first_name: "First name is required",
+					last_name: "Last name is required",
+					password: "Password is required",
+					phone: "Phone is required",
+
+					email: {
+						required: "Email is required",
+						email: "Enter valid email",
+						remote: "Email already exists"
+					}
+				},
+
+				errorClass: "text-danger",
+				errorElement: "small",
+
+				highlight: function(element) {
+					$(element).addClass("is-invalid");
+				},
+				unhighlight: function(element) {
+					$(element).removeClass("is-invalid");
+				},
+
+				onkeyup: false,
+				onfocusout: function (element) {
+					$(element).valid();
+				},
+
+				submitHandler: function (form) {
+					form.submit();
+				}
+			});
+		}
+		
+
 		if($frmCreateClient.length > 0)
 		{
 			$frmCreateClient.validate({
@@ -68,7 +131,8 @@ var jQuery_1_8_2 = jQuery_1_8_2 || $.noConflict();
 			buttonOpts.push({
 				type: "eye",
 				url: "index.php?controller=pjAdminSuppliers&action=pjActionGetDriverResAdminIndex&id={:id}",
-				icon: "fa fa-eye"
+				icon: "fa fa-eye",
+				title: "View Driver Reservations"
 			});
 
 			if(pjGrid.hasUpdate)

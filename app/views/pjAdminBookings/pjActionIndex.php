@@ -18,17 +18,24 @@ $get = $controller->_get->raw();
 		background-color: #8E44AD !important; /* Purple (example) */
 		color: #fff !important;
 	}
+	.table-responsive {
+		overflow-x: auto;
+	}
+	#grid .table > thead > tr > th,
+	#grid .table > tbody > tr > td {
+	padding: 6px 5px;
+	}
 
 	/* Mobile / iPhone */
 	@media (max-width: 768px) {
-	.list-view {
-		width: 56%;
-		float: left;
-	}
-	.cal-view {
-		width: 44%;
-		float: left;
-	}
+		.list-view {
+			width: 56%;
+			float: left;
+		}
+		.cal-view {
+			width: 44%;
+			float: left;
+		}
 	}
 
 </style>

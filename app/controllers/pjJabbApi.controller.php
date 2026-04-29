@@ -733,6 +733,7 @@ class pjJabbApi extends pjAppController
         $user = $user[0];
         $role_id = $user['role_id'];
         $supplier_id = $user['id'];
+        $today = date('Y-m-d 00:00:00');
 
         // ---------------- BOOKINGS QUERY ----------------
         $pjBookingModel = pjBookingModel::factory()
@@ -743,6 +744,7 @@ class pjJabbApi extends pjAppController
             ->where('t1.is_auction', 1)
             ->where('t1.supplier_id IS NULL')
             ->where('t1.status', 'confirmed')
+            ->where("t1.booking_date >=", $today)
             ->where("t1.is_deleted", 0);
 
         // ---------------- FILTERS ----------------
@@ -2403,6 +2405,336 @@ class pjJabbApi extends pjAppController
             'data' => $data
         ]);
 
+        exit;
+    }
+
+    public function pjActionGetNextRide()
+    {
+        header("Content-Type: application/json");
+
+        $params = $this->_post->raw();
+        $token = $params['api_login_token'] ?? '';
+
+        if (empty($token)) {
+            echo json_encode([
+                'status' => 'ERR',
+                'code' => 401,
+                'message' => 'API token required'
+            ]);
+            exit;
+        }
+
+        // ---------------- SUPPLIER ----------------
+        $supplier = pjAuthUserModel::factory()
+            ->where('api_login_token', $token)
+            ->where('role_id', 5)
+            ->limit(1)
+            ->findAll()
+            ->getDataIndex(0);
+
+        if (empty($supplier)) {
+            echo json_encode([
+                'status' => 'ERR',
+                'code' => 401,
+                'message' => 'Invalid supplier token'
+            ]);
+            exit;
+        }
+
+        $supplier_id = $supplier['id'];
+
+        // ---------------- NEXT RIDE QUERY ----------------
+        $data = pjBookingModel::factory()
+            ->join('pjAuction', "t2.booking_id = t1.id", 'left')
+            ->select("
+                t1.*,
+                TIMESTAMPDIFF(MINUTE, NOW(), t1.booking_date) AS minutes_left,
+            ")
+            ->where('t1.is_auction', 1)
+            ->where('t1.supplier_id', $supplier_id)
+            ->where('t1.is_deleted', 0)
+
+            // core filters
+            ->where('t1.status', 'confirmed')
+            ->where('t1.driver_id IS NOT NULL')
+            ->where('t2.status', 'ended')
+            ->where("t1.booking_date >= NOW()")
+            ->orderBy('t1.booking_date ASC')
+            ->limit(1)
+            ->findAll()
+            ->getDataIndex(0);
+
+        if (empty($data)) {
+            echo json_encode([
+                'status' => 'OK',
+                'code' => 200,
+                'message' => 'No upcoming rides found',
+                'data' => null
+            ]);
+            exit;
+        }
+
+        // ---------------- TIME FORMAT ----------------
+        $minutes = (int)$data['minutes_left'];
+
+        if ($minutes <= 0) {
+            $timeText = "Starting now";
+        } elseif ($minutes < 60) {
+            $timeText = $minutes . " minutes";
+        } else {
+            $hours = floor($minutes / 60);
+            $remMin = $minutes % 60;
+            $timeText = $hours . "h " . $remMin . "m";
+        }
+
+        $data['client'] = $data['client_name'];
+        $data['time_left'] = $timeText;
+        $data['total'] = html_entity_decode(
+            pjCurrency::formatPrice($data['total']),
+            ENT_QUOTES,
+            'UTF-8'
+        );
+        $data['booking_time'] = date(
+            $this->option_arr['o_date_format'] . ', ' . $this->option_arr['o_time_format'],
+            strtotime($data['booking_date'])
+        );
+
+        // ---------------- RESPONSE ----------------
+        echo json_encode([
+            'status' => 'OK',
+            'code' => 200,
+            'data' => $data
+        ]);
+
+        exit;
+    }
+
+    public function pjActionGetInvoicePdf()
+    {
+        error_reporting(E_ALL);
+        ini_set('display_errors', 1);
+
+        require PJ_THIRD_PARTY_PATH . 'dompdf/vendor/autoload.php';
+
+        header("Content-Type: application/json");
+
+        $params = $this->_post->raw();
+        $token = $params['api_login_token'] ?? '';
+        $booking_id = (int)($params['booking_id'] ?? 0);
+
+        if (!$token || !$booking_id) {
+            echo json_encode(["status" => "ERR", "message" => "Missing params"]);
+            exit;
+        }
+
+        // supplier check
+        $supplier = pjAuthUserModel::factory()
+            ->where('api_login_token', $token)
+            ->where('role_id', 5)
+            ->findAll()
+            ->getDataIndex(0);
+
+        if (!$supplier) {
+            echo json_encode(["status" => "ERR", "message" => "Invalid token"]);
+            exit;
+        }
+
+        $supplier_id = $supplier['id'];
+
+        // booking
+        $booking = pjBookingModel::factory()
+            ->where('id', $booking_id)
+            ->where('supplier_id', $supplier_id)
+            ->findAll()
+            ->getDataIndex(0);
+
+        if (!$booking) {
+            echo json_encode(["status" => "ERR", "message" => "Booking not found"]);
+            exit;
+        }
+
+        // ---------------- FORMAT AMOUNTS (IMPORTANT FIX) ----------------
+       $total = html_entity_decode(
+            pjCurrency::formatPrice($booking['total']),
+            ENT_QUOTES,
+            'UTF-8'
+        );
+
+        $deposit = html_entity_decode(
+            pjCurrency::formatPrice($booking['deposit']),
+            ENT_QUOTES,
+            'UTF-8'
+        );
+        $remaining = html_entity_decode(
+            pjCurrency::formatPrice($booking['remainingBalance']),
+            ENT_QUOTES,
+            'UTF-8'
+        );
+        $commission_amount = html_entity_decode(
+            pjCurrency::formatPrice($booking['commission_amount']),
+            ENT_QUOTES,
+            'UTF-8'
+        );
+
+        $totalValue = (float)$booking['total'];
+        $commissionValue = (float)$booking['commission_amount'];
+
+        $supplierValue = $totalValue - $commissionValue;
+        $price_after_commisison = html_entity_decode(
+            pjCurrency::formatPrice($supplierValue),
+            ENT_QUOTES,
+            'UTF-8'
+        );
+        $date_time  = date($this->option_arr['o_date_format'] . ', ' . $this->option_arr['o_time_format'] , strtotime($booking['booking_date']));
+
+        // ---------------- HTML ----------------
+        $html = '
+        <style>
+            body {
+                font-family: Arial;
+                font-size: 12px;
+                color: #333;
+            }
+
+            .top {
+                text-align: center;
+                margin-bottom: 10px;
+            }
+
+            .company {
+                font-size: 20px;
+                font-weight: bold;
+            }
+
+            .subtitle {
+                font-size: 12px;
+                color: #777;
+            }
+
+            .invoice-box {
+                display: flex;
+                justify-content: space-between;
+                margin-top: 20px;
+                padding-bottom: 10px;
+                border-bottom: 1px solid #ddd;
+            }
+
+            .section {
+                margin-top: 20px;
+                border: 1px solid #ddd;
+            }
+
+            .section-title {
+                background: #f5f5f5;
+                padding: 8px;
+                font-weight: bold;
+            }
+
+            table {
+                width: 100%;
+                border-collapse: collapse;
+            }
+
+            td {
+                padding: 8px;
+                border-bottom: 1px solid #eee;
+                vertical-align: top;
+            }
+
+            td:first-child {
+                width: 35%;
+                font-weight: bold;
+                color: #444;
+            }
+
+            .status {
+                font-weight: bold;
+                color: green;
+            }
+        </style>
+
+        <div class="top">
+            <div style="font-size:11px; text-align:left;">
+                <b>Print Enquiry</b><br>
+                ID: ' . $booking["uuid"] . '
+            </div>
+
+            <div class="company">ALPEN HEIR KG</div>
+            <div class="subtitle">Transportation Services</div>
+        </div>
+
+        <div class="invoice-box">
+            <div><b>Invoice #' . $booking_id . '</b></div>
+            <div>' . date("F d, Y", strtotime($booking["booking_date"])) . '</div>
+        </div>
+
+        <div class="section">
+            <div class="section-title">Client Details</div>
+            <table>
+                <tr><td>Name</td><td>' . $booking["c_fname"] . ' ' . $booking["c_lname"] . '</td></tr>
+                <tr><td>Phone</td><td>' . $booking["c_phone"] . '</td></tr>
+                <tr><td>Email</td><td>' . $booking["c_email"] . '</td></tr>
+            </table>
+        </div>
+
+        <div class="section">
+            <div class="section-title">Enquiry Details</div>
+            <table>
+                <tr><td>Date & Time</td><td>' . $date_time . '</td></tr>
+                <tr><td>Pick-up Address</td><td>' . $booking["pickup_address"] . '</td></tr>
+                <tr><td>Drop-off Address</td><td>' . $booking["return_address"] . '</td></tr>
+                <tr><td>Vehicle</td><td>' . ($booking["vehicle_name"] ?? "-") . '</td></tr>
+                <tr><td>Distance</td><td>' . $booking["distance"] . ' km</td></tr>
+
+                <tr><td>Passengers</td><td>' . $booking["passengers"] . '</td></tr>
+                <tr><td>Luggage</td><td>' . $booking["luggage"] . '</td></tr>
+
+                <tr><td>Payment</td><td>' . $total . '</td></tr>
+                <tr><td>Commission Amount</td><td><b>' . $commission_amount . '</b></td></tr>
+                <tr><td>Deposit</td><td>' . $deposit . '</td></tr>
+                <tr><td>Remaining Balance</td><td>' . $remaining . '</td></tr>
+                <tr><td>Price After Commisison</td><td>' . $price_after_commisison . '</td></tr>
+
+                <tr>
+                    <td>Status</td>
+                    <td class="status">' . $booking["status"] . '</td>
+                </tr>
+            </table>
+        </div>
+        ';
+
+        // ---------------- DOMPDF ----------------
+        $options = new \Dompdf\Options();
+        $options->set('defaultFont', 'Arial');
+        $options->set('isRemoteEnabled', true);
+
+        $dompdf = new \Dompdf\Dompdf($options);
+        $dompdf->loadHtml(mb_convert_encoding($html, 'HTML-ENTITIES', 'UTF-8'));
+        $dompdf->setPaper('A4', 'portrait');
+        $dompdf->render();
+
+        $output = $dompdf->output();
+
+        // folder
+        $dir = ROOT_PATH . "app/web/upload/invoices/supplier_" . $supplier_id . "/";
+
+        if (!is_dir($dir)) {
+            mkdir($dir, 0777, true);
+        }
+
+        foreach (glob($dir . "invoice_" . $booking_id . "_*.pdf") as $old) {
+            @unlink($old);
+        }
+
+        $fileName = "invoice_" . $booking_id . "_" . time() . ".pdf";
+        $filePath = $dir . $fileName;
+
+        file_put_contents($filePath, $output);
+
+        echo json_encode([
+            "status" => "OK",
+            "url" => PJ_INSTALL_URL . "app/web/upload/invoices/supplier_" . $supplier_id . "/" . $fileName
+        ]);
         exit;
     }
 }

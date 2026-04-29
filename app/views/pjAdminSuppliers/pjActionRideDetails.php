@@ -146,9 +146,18 @@ foreach ($airport_keywords as $keyword) {
 
         		<li role="presentation"><a class="nav-tab-client-details" href="#tab-client-details" aria-controls="client-details" role="tab" data-toggle="tab"><?php __('lblClientDetails');?></a></li>
 
-        		<?php if($tpl['arr']['supplier_id'] != ''){ ?> 
-        		<li role="presentation"><a class="nav-tab-driver-details" href="#tab-driver-details" aria-controls="driver-details" role="tab" data-toggle="tab"><?php __('lblDriverDetails');?></a></li>
-        		<?php } ?>
+        		<?php 
+				$booking_timestamp = strtotime($tpl['arr']['booking_date']);
+				$today_timestamp = strtotime(date('Y-m-d'));
+
+				if($tpl['arr']['supplier_id'] != '' && $booking_timestamp >= $today_timestamp){ 
+				?> 
+					<li role="presentation">
+						<a class="nav-tab-driver-details" href="#tab-driver-details" aria-controls="driver-details" role="tab" data-toggle="tab">
+							<?php __('lblDriverDetails');?>
+						</a>
+					</li>
+				<?php } ?>
 
         	</ul>
 
