@@ -23,7 +23,7 @@ $get = $controller->_get->raw();
 	}
 	#grid .table > thead > tr > th,
 	#grid .table > tbody > tr > td {
-	padding: 6px 5px;
+	padding: 6px 4px;
 	}
 
 	/* Mobile / iPhone */

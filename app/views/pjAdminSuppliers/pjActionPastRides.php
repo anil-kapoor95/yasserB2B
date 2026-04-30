@@ -112,15 +112,6 @@ $get = $controller->_get->raw();
 									</button>
 								</div>
 							</div>
-
-    						<div class="col-lg-2 col-md-2 col-sm-6 m-b-sm">
-    							<select class="form-control pj-filter-status text-center" name="status">
-    								<option value="">-- <?php __('lblAll');?> --</option>
-    								<?php foreach ($bs as $k => $v) { ?>
-    									<option value="<?php echo $k;?>"><?php echo pjSanitize::html($v);?></option>
-    								<?php } ?>
-    							</select>
-    						</div>
     					</div>				
 					</form>
 					<div id="grid"></div>

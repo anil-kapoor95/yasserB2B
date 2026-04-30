@@ -8,12 +8,24 @@
             <li>
                 <span><?php echo str_replace('{NAME}', pjSanitize::html($_SESSION[$controller->defaultUser]['name']), __('plugin_base_header_welcome', true)) ?></span>
             </li>
-		
+		  
+            <?php
+                if(isset($_SESSION[$controller->defaultUser]['role_id']) && $_SESSION[$controller->defaultUser]['role_id'] == 5){
+            ?>
+            <li>
+                <a href="<?php echo $_SERVER['PHP_SELF']; ?>?controller=pjAdminSuppliers&amp;action=pjActionProfile">
+                    <i class="fa fa-user"></i> <?php __('plugin_base_menu_profile'); ?>
+                </a>
+            </li>
+            <?php 
+                }else{
+            ?>
             <li>
                 <a href="<?php echo $_SERVER['PHP_SELF']; ?>?controller=pjBaseUsers&amp;action=pjActionProfile">
                     <i class="fa fa-user"></i> <?php __('plugin_base_menu_profile'); ?>
                 </a>
             </li>
+            <?php } ?>
 
             <li>
                 <a href="<?php echo $_SERVER['PHP_SELF']; ?>?controller=pjBase&amp;action=pjActionLogout">

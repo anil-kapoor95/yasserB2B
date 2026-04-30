@@ -162,18 +162,18 @@ var jQuery_1_8_2 = jQuery_1_8_2 || $.noConflict();
 
 				// ✅ ADD HERE ↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓
 
-				var startOfMonth = moment().startOf('month');
-				var endOfMonth = moment().endOf('month');
+				// var startOfMonth = moment().startOf('month');
+				// var endOfMonth = moment().endOf('month');
 
-				$('#from_date').val(startOfMonth.format('YYYY-MM-DD'));
-				$('#to_date').val(endOfMonth.format('YYYY-MM-DD'));
+				// $('#from_date').val(startOfMonth.format('YYYY-MM-DD'));
+				// $('#to_date').val(endOfMonth.format('YYYY-MM-DD'));
 
-				$('#from_date').data("DateTimePicker").date(startOfMonth);
-				$('#to_date').data("DateTimePicker").date(endOfMonth);
+				// $('#from_date').data("DateTimePicker").date(startOfMonth);
+				// $('#to_date').data("DateTimePicker").date(endOfMonth);
 
-				setTimeout(function () {
-					$('.frm-filter').trigger('submit');
-				}, 200);
+				// setTimeout(function () {
+				// 	$('.frm-filter').trigger('submit');
+				// }, 200);
 
 				$('#from_date').on('click', function () {
 					$(this).data("DateTimePicker").show();
@@ -940,11 +940,12 @@ var jQuery_1_8_2 = jQuery_1_8_2 || $.noConflict();
 						  {text: myLabel.commission + "(" + (window.appCurrency || '')+ ")", type: "text", sortable: false},
 				          {text: myLabel.distance, type: "text", sortable: false},
 				          {text: myLabel.date_time, type: "text", sortable: false},
-				          {text: myLabel.driver_name, type: "text", sortable: false},
-				          {text: myLabel.status, type: "text", sortable: true, editable: false, renderer: formatStatus}],
+				        //   {text: myLabel.driver_name, type: "text", sortable: false},
+				        //   {text: myLabel.status, type: "text", sortable: true, editable: false, renderer: formatStatus}
+						],
 				dataUrl: "index.php?controller=pjAdminBookings&action=pjActionGetDeletedBooking" + pjGrid.queryString,
 				dataType: "json",
-				fields: ['client', 'fleet','pickup_address', 'return_address', 'passengers', 'extras', 'payment_method', 'total', 'distance', 'date_time', 'driver_name', 'status'],
+				fields: ['client', 'fleet','pickup_address', 'return_address', 'passengers', 'extras', 'payment_method', 'total', 'distance', 'date_time'],
 
 				paginator: {
 					// actions: [
@@ -998,22 +999,24 @@ var jQuery_1_8_2 = jQuery_1_8_2 || $.noConflict();
 
 			var $this = $(this),
 
-				content = $grid.datagrid("option", "content"),
+			content = $grid.datagrid("option", "content"),
 
-				cache = $grid.datagrid("option", "cache");
-				var startDate = $this.find("input[name='from_date']").val();
-				var endDate   = $this.find("input[name='to_date']").val();
+			cache = $grid.datagrid("option", "cache");
+			var startDate = $this.find("input[name='from_date']").val();
+			var endDate   = $this.find("input[name='to_date']").val();
 
-			$.extend(cache, {
-
+			var cacheData = {
 				q: $this.find("input[name='q']").val(),
-				status: $this.find("select[name='status']").val(),
-				from_date: $this.find("select[name='from_date']").val(),
-				to_date: $this.find("select[name='to_date']").val(),
-				start_date: startDate,
-       			end_date: endDate
+				status: $this.find("select[name='status']").val()
+			};
 
-			});
+			// ✅ Only add if selected
+			if (startDate && endDate) {
+				cacheData.start_date = startDate;
+				cacheData.end_date = endDate;
+			}
+
+			$.extend(cache, cacheData);
 
 			$grid.datagrid("option", "cache", cache);
 

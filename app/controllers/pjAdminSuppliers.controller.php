@@ -1329,8 +1329,8 @@ class pjAdminSuppliers extends pjAdmin
 
     public function pjActionGetPastBooking()
     {
-         $this->checkLogin();
-       $this->setAjax(true);
+        $this->checkLogin();
+        $this->setAjax(true);
        
        if ($this->isXHR())
        {
@@ -1340,41 +1340,39 @@ class pjAdminSuppliers extends pjAdmin
            ->join('pjClient', "t3.id=t1.client_id", 'left outer')
            ->join('pjAuthUser', "t4.id=t3.foreign_id", 'left outer')
            ->where("t1.is_deleted = 0");
-           //->where("t1.supplier_id",$supplier_id);
 
-            
             $role_id = $this->getRoleId();
-
+            $today = date('Y-m-d 00:00:00');
+            
             if ((int) $role_id === 5) {
                 $pjBookingModel = $pjBookingModel
                     ->select('t1.*')
                     ->join(
                         'taxi_auctions',
-                        "taxi_auctions.booking_id = t1.id AND taxi_auctions.status = 'active'",
-                        'inner'
+                        "taxi_auctions.booking_id = t1.id AND taxi_auctions.status = 'ended'",
+                        'left'
                     )
                     ->where('t1.is_auction', 1)
-                    ->where('t1.supplier_id', $supplier_id)
+                    ->where("t1.supplier_id", $supplier_id)
+                    ->where('t1.status', 'completed')
                     ->where('t1.is_deleted', 0);
 
-                // Apply date filter logic
-                if (!$this->_get->isEmpty('start_date') || !$this->_get->isEmpty('end_date')) {
+                    if (!$this->_get->isEmpty('start_date') || !$this->_get->isEmpty('end_date')) {
 
-                    if (!$this->_get->isEmpty('start_date')) {
-                        $start_date = $this->_get->toString('start_date') . " 00:00:00";
-                        $pjBookingModel->where("t1.booking_date >=", $start_date);
+                        if (!$this->_get->isEmpty('start_date')) {
+                            $start_date = $this->_get->toString('start_date') . " 00:00:00";
+                            $pjBookingModel->where("t1.booking_date >=", $start_date);
+                        }
+
+                        if (!$this->_get->isEmpty('end_date')) {
+                            $end_date = $this->_get->toString('end_date') . " 23:59:59";
+                            $pjBookingModel->where("t1.booking_date <=", $end_date);
+                        }
+
+                    } else {
+                        $today = date('Y-m-d H:i:s'); // ✅ FIXED
+                        $pjBookingModel->where("t1.booking_date <", $today);
                     }
-
-                    if (!$this->_get->isEmpty('end_date')) {
-                        $end_date = $this->_get->toString('end_date') . " 23:59:59";
-                        $pjBookingModel->where("t1.booking_date <=", $end_date);
-                    }
-
-                } else {
-                    // Default → past bookings only
-                    $today = date('Y-m-d 00:00:00');
-                    $pjBookingModel->where("t1.booking_date <", $today);
-                }
             }
          
            if ($this->_get->has('q') && !$this->_get->isEmpty('q'))
@@ -1385,52 +1383,7 @@ class pjAdminSuppliers extends pjAdmin
                $pjBookingModel->where("(t4.name LIKE '%$q%' OR t4.email LIKE '%$q%' OR t2.content LIKE '%$q%' OR t1.uuid LIKE '%$q%' OR t1.c_fname LIKE '%$q%' OR t1.c_lname LIKE '%$q%' OR TRIM(CONCAT(t1.c_fname, ' ', t1.c_lname)) LIKE '%$q%' OR t1.c_phone LIKE '%$q%' OR t1.c_company LIKE '%$q%')");
            }
            
-           if ($this->_get->toInt('fleet_id') > 0)
-           {
-               $fleet_id = $this->_get->toInt('fleet_id');
-               $pjBookingModel->where("(t1.fleet_id='".$fleet_id."')");
-           }
-           if ($this->_get->toInt('client_id') > 0)
-           {
-               $client_id = $this->_get->toInt('client_id');
-               $pjBookingModel->where("(t1.client_id='".$client_id."')");
-           }
-           if (!$this->_get->isEmpty('status') && in_array($this->_get->toString('status'), array('confirmed','cancelled','pending', 'completed')))
-           {
-               $pjBookingModel->where('t1.status', $this->_get->toString('status'));
-           }
            
-           if (!$this->_get->isEmpty('name'))
-           {
-               $q = $this->_get->toString('name');
-               $pjBookingModel->where("(t4.name LIKE '%$q%')");
-           }
-           if (!$this->_get->isEmpty('email'))
-           {
-               $q = $this->_get->toString('email');
-               $pjBookingModel->where('t4.email LIKE', "%$q%");
-           }
-           if (!$this->_get->isEmpty('phone'))
-           {
-               $q = $this->_get->toString('phone');
-               $pjBookingModel->where('t4.phone LIKE', "%$q%");
-           }
-           if (!$this->_get->isEmpty('date'))
-           {
-               $pjBookingModel->where("(DATE_FORMAT(t1.booking_date, '%Y-%m-%d')='".$this->_get->toString('date')."')");
-           }
-           if (!$this->_get->isEmpty('start_date'))
-            {
-                $start_date = $this->_get->toString('start_date');
-                $pjBookingModel->where("DATE(t1.booking_date) >=", $start_date);
-            }
-
-            // TO DATE
-            if (!$this->_get->isEmpty('end_date'))
-            {
-                $end_date = $this->_get->toString('end_date');
-                $pjBookingModel->where("DATE(t1.booking_date) <=", $end_date);
-            }
            $column = 'created';
            $direction = 'DESC';
            if ($this->_get->check('column') && in_array(strtoupper($this->_get->toString('direction')), array('ASC', 'DESC')))
@@ -2002,7 +1955,7 @@ class pjAdminSuppliers extends pjAdmin
                 $pjBookingModel->where("DATE(t1.booking_date) <=", $end_date);
             }
 
-            $column = 'created';
+            $column = 'auctioned_on';
             $direction = 'DESC';
             if ($this->_get->check('column') && in_array(strtoupper($this->_get->toString('direction')), array('ASC', 'DESC')))
             {
@@ -2375,6 +2328,108 @@ class pjAdminSuppliers extends pjAdmin
             ->download();
         }
         exit;
+    }
+
+    
+    public function pjActionProfile()
+    {
+        $this->checkLogin();
+        if (!pjAuth::factory()->hasAccess())
+        {
+            $this->sendForbidden();
+            return;
+        }
+
+        if (self::isPost() && $this->_post->toInt('user_update') && $this->_post->toInt('id'))
+        {
+            $auth_id = $this->_post->toInt('id');
+            $first_name = $this->_post->toString('first_name');
+            $last_name  = $this->_post->toString('last_name');
+            $full_name = trim($first_name . ' ' . $last_name);
+
+            // ------------------ AUTH UPDATE ------------------
+            $authData = array(
+                'id'    => $auth_id,
+                'email' => $this->_post->toString('email'),
+                'name'  => $full_name,
+                'ip'    => pjUtil::getClientIp(),
+                'phone' => $this->_post->toString('phone') ?: ':NULL'
+            );
+
+            if (!$this->_post->isEmpty('password')) {
+                $authData['password'] = $this->_post->toString('password');
+                $authData['pswd_modified'] = ':NOW()';
+            }
+
+            pjAuthUserModel::factory()
+                ->where('id', $auth_id)
+                ->limit(1)
+                ->modifyAll($authData);
+
+            // ------------------ SUPPLIER UPDATE ------------------
+            $categories = $this->_post->toArray('category');
+            $categoryStr = !empty($categories) ? implode(',', $categories) : NULL;
+
+            $supplierData = array(
+                'first_name'       => $this->_post->toString('first_name'),
+                'last_name'        => $this->_post->toString('last_name'),
+                'company_name'     => $this->_post->toString('company'),
+                'phone'            => $this->_post->toString('phone'),
+                'street'             => $this->_post->toString('street'),
+                'city'             => $this->_post->toString('city'),
+                'state'            => $this->_post->toString('state'),
+                'zip'              => $this->_post->toString('zip'),
+                'vehicle_category' => $categoryStr
+            );
+
+            pjSupplierModel::factory()
+                ->where('auth_id', $auth_id)
+                ->limit(1)
+                ->modifyAll($supplierData);
+
+            pjUtil::redirect(PJ_INSTALL_URL . "index.php?controller=pjAdminSuppliers&action=pjActionProfile&err=PU01");
+        }
+
+        if (self::isGet())
+        {
+            $user_id = $this->getUserId();
+
+            $arr = pjAuthUserModel::factory()
+                ->select("
+                    t1.*, 
+                    t2.id as supplier_id,
+                    t2.first_name,
+                    t2.last_name,
+                    t2.company_name,
+                    t2.phone as supplier_phone,
+                    t2.street,
+                    t2.city,
+                    t2.state,
+                    t2.zip,
+                    t2.vehicle_category,
+                    t2.status as supplier_status
+                ")
+                ->join('pjSupplier', "t2.auth_id = t1.id", 'left')
+                ->find($user_id)
+                ->getData();
+
+            if (!$arr)
+            {
+                pjUtil::redirect(PJ_INSTALL_URL . "index.php?controller=pjAdminSuppliers&action=pjActionProfile&err=PU08");
+            }
+
+            $this->set('arr', $arr);
+            $this->set('v_cats', pjCategoryModel::factory()
+            ->select('t1.*')
+            ->orderBy('category ASC')
+            ->findAll()
+            ->getData());
+
+            $this->appendCss('bootstrap-chosen.css', PJ_THIRD_PARTY_PATH . 'chosen/');
+            $this->appendJs('chosen.jquery.js', PJ_THIRD_PARTY_PATH . 'chosen/');
+            $this->appendJs('jquery.validate.min.js', PJ_THIRD_PARTY_PATH . 'validate/');
+            $this->appendJs('pjSupplier.js');
+        }
     }
 
 }
