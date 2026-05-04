@@ -2179,6 +2179,7 @@ class pjAdminSuppliers extends pjAdmin
 
     public function pjActionGetBooking()
     {
+
         $this->checkLogin();
         $this->setAjax(true);
 
@@ -2189,27 +2190,27 @@ class pjAdminSuppliers extends pjAdmin
         $supplier_id = $this->getUserId();
         $role_id = $this->getRoleId();
 
+        // 🔥 Build base query
         $pjBookingModel = pjBookingModel::factory()
             ->where('t1.is_auction', 1)
             ->where('t1.is_deleted', 0);
 
-        // ✅ Apply supplier filter FIRST
+        // ✅ Joins (correct order → correct aliases)
+        $pjBookingModel
+            ->join('pjAuction', "t2.booking_id = t1.id", 'inner') // 👈 THIS IS t2
+            ->join('pjMultiLang', "t3.model='pjFleet' AND t3.foreign_id=t1.fleet_id AND t3.field='fleet' AND t3.locale='".$this->getLocaleId()."'", 'left outer')
+            ->join('pjAuthUser', "t4.id=t1.supplier_id", 'left outer');
+
+        // ✅ Supplier filter
         if ((int)$role_id === 5) {
             $pjBookingModel
-                ->where('t1.supplier_id', $supplier_id)
-                ->join(
-                    'taxi_auctions',
-                    "taxi_auctions.booking_id = t1.id",
-                    'inner'
-                );
+                ->where('t1.status', 'completed')
+                ->where('t2.status', 'ended')
+                ->where('t2.supplier_id IS NOT NULL')
+                ->where('t2.supplier_id', $supplier_id);
         }
 
-        // ✅ Lightweight joins only when needed
-        $pjBookingModel
-            ->join('pjMultiLang', "t2.model='pjFleet' AND t2.foreign_id=t1.fleet_id AND t2.field='fleet' AND t2.locale='".$this->getLocaleId()."'", 'left outer')
-            ->join('pjAuthUser', "t3.id=t1.supplier_id", 'left outer');
-
-        // 🔍 Search filter (optimized)
+        // 🔍 Search
         if ($this->_get->has('q') && !$this->_get->isEmpty('q')) {
             $q = $this->_get->toString('q');
             $pjBookingModel->where("(
@@ -2219,19 +2220,26 @@ class pjAdminSuppliers extends pjAdmin
                 t1.c_phone LIKE '%$q%'
             )");
         }
-        if (!$this->_get->isEmpty('status') && in_array($this->_get->toString('status'), array('confirmed','cancelled','pending', 'completed')))
+
+        // 📌 Status filter
+        if (!$this->_get->isEmpty('status') && in_array($this->_get->toString('status'), array('confirmed','cancelled','pending','completed')))
         {
             $pjBookingModel->where('t1.status', $this->_get->toString('status'));
         }
 
-        // 📅 Date filters
-        if (!$this->_get->isEmpty('start_date')) {
-            $pjBookingModel->where("DATE(t1.booking_date) >=", $this->_get->toString('start_date'));
-        }
+        // 📅 Smart default handling
+        $start_date = $this->_get->isEmpty('start_date')
+            ? date('Y-m-01')
+            : $this->_get->toString('start_date');
 
-        if (!$this->_get->isEmpty('end_date')) {
-            $pjBookingModel->where("DATE(t1.booking_date) <=", $this->_get->toString('end_date'));
-        }
+        $end_date = $this->_get->isEmpty('end_date')
+            ? date('Y-m-t')
+            : $this->_get->toString('end_date');
+
+        // 📅 Apply optimized filter
+        $pjBookingModel
+            ->where("t1.booking_date >=", $start_date . " 00:00:00")
+            ->where("t1.booking_date <=", $end_date . " 23:59:59");
 
         // 📊 Pagination
         $total = $pjBookingModel->findCount()->getData();
@@ -2241,15 +2249,15 @@ class pjAdminSuppliers extends pjAdmin
         $offset = ($page - 1) * $rowCount;
         $pages = ceil($total / $rowCount);
 
-        // ✅ Final select (only needed fields)
+        // ✅ Fetch data
         $data = $pjBookingModel
-            ->select("t1.*,t2.content AS fleet")
+            ->select("t1.*, t3.content AS fleet")
             ->orderBy("t1.created DESC")
             ->limit($rowCount, $offset)
             ->findAll()
             ->getData();
 
-        // ✅ Post-processing (lightweight)
+        // 🔁 Post-processing (same as your code)
         $total_price = 0;
         $total_commission = 0;
         $total_supplier_amount = 0;
@@ -2258,43 +2266,33 @@ class pjAdminSuppliers extends pjAdmin
 
         foreach ($data as $k => $v) {
 
-            // 🔹 Client name
             $fullName = trim($v['c_fname'] . ' ' . $v['c_lname']);
             $data[$k]['client'] = pjSanitize::clean($fullName);
 
-            // 🔥 SAFE RAW NUMBERS (IMPORTANT FIX FOR COMMAS)
             $totalRaw = (float) str_replace(',', '', $v['total']);
             $commissionRaw = (float) str_replace(',', '', $v['commission_amount']);
             $supplierRaw = $totalRaw - $commissionRaw;
 
-            // 🔹 Totals (calculation on RAW values only)
             $total_price += $totalRaw;
             $total_commission += $commissionRaw;
             $total_supplier_amount += $supplierRaw;
 
-            // 🔹 Display formatting (ONLY HERE)
             $data[$k]['total'] = pjCurrency::formatPriceOnly($totalRaw, $format);
-
             $data[$k]['commission_amount'] = pjCurrency::formatPriceOnly($commissionRaw, $format);
-
             $data[$k]['supplier_amount'] = pjCurrency::formatPriceOnly($supplierRaw, $format);
 
-            // 🔹 Date & time
             $data[$k]['date_time'] = date(
                 $this->option_arr['o_date_format'] . ', ' . $this->option_arr['o_time_format'],
                 strtotime($v['booking_date'])
             );
 
-            // 🔹 Distance
             $data[$k]['distance'] = (int)$v['distance'] . ' km';
         }
 
-        // 🔹 Format totals AFTER loop
         $total_price = pjCurrency::formatPriceOnly($total_price, $format);
         $total_commission = pjCurrency::formatPriceOnly($total_commission, $format);
         $total_supplier_amount = pjCurrency::formatPriceOnly($total_supplier_amount, $format);
 
-        // 🔹 Response
         self::jsonResponse(compact(
             'data',
             'total',

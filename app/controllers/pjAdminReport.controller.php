@@ -47,6 +47,8 @@ class pjAdminReport extends pjAdmin
             ->join('pjClient', "t3.id=t1.client_id", 'left outer')
             ->join('pjAuthUser', "t4.id=t3.foreign_id", 'left outer')
             ->where("t1.is_auction = 1")
+            ->where("t1.status = 'completed'")
+            ->where('t1.supplier_id IS NOT NULL')
             ->where("t1.is_deleted = 0");
 
             if ($this->_get->has('q') && !$this->_get->isEmpty('q'))
@@ -92,18 +94,21 @@ class pjAdminReport extends pjAdmin
             {
                 $pjBookingModel->where("(DATE_FORMAT(t1.booking_date, '%Y-%m-%d')='".$this->_get->toString('date')."')");
             }
-            if (!$this->_get->isEmpty('start_date'))
-            {
-                $start_date = $this->_get->toString('start_date');
-                $pjBookingModel->where("DATE(t1.booking_date) >=", $start_date);
-            }
+            
+            // 📅 Smart default date handling
+            $start_date = $this->_get->isEmpty('start_date')
+                ? date('Y-m-01')   // first day of current month
+                : $this->_get->toString('start_date');
 
-            // TO DATE
-            if (!$this->_get->isEmpty('end_date'))
-            {
-                $end_date = $this->_get->toString('end_date');
-                $pjBookingModel->where("DATE(t1.booking_date) <=", $end_date);
-            }
+            $end_date = $this->_get->isEmpty('end_date')
+                ? date('Y-m-t')    // last day of current month
+                : $this->_get->toString('end_date');
+
+            // 🚀 Apply filter (optimized, no DATE())
+            $pjBookingModel
+                ->where("t1.booking_date >=", $start_date . " 00:00:00")
+                ->where("t1.booking_date <=", $end_date . " 23:59:59");
+                
             $column = 'created';
             $direction = 'DESC';
             if ($this->_get->check('column') && in_array(strtoupper($this->_get->toString('direction')), array('ASC', 'DESC')))

@@ -47,10 +47,6 @@ var jQuery_1_8_2 = jQuery_1_8_2 || $.noConflict();
 				$('#from_date').data("DateTimePicker").date(startOfMonth);
 				$('#to_date').data("DateTimePicker").date(endOfMonth);
 
-				setTimeout(function () {
-					$('.frm-filter').trigger('submit');
-				}, 200);
-
 			$('#from_date').on('click', function () {
 				$(this).data("DateTimePicker").show();
 			});

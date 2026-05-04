@@ -2083,6 +2083,10 @@ class pjJabbApi extends pjAppController
 
     public function pjActionGetPayoutReport()
     {
+        ini_set('display_errors', '1');
+        ini_set('display_startup_errors', '1');
+        error_reporting(E_ALL);
+
         header("Content-Type: application/json");
 
         $params = $this->_post->raw();
@@ -2117,31 +2121,23 @@ class pjJabbApi extends pjAppController
         $supplier_id = $supplier['id'];
         $role_id = $supplier['role_id'];
 
-        // ---------------- BOOKING QUERY (WEB API STYLE) ----------------
-        $pjBookingModel = pjBookingModel::factory()
+        // ============================================================
+        // 🔥 BASE QUERY (LIGHTWEIGHT - ONLY REQUIRED JOINS)
+        // ============================================================
+        $baseQuery = pjBookingModel::factory()
+            ->join('pjAuction', "t2.booking_id = t1.id", 'inner')
             ->where('t1.is_auction', 1)
+            ->where('t1.status', 'completed')
+            ->where('t2.status', 'ended')
+            ->where('t2.supplier_id', $supplier_id) // ✅ FIX
             ->where('t1.is_deleted', 0);
 
-        // Supplier restriction (same as web API)
-        if ((int)$role_id === 5) {
-            $pjBookingModel->where('t1.supplier_id', $supplier_id);
-        }
-
-        // ---------------- JOINS (same as web API) ----------------
-        $pjBookingModel
-            ->join('taxi_auctions', "taxi_auctions.booking_id = t1.id", 'inner')
-            ->join(
-                'pjMultiLang',
-                "t2.model='pjFleet' AND t2.foreign_id=t1.fleet_id AND t2.field='fleet' AND t2.locale='" . $this->getLocaleId() . "'",
-                'left outer'
-            )
-            ->join('pjAuthUser', "t3.id=t1.supplier_id", 'left outer')
-            ->select("t1.*, t2.content AS fleet");
-
-        // ---------------- SEARCH ----------------
+        // ============================================================
+        // 🔍 SEARCH
+        // ============================================================
         if (!empty($params['q'])) {
             $q = $params['q'];
-            $pjBookingModel->where("(
+            $baseQuery->where("(
                 t1.uuid LIKE '%$q%' OR 
                 t1.c_fname LIKE '%$q%' OR 
                 t1.c_lname LIKE '%$q%' OR 
@@ -2149,65 +2145,85 @@ class pjJabbApi extends pjAppController
             )");
         }
 
-        // ---------------- STATUS FILTER ----------------
+        // ============================================================
+        // 📌 STATUS FILTER
+        // ============================================================
         if (!empty($params['status']) &&
             in_array($params['status'], ['confirmed','cancelled','pending','completed'])) {
-            $pjBookingModel->where('t1.status', $params['status']);
+            $baseQuery->where('t1.status', $params['status']);
         }
 
-        // ---------------- DATE FILTERS ----------------
-        // if (!empty($params['start_date'])) {
-        //     $pjBookingModel->where("DATE(t1.booking_date) >=", $params['start_date']);
-        // }
-
-        // if (!empty($params['end_date'])) {
-        //     $pjBookingModel->where("DATE(t1.booking_date) <=", $params['end_date']);
-        // }
-
+        // ============================================================
+        // 📅 DATE FILTER (DEFAULT CURRENT MONTH)
+        // ============================================================
         $currentStart = date('Y-m-01');
         $currentEnd   = date('Y-m-t');
 
         $start_date = $params['start_date'] ?? null;
         $end_date   = $params['end_date'] ?? null;
 
-        // ---------------- APPLY FILTER ----------------
         if ($start_date && $end_date) {
-            $pjBookingModel->where("DATE(t1.booking_date) >=", $start_date);
-            $pjBookingModel->where("DATE(t1.booking_date) <=", $end_date);
+            $baseQuery->where("DATE(t1.booking_date) >=", $start_date);
+            $baseQuery->where("DATE(t1.booking_date) <=", $end_date);
 
         } elseif ($start_date) {
-            $pjBookingModel->where("DATE(t1.booking_date) >=", $start_date);
+            $baseQuery->where("DATE(t1.booking_date) >=", $start_date);
 
         } elseif ($end_date) {
-            $pjBookingModel->where("DATE(t1.booking_date) <=", $end_date);
+            $baseQuery->where("DATE(t1.booking_date) <=", $end_date);
 
         } else {
-            // DEFAULT = CURRENT MONTH
-            $pjBookingModel->where("DATE(t1.booking_date) >=", $currentStart);
-            $pjBookingModel->where("DATE(t1.booking_date) <=", $currentEnd);
+            $baseQuery->where("DATE(t1.booking_date) >=", $currentStart);
+            $baseQuery->where("DATE(t1.booking_date) <=", $currentEnd);
         }
 
-        // ---------------- PAGINATION ----------------
+        // ============================================================
+        // 📊 PAGINATION
+        // ============================================================
         $rowCount = isset($params['rowCount']) ? (int)$params['rowCount'] : 20;
         $page = isset($params['page']) ? (int)$params['page'] : 1;
-
-        $total = $pjBookingModel->findCount()->getData();
-        $pages = ceil($total / $rowCount);
         $offset = ($page - 1) * $rowCount;
 
-        // ---------------- DATA FETCH ----------------
-        $data = $pjBookingModel
+        // ============================================================
+        // ⚡ FAST COUNT (NO EXTRA JOINS)
+        // ============================================================
+        $countQuery = clone $baseQuery;
+
+        $totalRow = $countQuery
+            ->select("COUNT(DISTINCT t1.id) AS cnt")
+            ->findAll()
+            ->getDataIndex(0);
+
+        $total = (int)($totalRow['cnt'] ?? 0);
+        $pages = ceil($total / $rowCount);
+
+        // ============================================================
+        // 🚀 DATA QUERY (ADD ONLY REQUIRED DISPLAY JOINS)
+        // ============================================================
+        $dataQuery = clone $baseQuery;
+
+        $data = $dataQuery
+            ->select("t1.*, t3.content AS fleet")
+            ->join(
+                'pjMultiLang',
+                "t3.model='pjFleet' 
+                AND t3.foreign_id=t1.fleet_id 
+                AND t3.field='fleet' 
+                AND t3.locale='" . $this->getLocaleId() . "'",
+                'left outer'
+            )
+            ->groupBy("t1.id")
             ->orderBy("t1.created DESC")
             ->limit($rowCount, $offset)
             ->findAll()
             ->getData();
 
-        // ---------------- TOTALS ----------------
+        // ============================================================
+        // 💰 TOTAL CALCULATIONS
+        // ============================================================
         $total_price = 0;
         $total_commission = 0;
         $total_supplier_amount = 0;
-
-        $format = (int)$this->option_arr['o_price_format'];
 
         foreach ($data as $k => $v) {
 
@@ -2215,7 +2231,7 @@ class pjJabbApi extends pjAppController
             $fullName = trim($v['c_fname'] . ' ' . $v['c_lname']);
             $data[$k]['client'] = pjSanitize::clean($fullName);
 
-            // RAW values (important fix)
+            // RAW values
             $totalRaw = (float) str_replace(',', '', $v['total']);
             $commissionRaw = (float) str_replace(',', '', $v['commission_amount']);
             $supplierRaw = $totalRaw - $commissionRaw;
@@ -2225,25 +2241,10 @@ class pjJabbApi extends pjAppController
             $total_commission += $commissionRaw;
             $total_supplier_amount += $supplierRaw;
 
-            // Formatting
-            // $data[$k]['total'] = pjCurrency::formatPriceOnly($totalRaw, $format);
-            $data[$k]['total'] = html_entity_decode(
-                pjCurrency::formatPrice($totalRaw),
-                ENT_QUOTES,
-                'UTF-8'
-            );
-
-            $data[$k]['commission_amount'] = html_entity_decode(
-                pjCurrency::formatPrice($commissionRaw),
-                ENT_QUOTES,
-                'UTF-8'
-            );
-
-            $data[$k]['supplier_amount'] = html_entity_decode(
-                pjCurrency::formatPrice($supplierRaw),
-                ENT_QUOTES,
-                'UTF-8'
-            );
+            // Format
+            $data[$k]['total'] = html_entity_decode(pjCurrency::formatPrice($totalRaw), ENT_QUOTES, 'UTF-8');
+            $data[$k]['commission_amount'] = html_entity_decode(pjCurrency::formatPrice($commissionRaw), ENT_QUOTES, 'UTF-8');
+            $data[$k]['supplier_amount'] = html_entity_decode(pjCurrency::formatPrice($supplierRaw), ENT_QUOTES, 'UTF-8');
 
             // Date
             $data[$k]['date_time'] = date(
@@ -2256,24 +2257,14 @@ class pjJabbApi extends pjAppController
         }
 
         // Format totals
-        $total_price = html_entity_decode(
-            pjCurrency::formatPrice($total_price),
-            ENT_QUOTES,
-            'UTF-8'
-        );
-        $total_commission = html_entity_decode(
-            pjCurrency::formatPrice($total_commission),
-            ENT_QUOTES,
-            'UTF-8'
-        );
-        $total_supplier_amount = html_entity_decode(
-            pjCurrency::formatPrice($total_supplier_amount),
-            ENT_QUOTES,
-            'UTF-8'
-        );
+        $total_price = html_entity_decode(pjCurrency::formatPrice($total_price), ENT_QUOTES, 'UTF-8');
+        $total_commission = html_entity_decode(pjCurrency::formatPrice($total_commission), ENT_QUOTES, 'UTF-8');
+        $total_supplier_amount = html_entity_decode(pjCurrency::formatPrice($total_supplier_amount), ENT_QUOTES, 'UTF-8');
 
-        // ---------------- CURRENCY ----------------
-        pjCurrency::factory()->setCurrencyData(); // IMPORTANT
+        // ============================================================
+        // 💱 CURRENCY
+        // ============================================================
+        pjCurrency::factory()->setCurrencyData();
 
         $options = pjRegistry::getInstance()->get('options');
         $currency = $options['o_currency'];
@@ -2281,9 +2272,11 @@ class pjJabbApi extends pjAppController
             pjCurrency::getCurrencySign($currency, false),
             ENT_QUOTES,
             'UTF-8'
-        ); 
+        );
 
-        // ---------------- RESPONSE ----------------
+        // ============================================================
+        // 📦 RESPONSE
+        // ============================================================
         echo json_encode([
             'status' => 'OK',
             'code' => 200,
@@ -2294,11 +2287,13 @@ class pjJabbApi extends pjAppController
             'total_price' => $total_price,
             'total_commission' => $total_commission,
             'total_supplier_amount' => $total_supplier_amount,
-            'currencySymbol' =>$currencySymbol
+            'currencySymbol' => $currencySymbol
         ]);
 
         exit;
     }
+
+
 
     public function pjActionGetSupplierDetails()
     {
@@ -2511,8 +2506,6 @@ class pjJabbApi extends pjAppController
 
     public function pjActionGetInvoicePdf()
     {
-        error_reporting(E_ALL);
-        ini_set('display_errors', 1);
 
         require PJ_THIRD_PARTY_PATH . 'dompdf/vendor/autoload.php';
 
@@ -2740,11 +2733,6 @@ class pjJabbApi extends pjAppController
 
     public function pjActionUpdateSupplierCompany()
     {
-        ini_set('display_errors', '1');
-        ini_set('display_startup_errors', '1');
-        error_reporting(E_ALL);
-
-
         header("Content-Type: application/json");
 
         $params = $this->_post->raw();
