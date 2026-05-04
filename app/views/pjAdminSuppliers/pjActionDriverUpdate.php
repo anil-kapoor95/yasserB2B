@@ -13,9 +13,11 @@ ksort($months);
 $short_days = __('short_days', true);
 $bs = __('booking_statuses', true); 
 
-$license_expiry = date($tpl['option_arr']['o_date_format'], strtotime($tpl['arr']['license_expiry']));
-$date_time = date($tpl['option_arr']['o_date_format'], strtotime($tpl['arr']['dob']));
+// $license_expiry = date($tpl['option_arr']['o_date_format'], strtotime($tpl['arr']['license_expiry']));
+// $date_time = date($tpl['option_arr']['o_date_format'], strtotime($tpl['arr']['dob']));
 
+$license_expiry = $tpl['arr']['license_expiry']; // Y-m-d
+$date_time = $tpl['arr']['dob']; // Y-m-d
 $licenseFiles = array_values(array_filter($tpl['arr']['files'], function ($file) {
     return $file['file_category'] === 'license';
 }));
@@ -193,7 +195,7 @@ $u_statarr = __('u_statarr', true)
                                 <label class="control-label"><?php __('driverLicenseExpiry'); ?></label>
                                 <div class="input-group">
                                     <span class="input-group-addon"><i class="fa fa-calendar"></i></span>
-                                    <input type="text" value="<?php echo $license_expiry; ?>" name="license_expiry" id="license_expiry" class="form-control datetimepick required" data-wt="open" readonly="readonly">
+                                    <input type="text" value="<?php echo $license_expiry; ?>" name="license_expiry" id="license_expiry" class="form-control datetimepick required" data-wt="open" >
                                 </div>
                             </div>
                         </div><!-- /.col-md-3 -->
@@ -221,7 +223,7 @@ $u_statarr = __('u_statarr', true)
                                 <label class="control-label">Date of Birth <?php __('lblDriverDOB'); ?></label>
                                 <div class="input-group">
                                     <span class="input-group-addon"><i class="fa fa-calendar"></i></span>
-                                    <input type="text" value="<?php echo $date_time; ?>" name="dob" id="dob" class="form-control datetimepick_dob required" data-wt="open" readonly="readonly" data-format="YYYY-MM-DD">
+                                    <input type="text" value="<?php echo $date_time; ?>" name="dob" id="dob" class="form-control datetimepick_dob required" data-wt="open" >
                                 </div>
                             </div>
                         </div><!-- /.col-md-3 -->

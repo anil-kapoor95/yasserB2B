@@ -2083,10 +2083,6 @@ class pjJabbApi extends pjAppController
 
     public function pjActionGetPayoutReport()
     {
-        ini_set('display_errors', '1');
-        ini_set('display_startup_errors', '1');
-        error_reporting(E_ALL);
-
         header("Content-Type: application/json");
 
         $params = $this->_post->raw();
@@ -2172,9 +2168,6 @@ class pjJabbApi extends pjAppController
         } elseif ($end_date) {
             $baseQuery->where("DATE(t1.booking_date) <=", $end_date);
 
-        } else {
-            $baseQuery->where("DATE(t1.booking_date) >=", $currentStart);
-            $baseQuery->where("DATE(t1.booking_date) <=", $currentEnd);
         }
 
         // ============================================================
@@ -2213,7 +2206,7 @@ class pjJabbApi extends pjAppController
                 'left outer'
             )
             ->groupBy("t1.id")
-            ->orderBy("t1.created DESC")
+            ->orderBy("t1.booking_date DESC")
             ->limit($rowCount, $offset)
             ->findAll()
             ->getData();
@@ -2292,8 +2285,6 @@ class pjJabbApi extends pjAppController
 
         exit;
     }
-
-
 
     public function pjActionGetSupplierDetails()
     {
