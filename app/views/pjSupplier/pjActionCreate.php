@@ -39,23 +39,6 @@ $u_statarr = __('u_statarr', true)
                             </div><!-- /.form-group -->
                         </div><!-- /.col-md-3 -->
 
-                        <!-- <div class="col-lg-3 col-md-4 col-sm-6">
-                            <div class="form-group">
-                                <label class="control-label"><?php __('lblBookingTitle'); ?></label>
-
-                                <select name="title" id="title" class="form-control required" data-msg-required="<?php __('plugin_base_this_field_is_required', false, true);?>">
-                					<option value="">-- <?php __('lblChoose'); ?>--</option>
-                					<?php
-                					$name_titles = __('personal_titles', true, false);
-                					foreach ($name_titles as $k => $v)
-                					{
-                						?><option value="<?php echo $k; ?>"><?php echo $v; ?></option><?php
-                					}
-                					?>
-                				</select>
-                            </div>
-                        </div> --><!-- /.col-md-3 -->
-
                         <div class="col-lg-3 col-md-4 col-sm-6">
                             <div class="form-group">
                                 <label class="control-label"><?php __('lblBookingFname'); ?></label>
@@ -103,7 +86,7 @@ $u_statarr = __('u_statarr', true)
 								
 								<div class="input-group">
 									<span class="input-group-addon"><i class="fa fa-phone"></i></span>
-                                	<input type="text" name="phone" id="phone" class="form-control" placeholder="(123) 456-7890" maxlength="255">
+                                	<input type="text" name="phone" id="phone" class="form-control required" placeholder="(123) 456-7890" maxlength="255">
                                 </div>
                             </div>
                         </div><!-- /.col-md-3 -->
@@ -112,27 +95,52 @@ $u_statarr = __('u_statarr', true)
                             <div class="form-group">
                                 <label class="control-label"><?php __('lblBookingCompany'); ?></label>
 
-                                <input type="text" name="company" id="company" class="form-control" maxlength="255">
+                                <input type="text" name="company" id="company" class="form-control required" maxlength="255">
                             </div>
                         </div><!-- /.col-md-3 -->
                     </div><!-- /.row -->
 
                     <div class="hr-line-dashed"></div>
-                    
                     <div class="row">
-                        <!-- <div class="col-lg-3 col-md-4 col-sm-6">
+                        <div class="col-lg-3 col-md-4 col-sm-6">
                             <div class="form-group">
-                                <label class="control-label">No. of Vehicle</label>
+                                <label class="control-label"><?php __('lblBookingStreet'); ?></label>
 
-                                <input type="number" name="vehicles" id="vehicles" class="form-control">
+                                <input type="text" name="street" id="street" class="form-control required" maxlength="255">
                             </div>
-                        </div>-->
+                        </div><!-- /.col-md-3 -->
+                        <div class="col-lg-3 col-md-4 col-sm-6">
+                            <div class="form-group">
+                                <label class="control-label"><?php __('lblBookingCity'); ?></label>
 
+                                <input type="text" name="city" id="city" class="form-control required" maxlength="255">
+                            </div>
+                        </div><!-- /.col-md-3 -->
+
+                        <div class="col-lg-3 col-md-4 col-sm-6">
+                            <div class="form-group">
+                                <label class="control-label"><?php __('lblBookingState'); ?></label>
+
+                                <input type="text" name="state" id="state" class="form-control required" maxlength="255">
+                            </div>
+                        </div><!-- /.col-md-3 -->
+
+                        <div class="col-lg-3 col-md-4 col-sm-6">
+                            <div class="form-group">
+                                <label class="control-label"><?php __('lblBookingZip'); ?></label>
+
+                                <input type="text" name="zip" id="zip" class="form-control required" maxlength="255">
+                            </div>
+                        </div><!-- /.col-md-3 -->
+
+                    </div><!-- /.row -->
+
+                    <div class="row">
                         <div class="col-lg-3 col-md-4 col-sm-6">
                             <div class="form-group">
                                 <label class="control-label">Vehicle Category</label>
 
-                                <select name="category[]" id="v_category" multiple="multiple" size="5" class="form-control" data-msg-required="<?php __('plugin_base_this_field_is_required', false, true);?>">
+                                <select name="category[]" id="v_category" multiple="multiple" size="5" class="form-control"  required data-msg-required="<?php __('plugin_base_this_field_is_required', false, true);?>">
                                     
                                     <?php
                                         foreach ($tpl['v_cats'] as $v)
@@ -144,55 +152,7 @@ $u_statarr = __('u_statarr', true)
                                 </select>
                             </div>
                         </div> 
-
-                        <!-- <div class="col-lg-3 col-md-4 col-sm-6">
-                            <div class="form-group">
-                                <label class="control-label"><?php __('lblBookingAddress'); ?></label>
-
-                                <input type="text" name="address" id="address" class="form-control" maxlength="255">
-                            </div>
-                        </div> --><!-- /.col-md-3 -->
-
-                        <div class="col-lg-3 col-md-4 col-sm-6">
-                            <div class="form-group">
-                                <label class="control-label"><?php __('lblBookingCity'); ?></label>
-
-                                <input type="text" name="city" id="city" class="form-control" maxlength="255">
-                            </div>
-                        </div><!-- /.col-md-3 -->
-
-                        <!-- <div class="col-lg-3 col-md-4 col-sm-6">
-                            <div class="form-group">
-                                <label class="control-label"><?php __('lblBookingState'); ?></label>
-
-                                <input type="text" name="state" id="state" class="form-control" maxlength="255">
-                            </div>
-                        </div> --><!-- /.col-md-3 -->
-
-                        <!-- <div class="col-lg-3 col-md-4 col-sm-6">
-                            <div class="form-group">
-                                <label class="control-label"><?php __('lblBookingZip'); ?></label>
-
-                                <input type="text" name="zip" id="zip" class="form-control" maxlength="255">
-                            </div>
-                        </div> --><!-- /.col-md-3 -->
-
-                        <!-- <div class="col-lg-3 col-md-4 col-sm-6">
-                            <div class="form-group">
-                                <label class="control-label"><?php __('lblBookingCountry'); ?></label>
-
-                                <select name="country_id" id="country_id" class="form-control select-item">
-                					<option value="">-- <?php __('lblChoose'); ?>--</option>
-                					<?php
-                					foreach ($tpl['country_arr'] as $v)
-                					{
-                						?><option value="<?php echo $v['id']; ?>"><?php echo pjSanitize::html($v['country_title']); ?></option><?php
-                					}
-                					?>
-                				</select>
-                            </div>
-                        </div> --><!-- /.col-md-3 -->
-                    </div><!-- /.row -->
+                    </div> 
 
                     <div class="hr-line-dashed"></div>
 

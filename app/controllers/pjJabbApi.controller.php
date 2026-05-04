@@ -2737,4 +2737,396 @@ class pjJabbApi extends pjAppController
         ]);
         exit;
     }
+
+    public function pjActionUpdateSupplierCompany()
+    {
+        ini_set('display_errors', '1');
+        ini_set('display_startup_errors', '1');
+        error_reporting(E_ALL);
+
+
+        header("Content-Type: application/json");
+
+        $params = $this->_post->raw();
+        $token  = $params['api_login_token'] ?? '';
+
+        if (empty($token)) {
+            echo json_encode(['status'=>'ERR','message'=>'API token required']);
+            exit;
+        }
+
+        /* ===============================
+        GET SUPPLIER
+        =============================== */
+
+        $auth = pjAuthUserModel::factory()
+            ->where('api_login_token', $token)
+            ->where('role_id', 5)
+            ->findAll()
+            ->getDataIndex(0);
+
+        if (empty($auth)) {
+            echo json_encode(['status'=>'ERR','message'=>'Invalid supplier token']);
+            exit;
+        }
+
+        $auth_id = $auth['id'];
+
+        $supplier = pjSupplierModel::factory()
+            ->where('auth_id', $auth_id)
+            ->limit(1)
+            ->findAll()
+            ->getDataIndex(0);
+
+        if (empty($supplier)) {
+            echo json_encode(['status'=>'ERR','message'=>'Supplier not found']);
+            exit;
+        }
+
+        $supplier_id = $supplier['id'];
+
+        /* ===============================
+        UPDATE COMPANY DETAILS
+        =============================== */
+
+        pjSupplierModel::factory()
+            ->where('id', $supplier_id)
+            ->limit(1)
+            ->modifyAll([
+                'company_name' => $params['company_name'] ?? $supplier['company_name'],
+                'modified'     => date("Y-m-d H:i:s")
+            ]);
+
+        /* ===============================
+        COMPANY DOCUMENTS UPLOAD (MULTIPLE + SAFE)
+        =============================== */
+
+        if (!empty($_FILES['company_documents']['name'])) {
+
+            $uploadDir = PJ_UPLOAD_PATH . 'company_documents/';
+            if (!is_dir($uploadDir)) mkdir($uploadDir, 0777, true);
+
+            $allowedExt  = ['jpg','jpeg','png','pdf'];
+            $allowedMime = ['image/jpeg','image/png','image/jpg','application/pdf'];
+            $maxSize     = 5 * 1024 * 1024; // 5MB
+
+            $files = $_FILES['company_documents'];
+
+            // ✅ Normalize (handles single + multiple)
+            $names   = is_array($files['name']) ? $files['name'] : [$files['name']];
+            $tmp     = is_array($files['tmp_name']) ? $files['tmp_name'] : [$files['tmp_name']];
+            $sizes   = is_array($files['size']) ? $files['size'] : [$files['size']];
+            $types   = is_array($files['type']) ? $files['type'] : [$files['type']];
+            $errors  = is_array($files['error']) ? $files['error'] : [$files['error']];
+
+            $uploadedFiles = [];
+            $skippedFiles  = [];
+
+            foreach ($names as $index => $name) {
+
+                $tmpName = $tmp[$index];
+                $size    = $sizes[$index];
+                $type    = $types[$index];
+                $error   = $errors[$index];
+
+                if ($error !== 0 || !is_uploaded_file($tmpName)) {
+                    $skippedFiles[] = $name . " (upload error)";
+                    continue;
+                }
+
+                $ext = strtolower(pathinfo($name, PATHINFO_EXTENSION));
+
+                /* ===== VALIDATION ===== */
+                if (!in_array($ext, $allowedExt)) {
+                    $skippedFiles[] = $name . " (invalid extension)";
+                    continue;
+                }
+
+                if (!in_array($type, $allowedMime)) {
+                    $skippedFiles[] = $name . " (invalid mime)";
+                    continue;
+                }
+
+                if ($size > $maxSize) {
+                    $skippedFiles[] = $name . " (file too large)";
+                    continue;
+                }
+
+                /* ===== CATEGORY (FROM FRONTEND OR DEFAULT) ===== */
+                $category = $_POST['file_categories'][$index] ?? 'general';
+
+                /* ===== FILE NAME ===== */
+                $prefix = preg_replace('/[^a-z0-9_]/i','', strtolower($supplier['company_name'] ?? 'company'));
+                $uniqueName = uniqid($prefix.'_').'.'.$ext;
+
+                $destPath = $uploadDir . $uniqueName;
+
+                /* ===== MOVE FILE ===== */
+                if (move_uploaded_file($tmpName, $destPath)) {
+
+                    $insertId = pjSupplierDocumentModel::factory()->setAttributes([
+                        'supplier_id'   => $supplier_id,
+                        'file_name'     => $uniqueName,
+                        'original_name' => $name,
+                        'file_type'     => $ext,
+                        'file_size'     => $size,
+                        'file_category' => $category,
+                        'created'       => date("Y-m-d H:i:s"),
+                        'source_path'   => 'company_documents/' . $uniqueName,
+                        'thumb_path'    => null
+                    ])->insert()->getInsertId();
+
+                    if ($insertId) {
+                        $uploadedFiles[] = $uniqueName;
+                    } else {
+                        $skippedFiles[] = $name . " (db failed)";
+                    }
+
+                } else {
+                    $skippedFiles[] = $name . " (move failed)";
+                }
+            }
+        }
+
+        /* ===============================
+        RESPONSE
+        =============================== */
+
+        echo json_encode([
+            'status'  => 'OK',
+            'message' => 'Upload completed',
+            'uploaded_files' => $uploadedFiles,
+            'skipped_files'  => $skippedFiles
+        ]);
+        exit;
+    }
+
+    public function pjActionDeleteSupplierDocument()
+    {
+        header("Content-Type: application/json");
+
+        $params = $this->_post->raw();
+        $token  = $params['api_login_token'] ?? '';
+        $fileId = $params['file_id'] ?? '';
+
+        /* ===============================
+        VALIDATION
+        =============================== */
+
+        if (empty($token)) {
+            echo json_encode(['status'=>'ERR','message'=>'API token required']);
+            exit;
+        }
+
+        if (empty($fileId)) {
+            echo json_encode(['status'=>'ERR','message'=>'File ID required']);
+            exit;
+        }
+
+        /* ===============================
+        GET SUPPLIER
+        =============================== */
+
+        $auth = pjAuthUserModel::factory()
+            ->where('api_login_token', $token)
+            ->where('role_id', 5)
+            ->findAll()
+            ->getDataIndex(0);
+
+        if (empty($auth)) {
+            echo json_encode(['status'=>'ERR','message'=>'Invalid supplier token']);
+            exit;
+        }
+
+        $auth_id = $auth['id'];
+
+        $supplier = pjSupplierModel::factory()
+            ->where('auth_id', $auth_id)
+            ->limit(1)
+            ->findAll()
+            ->getDataIndex(0);
+
+        if (empty($supplier)) {
+            echo json_encode(['status'=>'ERR','message'=>'Supplier not found']);
+            exit;
+        }
+
+        $supplier_id = $supplier['id'];
+
+        /* ===============================
+        GET DOCUMENT (IMPORTANT: check ownership)
+        =============================== */
+
+        $file = pjSupplierDocumentModel::factory()
+            ->where('id', $fileId)
+            ->where('supplier_id', $supplier_id)
+            ->limit(1)
+            ->findAll()
+            ->getDataIndex(0);
+
+        if (empty($file)) {
+            echo json_encode(['status'=>'ERR','message'=>'Document not found']);
+            exit;
+        }
+
+        /* ===============================
+        DELETE PHYSICAL FILE
+        =============================== */
+
+        $filePath = PJ_UPLOAD_PATH . $file['source_path'];
+
+        if (!empty($file['source_path']) && file_exists($filePath)) {
+            unlink($filePath);
+        }
+
+        /* ===============================
+        DELETE THUMB (IF EXISTS)
+        =============================== */
+
+        if (!empty($file['thumb_path'])) {
+
+            $thumbPath = PJ_INSTALL_PATH . 'app/web/upload/' . $file['thumb_path'];
+
+            if (file_exists($thumbPath)) {
+                unlink($thumbPath);
+            }
+        }
+
+        /* ===============================
+        DELETE DATABASE RECORD
+        =============================== */
+
+        pjSupplierDocumentModel::factory()
+            ->where('id', $fileId)
+            ->where('supplier_id', $supplier_id)
+            ->limit(1)
+            ->eraseAll();
+
+        /* ===============================
+        RESPONSE
+        =============================== */
+
+        echo json_encode([
+            'status'  => 'OK',
+            'message' => 'Supplier document deleted successfully'
+        ]);
+
+        exit;
+    }
+
+    public function pjActionGetSupplierCompany()
+    {
+        header("Content-Type: application/json");
+
+        $params = $this->_post->raw();
+        $token  = $params['api_login_token'] ?? '';
+
+        /* ===============================
+        VALIDATION
+        =============================== */
+
+        if (empty($token)) {
+            echo json_encode([
+                'status' => 'ERR',
+                'message' => 'API token required'
+            ]);
+            exit;
+        }
+
+        /* ===============================
+        GET AUTH USER
+        =============================== */
+
+        $auth = pjAuthUserModel::factory()
+            ->where('api_login_token', $token)
+            ->where('role_id', 5)
+            ->findAll()
+            ->getDataIndex(0);
+
+        if (empty($auth)) {
+            echo json_encode([
+                'status' => 'ERR',
+                'message' => 'Invalid supplier token'
+            ]);
+            exit;
+        }
+
+        /* ===============================
+        GET SUPPLIER
+        =============================== */
+
+        $supplier = pjSupplierModel::factory()
+            ->where('auth_id', $auth['id'])
+            ->limit(1)
+            ->findAll()
+            ->getDataIndex(0);
+
+        if (empty($supplier)) {
+            echo json_encode([
+                'status' => 'ERR',
+                'message' => 'Supplier not found'
+            ]);
+            exit;
+        }
+
+        $supplier_id = $supplier['id'];
+
+        /* ===============================
+        GET SUPPLIER DOCUMENTS
+        =============================== */
+
+        $documents = pjSupplierDocumentModel::factory()
+            ->where('supplier_id', $supplier_id)
+            ->orderBy("created DESC")
+            ->findAll()
+            ->getData();
+
+        /* ===============================
+        FORMAT DOCUMENTS
+        =============================== */
+
+        $docList = [];
+
+        if (!empty($documents)) {
+            foreach ($documents as $doc) {
+
+                $docList[] = [
+                    'id'            => $doc['id'],
+                    'file_name'     => $doc['file_name'],
+                    'original_name' => $doc['original_name'],
+                    'file_type'     => $doc['file_type'],
+                    'file_size'     => $doc['file_size'],
+                    'file_category' => $doc['file_category'],
+                    'source_url'    => PJ_INSTALL_URL . 'app/web/upload/' . $doc['source_path'],
+                    'thumb_url'     => !empty($doc['thumb_path'])
+                                        ? PJ_INSTALL_URL . 'app/web/upload/' . $doc['thumb_path']
+                                        : null,
+                    'created'       => $doc['created']
+                ];
+            }
+        }
+
+        /* ===============================
+        RESPONSE
+        =============================== */
+
+        echo json_encode([
+            'status' => 'OK',
+            'data' => [
+                'supplier' => [
+                    'id'            => $supplier['id'],
+                    'company_name'  => $supplier['company_name'],
+                    'street'        => $supplier['street'],
+                    'city'          => $supplier['city'],
+                    'state'         => $supplier['state'],
+                    'zip'           => $supplier['zip'],
+                    'created'       => $supplier['created'],
+                    'modified'      => $supplier['modified']
+                ],
+                'documents' => $docList
+            ]
+        ]);
+
+        exit;
+    }
 }

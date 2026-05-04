@@ -20,16 +20,26 @@ var jQuery_1_8_2 = jQuery_1_8_2 || $.noConflict();
 		if($frmCreateClient.length > 0)
 		{
 			$frmCreateClient.validate({
+				ignore: [],
 				rules: {
 					"email": {
 						required: true,
 						email: true,
 						remote: "index.php?controller=pjSupplier&action=pjActionCheckEmail"
+					},
+					"category[]": {
+						required: true,
+						minlength: 1
 					}
 				},
 				messages: {
 					"email": {
 						remote: myLabel.email_exists
+					},
+					"category[]": {
+						required: "Please select at least one vehicle category",
+						minlength: "Please select at least one vehicle category"
+
 					}
 				}
 			});

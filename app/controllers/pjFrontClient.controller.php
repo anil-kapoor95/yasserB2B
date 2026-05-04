@@ -74,11 +74,10 @@ class pjFrontClient extends pjAuth
                 $c_data['last_name'] = isset($params['lname']) ? $params['lname'] : ":NULL";
                 $c_data['phone'] = isset($params['phone']) ? $params['phone'] : ":NULL";
                 $c_data['company_name'] = isset($params['company']) ? $params['company'] : ":NULL";
-                //$c_data['address'] = isset($params['address']) ? $params['address'] : ":NULL";
-                $c_data['city'] = isset($params['city']) ? $params['city'] : ":NULL";
-                //$c_data['state'] = isset($params['state']) ? $params['state'] : ":NULL";
-                //$c_data['zip'] = isset($params['zip']) ? $params['zip'] : ":NULL";
-                //$c_data['country_id'] = isset($params['country_id']) ? $params['country_id'] : ":NULL";
+                $c_data['street'] = isset($params['street']) ? $params['street'] : ":NULL";
+                $c_data['city']   = isset($params['city']) ? $params['city'] : ":NULL";
+                $c_data['state']  = isset($params['state']) ? $params['state'] : ":NULL";
+                $c_data['zip']    = isset($params['zip']) ? $params['zip'] : ":NULL";
                 $c_data['total_vehicles'] = isset($params['vehicles']) ? $params['vehicles'] : ":NULL";
                 if (isset($params['category']) && is_array($params['category'])) {
                     $c_data['vehicle_category'] = implode(',', $params['category']);

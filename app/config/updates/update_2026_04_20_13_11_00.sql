@@ -46,4 +46,25 @@ INSERT INTO `plugin_base_multi_lang` VALUES (NULL, @id, 'pjBaseField', '::LOCALE
 
 INSERT INTO `notifications` VALUES (NULL, 'suppliers', 'email', 'confirmation', 1);
 
+DROP TABLE IF EXISTS `supplier_documents`;
+CREATE TABLE `supplier_documents` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `supplier_id` int(10) unsigned NULL,
+  `file_name` VARCHAR(255) NOT NULL,
+  `original_name` VARCHAR(255) NOT NULL,
+  `file_type` VARCHAR(255) NOT NULL,
+  `file_size` INT DEFAULT NULL,
+  `thumb_path` VARCHAR(255) DEFAULT NULL,
+  `source_path` VARCHAR(255) NOT NULL,
+  `file_category` VARCHAR(255) DEFAULT 'general',
+  `created` datetime DEFAULT CURRENT_TIMESTAMP,
+  `modified` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `supplier_id` (`supplier_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+INSERT INTO `plugin_base_fields` VALUES (NULL, 'lblBookingStreet', 'backend', 'Label / Street', 'script', NULL);
+SET @id := (SELECT LAST_INSERT_ID());
+INSERT INTO `plugin_base_multi_lang` VALUES (NULL, @id, 'pjBaseField', '::LOCALE::', 'title', 'Street', 'script');
+
 COMMIT;

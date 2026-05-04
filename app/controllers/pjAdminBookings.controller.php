@@ -372,35 +372,69 @@ class pjAdminBookings extends pjAdmin
                     $data[$k] = $v;
                     //$data[$k]['is_auction'] = $v['is_auction'] == 1 ? 'Yes' : 'No';
 
+                    $currentTime = strtotime(date("Y-m-d H:i:s"));
+                    $bookingTime = strtotime($v['booking_date']);
+                    $isPast = $bookingTime < $currentTime;
+
                     if ($v['status'] == 'confirmed') {
 
                         if ($v['is_auction'] == 1) {
                             $type = !empty($v['commission_type']) ? $v['commission_type'] : 'percent';
                             $amount = !empty($v['commission']) ? $v['commission'] : '0';
 
-                            $isauc = '
-                            <span 
-                                data-id="'.$v['id'].'"
-                                data-type="'.$type.'"
-                                data-amount="'.$amount.'"
-                                class="auction_links edit_auction">
-                                Edit Auction
-                            </span>
-                            /
-                            <span 
-                                data-id="'.$v['id'].'"
-                                class="auction_links remove_auction">
-                                Remove
-                            </span>';
+                            if ($isPast) {
+                                $isauc = '
+                                <span 
+                                    data-id="'.$v['id'].'"
+                                    data-type="'.$type.'"
+                                    data-amount="'.$amount.'"
+                                    data-booking_date="'.$v['booking_date'].'"
+                                    class="auction_links edit_auction">
+                                    Edit Auction
+                                </span>
+                                /
+                                <span 
+                                    class="auction_links text-muted"
+                                    style="pointer-events:none; cursor:not-allowed; opacity:0.6;"
+                                    title="Past booking - cannot remove">
+                                    Remove
+                                </span>';
+                            } else{
+                                $isauc = '
+                                <span 
+                                    data-id="'.$v['id'].'"
+                                    data-type="'.$type.'"
+                                    data-amount="'.$amount.'"
+                                    data-booking_date="'.$v['booking_date'].'"
+                                    class="auction_links edit_auction">
+                                    Edit Auction
+                                </span>
+                                /
+                                <span 
+                                    data-id="'.$v['id'].'"
+                                    class="auction_links remove_auction">
+                                    Remove
+                                </span>';
+                            }
                         } else {
-                            $isauc = '
-                            <span data-id="'.$v['id'].'" class="auction_links add_auction">
-                             Add in auction
-                            </span>';
+                             if ($isPast) {
+                                $isauc = '
+                                <span 
+                                    class="auction_links text-muted"
+                                    style="pointer-events:none; cursor:not-allowed; opacity:0.6;"
+                                    title="Past booking - auction not allowed">
+                                    Add in auction
+                                </span>';
+                             } else {
+                                $isauc = '
+                                <span data-id="'.$v['id'].'" class="auction_links add_auction">
+                                Add in auction
+                                </span>';
+                             }
                         }
 
                     } else {
-                        $isauc = '<i class="fa fa-ban text-muted" title="Auction not allowed"></i>';
+                        $isauc = '<i class="fa fa-ban text-muted" title="Auction not allowed (past or not confirmed)"></i>';
                     }
 
 

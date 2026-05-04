@@ -992,11 +992,26 @@ var jQuery_1_8_2 = jQuery_1_8_2 || $.noConflict();
 			var bookingId = $(this).data("id");
 			var type = $(this).data("type");
 			var amount = $(this).data("amount");
+			var bookingDate = $(this).data("booking_date");
 
 			$(".currentBookingId").val(bookingId);
 
 			$("#commissionTypeSelect").val(type);
 			$("#commissionInput").val(amount);
+
+			let isPast = false;
+
+			if(bookingDate){
+				let now = new Date();
+				let bDate = new Date(bookingDate);
+				isPast = bDate < now;
+			}
+
+			if(isPast){
+				$("#saveCommissionBtn").hide(); // 🔥 hide save
+			}else{
+				$("#saveCommissionBtn").show();
+			}
 
 			if(type === "percent"){
 				$("#commissionLabel").text("Enter Percentage");

@@ -184,7 +184,7 @@
                     <div class="row">
                         <div class="col-lg-3 col-md-4 col-sm-6">
                             <div class="form-group">
-                                <label class="control-label">Street</label>
+                                <label class="control-label"><?php __('lblBookingStreet'); ?></label>
 
                                 <input type="text" name="street" id="street" value="<?php echo pjSanitize::html($tpl['arr']['street']); ?>" class="form-control" maxlength="255">
                             </div>
