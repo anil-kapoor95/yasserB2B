@@ -83,9 +83,17 @@ $u_statarr = __('u_statarr', true)
                                 <div class="clearfix">
                                     <div class="switch onoffswitch-data pull-left">
                                         <div class="onoffswitch">
-                                            <input type="checkbox" class="onoffswitch-checkbox" id="status" name="status" checked>
+                                            <input type="checkbox" 
+                                                class="onoffswitch-checkbox" 
+                                                id="status" 
+                                                name="status"
+                                                <?php echo ($tpl['arr']['status'] === 'T') ? 'checked' : ''; ?>>
+
                                             <label class="onoffswitch-label" for="status">
-                                                <span class="onoffswitch-inner" data-on="<?php echo $u_statarr['T'];?>" data-off="<?php echo $u_statarr['F'];?>"></span>
+                                                <span class="onoffswitch-inner" 
+                                                    data-on="<?php echo $u_statarr['T'];?>" 
+                                                    data-off="<?php echo $u_statarr['F'];?>">
+                                                </span>
                                                 <span class="onoffswitch-switch"></span>
                                             </label>
                                         </div>

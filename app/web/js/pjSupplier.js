@@ -135,7 +135,7 @@ var jQuery_1_8_2 = jQuery_1_8_2 || $.noConflict();
 				q: ""
 			});
 			$grid.datagrid("option", "cache", cache);
-			$grid.datagrid("load", "index.php?controller=pjSupplier&action=pjActionGetSupplier", "name", "ASC", content.page, content.rowCount);
+			$grid.datagrid("load", "index.php?controller=pjSupplier&action=pjActionGetSupplier", "id", "DESC", content.page, content.rowCount);
 			
 		}).on("click", ".btn-filter", function (e) {
 			if (e && e.preventDefault) {
@@ -151,7 +151,7 @@ var jQuery_1_8_2 = jQuery_1_8_2 || $.noConflict();
 			obj[$this.data("column")] = $this.data("value");
 			$.extend(cache, obj);
 			$grid.datagrid("option", "cache", cache);
-			$grid.datagrid("load", "index.php?controller=pjSupplier&action=pjActionGetSupplier", "name", "ASC", content.page, content.rowCount);
+			$grid.datagrid("load", "index.php?controller=pjSupplier&action=pjActionGetSupplier", "id", "DESC", content.page, content.rowCount);
 			
 		}).on("submit", ".frm-filter", function (e) {
 			if (e && e.preventDefault) {
@@ -164,7 +164,7 @@ var jQuery_1_8_2 = jQuery_1_8_2 || $.noConflict();
 				q: $this.find("input[name='q']").val()
 			});
 			$grid.datagrid("option", "cache", cache);
-			$grid.datagrid("load", "index.php?controller=pjSupplier&action=pjActionGetSupplier", "name", "ASC", content.page, content.rowCount);
+			$grid.datagrid("load", "index.php?controller=pjSupplier&action=pjActionGetSupplier", "id", "DESC", content.page, content.rowCount);
 			return false;
 		});
 	});

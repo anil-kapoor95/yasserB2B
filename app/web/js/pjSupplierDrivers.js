@@ -61,9 +61,9 @@ var jQuery_1_8_2 = jQuery_1_8_2 || $.noConflict();
 					address: "address is required",
 					state: "state is required",
 					zip: "zip is required",
-					license_number: "license_number is required",
-					license_expiry: "license_expiry is required",
-					vehicle_id: "vehicle_id is required",
+					license_number: "license number is required",
+					license_expiry: "license expiry is required",
+					vehicle_id: "vehicle id is required",
 
 					email: {
 						required: "Email is required",
@@ -196,7 +196,7 @@ var jQuery_1_8_2 = jQuery_1_8_2 || $.noConflict();
 					total: true,
 					rowCount: true
 				},
-				saveUrl: "index.php?controller=pjAdminDrivers&action=pjActionSaveClient&id={:id}",
+				saveUrl: "index.php?controller=pjAdminDrivers&action=pjActionSaveDriver&id={:id}",
 				select: {
 					field: "id",
 					name: "record[]",
@@ -229,6 +229,8 @@ var jQuery_1_8_2 = jQuery_1_8_2 || $.noConflict();
 				ignoreReadonly: true,
 				useCurrent: false
 			};
+			$('.datetimepick').not('#license_expiry').datetimepicker(dateOnlyOptions);
+
 			$('.datetimepick').datetimepicker(dateOnlyOptions);
 			// $('.datetimepick_dob').datetimepicker(dateOnlyOptions);
 			$('.datetimepick_dob').datetimepicker({
@@ -239,6 +241,19 @@ var jQuery_1_8_2 = jQuery_1_8_2 || $.noConflict();
 				useCurrent: false,
 				maxDate: moment() // ❌ disables future dates
 			});
+			 if ($('#license_expiry').data("DateTimePicker")) {
+				$('#license_expiry').data("DateTimePicker").destroy();
+			}
+
+			$('#license_expiry').datetimepicker({
+				format: 'YYYY-MM-DD',
+				locale: moment.locale('en'),
+				allowInputToggle: true,
+				ignoreReadonly: true,
+				useCurrent: false,
+				minDate: moment() // 🚫 blocks past dates
+			});
+			
 		}
 
 		if ($("#grid-reservations-admin").length > 0 && datagrid) 

@@ -260,8 +260,8 @@ class pjSupplier extends pjAdmin{
                     $pjSupplierModel->where('t2.status', $status);
                 }
             }
-            $column = 'name';
-            $direction = 'ASC';
+            $column = 't1.id';
+            $direction = 'DESC';
             if ($this->_get->toString('column') && in_array(strtoupper($this->_get->toString('direction')), array('ASC', 'DESC')))
             {
                 $column = $this->_get->toString('column');
@@ -329,68 +329,117 @@ class pjSupplier extends pjAdmin{
     }
 
     public function pjActionSaveSupplier()
+
     {
+
         $this->setAjax(true);
+
         
+
         if (!$this->isXHR())
+
         {
+
             self::jsonResponse(array('status' => 'ERR', 'code' => 100, 'text' => 'Missing headers.'));
+
         }
+
         if (!self::isPost())
+
         {
+
             self::jsonResponse(array('status' => 'ERR', 'code' => 101, 'text' => 'HTTP method not allowed.'));
+
         }
+
         $params = array(
+
             'id' => $this->_get->toInt('id'),
+
             'column' => $this->_post->toString('column'),
+
             'value' => $this->_post->toString('value'),
+
         );
+
         if (!(isset($params['id'], $params['column'], $params['value'])
+
             && pjValidation::pjActionNumeric($params['id'])
+
             && pjValidation::pjActionNotEmpty($params['column'])))
+
         {
+
             self::jsonResponse(array('status' => 'ERR', 'code' => 102, 'text' => 'Missing, empty or invalid parameters.'));
+
         }
+
         
+
         if ($params['column'] == 'locked')
+
         {
+
             $result = pjAuth::init()->unlockAccount($params['id']);
+
             if ($result['status'] == 'OK') {
+
                 $client = pjClientModel::factory()->find($params['id'])->getData();
+
                 pjAuthUserModel::factory()->set('id', $client['foreign_id'])->modify(array('locked' => $params['value']));
+
+            }
+
+        }elseif ($params['column'] == 'is_approved') {
+
+            $result = pjAuth::init()->apprdUnapprd($params['id']);
+
+            if ($result['status'] == 'OK') {
+
+                $supplier = pjSupplierModel::factory()
+                    ->find($params['id'])
+                    ->getData();
+
+                if (!empty($supplier['auth_id'])) {
+                    pjAuthUserModel::factory()
+                        ->set('id', $supplier['auth_id'])
+                        ->modify(array('is_approved' => $params['value']));
+                }
+
+                // SEND EMAIL ONLY WHEN APPROVED
+                if ($params['value'] == 'T') {
+                    pjAppController::pjActionSupplierAccountSend(
+                        $this->option_arr,
+                        $params['id'],
+                        PJ_SALT,
+                        'activeaccount',
+                        $this->getLocaleId()
+                    );
+                }
             }
         } else {
+
             pjSupplierModel::factory()->where('id', $params['id'])->limit(1)->modifyAll(array($params['column'] => $params['value']));
+
             if(in_array($params['column'], array('status', 'email', 'name','phone')))
+
             {
+
                 $client = pjSupplierModel::factory()->reset()->find($params['id'])->getData();
+
                 $params['column'] = pjMultibyte::str_replace('c_', '', $params['column']);
+
                 $params['id'] = $client['auth_id'];
+
                 pjAuth::init($params)->updateUser();
+
             }
+
         }
-        // self::jsonResponse(array('status' => 'OK', 'code' => 200, 'text' => 'Supplier has been updated!'));
-         /* ================= SEND EMAIL IF STATUS = T ================= */
-
-        if ($params['column'] == 'is_approved' && $params['value'] == 'T') {
-
-            $supplier = pjSupplierModel::factory()
-                ->find($this->_get->toInt('id'))
-                ->getData();
-
-            if (!empty($supplier)) {
-                pjAppController::pjActionSupplierAccountSend(
-                    $this->option_arr,
-                    $this->_get->toInt('id'),
-                    PJ_SALT,
-                    'activeaccount',
-                    $this->getLocaleId()
-                );
-            }
-        }
-
         self::jsonResponse(array('status' => 'OK', 'code' => 200, 'text' => 'Supplier has been updated!'));
+
         exit;
+
     }
 
     public function pjActionDeleteSupplierBulk()

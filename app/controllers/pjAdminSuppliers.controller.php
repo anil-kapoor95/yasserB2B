@@ -514,7 +514,10 @@ class pjAdminSuppliers extends pjAdmin
             $this->set('extra_id_arr', $extra_id_arr);
            $pjDriverModel = pjDriverModel::factory();
 
-                $deriver_ids =  $pjDriverModel->where('supplier_id',$arr['supplier_id'])->findAll()->getData();
+                $deriver_ids =  $pjDriverModel
+                ->where('supplier_id',$arr['supplier_id'])
+                ->where('status', 'T')
+                ->findAll()->getData();
                $this->set('deriver_ids', $deriver_ids);
            if(pjObject::getPlugin('pjPayments') !== NULL)
            {
@@ -838,26 +841,29 @@ class pjAdminSuppliers extends pjAdmin
             $pjDriverModel = pjDriverModel::factory();
 
             if ($q = $this->_get->toString('q'))
+            { 
+                $pjDriverModel->where("(t1.email LIKE '%$q%' OR t1.first_name LIKE '%$q%')");
+            }
+            if ($this->_get->toString('status'))
+            {
+                $status = $this->_get->toString('status');
+
+                if(in_array($status, array('T', 'F')))
                 { 
-                    $pjDriverModel->where("(t1.email LIKE '%$q%' OR t1.first_name LIKE '%$q%')");
+                    $pjDriverModel->where('t1.status', $status);
+                    
                 }
-                if ($this->_get->toString('status'))
-                {
-                    $status = $this->_get->toString('status');
+            } 
 
-                    if(in_array($status, array('T', 'F')))
-                    { 
-                       $pjDriverModel->where('t1.status', $status);
-                      
-                    }
-                } 
+            //  $column = $this->_get->toString('column');
 
-             $column = $this->_get->toString('column');
-
-             if ($column == 'name' || empty($column)) {
-                    $column = 'first_name';
-                }
-            $direction = 'ASC';
+            //  if ($column == 'name' || empty($column)) {
+            //         $column = 'first_name';
+            //     }
+            if (empty($column)) {
+                $column = 'created';
+            }
+            $direction = 'DESC';
             if ($column && in_array(strtoupper($this->_get->toString('direction')), array('ASC', 'DESC')))
             {
                 $column = $column;
