@@ -27,7 +27,9 @@ class pjAuthUserModel extends pjAuthAppModel
         array('name' => 'locked', 'type' => 'enum', 'default' => 'F'),
         array('name' => 'login_token', 'type' => 'varchar', 'default' => ':NULL'),
         array('name' => 'api_login_token', 'type' => 'varchar', 'default' => ':NULL'),
-        array('name' => 'ip', 'type' => 'varchar', 'default' => ':NULL')
+        array('name' => 'ip', 'type' => 'varchar', 'default' => ':NULL'),
+        array('name' => 'device_token', 'type' => 'varchar', 'default' => ':NULL'),
+        array('name' => 'device_type', 'type' => 'varchar', 'default' => ':NULL')
     );
     
     protected $validate = array(

@@ -67,4 +67,8 @@ INSERT INTO `plugin_base_fields` VALUES (NULL, 'lblBookingStreet', 'backend', 'L
 SET @id := (SELECT LAST_INSERT_ID());
 INSERT INTO `plugin_base_multi_lang` VALUES (NULL, @id, 'pjBaseField', '::LOCALE::', 'title', 'Street', 'script');
 
+ALTER TABLE `plugin_auth_users` 
+ADD `device_token` VARCHAR(255) NULL AFTER `is_approved`,
+ADD `device_type` VARCHAR(255) NULL AFTER `device_token`;
+
 COMMIT;

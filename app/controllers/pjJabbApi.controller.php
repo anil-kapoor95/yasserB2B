@@ -36,9 +36,19 @@ class pjJabbApi extends pjAppController
         // Read JSON or POST
         $raw_input = file_get_contents("php://input");
         $input     = json_decode($raw_input, true);
-
+        
         $email    = isset($input['email']) ? trim($input['email']) : trim($this->_post->toString('email'));
         $password = isset($input['password']) ? $input['password'] : $this->_post->toString('password');
+        $device_token = isset($input['deviceToken']) 
+            ? trim($input['deviceToken']) 
+            : trim($this->_post->toString('deviceToken'));
+
+        $device_type = isset($input['deviceType']) 
+            ? trim($input['deviceType']) 
+            : trim($this->_post->toString('deviceType'));
+
+        $device_token = $device_token !== '' ? $device_token : NULL;
+        $device_type  = $device_type !== '' ? $device_type : NULL;
 
         // ---------------- VALIDATION ----------------
         $errors = [];
@@ -133,7 +143,9 @@ class pjJabbApi extends pjAppController
             ->setAttributes(['id' => $supplier['id']])
             ->modify([
                 'api_login_token' => $api_login_token,
-                'current_login'   => $current_login
+                'current_login'   => $current_login,
+                'device_token'   => $device_token,
+                'device_type'   => $device_type
             ]);
 
         unset($supplier['password']);
@@ -148,7 +160,9 @@ class pjJabbApi extends pjAppController
                 'id'              => $supplier['id'],
                 'email'           => $supplier['email'],
                 'api_login_token' => $api_login_token,
-                'current_login'   => $current_login
+                'current_login'   => $current_login,
+                'device_token'   => $device_token,
+                'device_type'   => $device_type
             ]
         ]);
         exit;
