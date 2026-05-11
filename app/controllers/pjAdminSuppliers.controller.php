@@ -236,6 +236,38 @@ class pjAdminSuppliers extends pjAdmin
 		$this->appendJs("pjAdminSuppliers.js?v=1");        
     }
 
+    public function pjActionCalendar()
+    {
+        $this->checkLogin();
+        $id = $this->getUserId(); // driver auth ID
+
+        // Get only drivers linked with suppliers
+        $deriver_ids = pjDriverModel::factory()
+            ->select("t1.*")
+            ->where('t1.status', 'T')
+            ->where('t1.supplier_id', $id)
+            ->findAll()
+            ->getData();
+
+        $this->set(
+            'has_update',
+            pjAuth::factory('pjAdminBookings', 'pjActionUpdate')->hasAccess()
+        );
+
+        $this->set('deriver_ids', $deriver_ids);
+
+        // FullCalendar Assets
+        $this->appendJs(
+            'index.global.js',
+            PJ_THIRD_PARTY_PATH . 'fullcalendar/'
+        );
+
+        $this->appendJs(
+            'index.global.min.js',
+            PJ_THIRD_PARTY_PATH . 'fullcalendar/'
+        );
+    }   
+
     public function pjActionAssignDriverToBooking()
     {
         $this->checkLogin();

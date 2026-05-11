@@ -35,7 +35,7 @@ $get = $controller->_get->raw();
 				<h2><?php __('plugin_base_menu_upcoming_rides');?></h2>
 			</div>
 			<div class="col-sm-2 align-items-end cal-view" style="padding-top: 10px; text-align: right;">
-				<a href="<?php echo $_SERVER['PHP_SELF']; ?>?controller=pjAdminSuppliers&action=pjActionCalendar" class="btn btn-primary">Calendar View</a>
+				<a href="<?php echo $_SERVER['PHP_SELF']; ?>?controller=pjAdminSuppliers&action=pjActionCalendar" class="btn btn-primary"><i class="fa fa-calendar m-r-xs"></i>Calendar View</a>
 			</div>
 			
 		</div><!-- /.row -->

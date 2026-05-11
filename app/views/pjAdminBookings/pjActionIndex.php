@@ -49,7 +49,7 @@ $get = $controller->_get->raw();
 			<div class="col-sm-2 align-items-end cal-view" style="padding-top: 10px; text-align: right;">
 				<a href="<?php echo $_SERVER['PHP_SELF']; ?>?controller=pjAdminBookings&amp;action=pjActionDeleted" class="btn btn-primary">
 					<i class="fa fa-trash m-r-xs"></i></a> &nbsp;
-				<a href="<?php echo $_SERVER['PHP_SELF']; ?>?controller=pjAdmin&action=pjActionCalendar" class="btn btn-primary">Calendar View</a>
+				<a href="<?php echo $_SERVER['PHP_SELF']; ?>?controller=pjAdmin&action=pjActionCalendar" class="btn btn-primary"><i class="fa fa-calendar m-r-xs"></i>Calendar View</a>
 			</div>
 			
 		</div><!-- /.row -->
