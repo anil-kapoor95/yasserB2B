@@ -97,7 +97,6 @@ public function pjActionDriverCalendarEvents()
     $auth = pjAuth::factory();
     $roleId = $auth->getRoleId();
     $id = $this->getUserId(); // driver auth ID
-
     // Get start and end from FullCalendar (YYYY-MM-DD)
     $start = $this->_get->toString('start'); 
     $end   = $this->_get->toString('end');
@@ -114,6 +113,17 @@ public function pjActionDriverCalendarEvents()
             ->join('pjAuthUser', "t4.id=t3.foreign_id", 'left outer')
             ->join('pjDriver', "t5.id=t1.driver_id", 'left outer')
             ->where("t5.auth_id", $id)
+            ->where("t1.is_deleted = 0");
+    } elseif ((int)$roleId === 5) {
+        // Supplier bookings
+        $pjBookingModel = pjBookingModel::factory()
+            ->join('pjMultiLang', "t2.model='pjFleet' AND t2.foreign_id=t1.fleet_id AND t2.field='fleet' AND t2.locale='".$this->getLocaleId()."'", 'left outer')
+            ->join('pjClient', "t3.id=t1.client_id", 'left outer')
+            ->join('pjAuthUser', "t4.id=t3.foreign_id", 'left outer')
+            ->join('pjDriver', "t5.id=t1.driver_id", 'left outer')
+            ->join('pjSupplier', "t6.id=t1.supplier_id", 'left outer')
+            ->where("t1.is_auction", 1)
+            ->where("t1.supplier_id", $id)
             ->where("t1.is_deleted = 0");
     } else {
         // Admin = all bookings

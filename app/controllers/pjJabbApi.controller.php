@@ -3122,4 +3122,327 @@ class pjJabbApi extends pjAppController
 
         exit;
     }
+
+    //Driver APIs
+    public function pjActionDriverLogin()
+    {
+          
+        header("Content-Type: application/json");
+
+        // Read JSON or POST
+        $raw_input = file_get_contents("php://input");
+        $input     = json_decode($raw_input, true);
+        
+        $email    = isset($input['email']) ? trim($input['email']) : trim($this->_post->toString('email'));
+        $password = isset($input['password']) ? $input['password'] : $this->_post->toString('password');
+        $device_token = isset($input['deviceToken']) 
+            ? trim($input['deviceToken']) 
+            : trim($this->_post->toString('deviceToken'));
+
+        $device_type = isset($input['deviceType']) 
+            ? trim($input['deviceType']) 
+            : trim($this->_post->toString('deviceType'));
+
+        $device_token = $device_token !== '' ? $device_token : NULL;
+        $device_type  = $device_type !== '' ? $device_type : NULL;
+
+        // ---------------- VALIDATION ----------------
+        $errors = [];
+
+        if (!pjValidation::pjActionNotEmpty($email)) {
+            $errors[] = "Email is required";
+        } elseif (!pjValidation::pjActionEmail($email)) {
+            $errors[] = "Invalid email format";
+        }
+
+        if (!pjValidation::pjActionNotEmpty($password)) {
+            $errors[] = "Password is required";
+        }
+
+        if (!empty($errors)) {
+            echo json_encode([
+                'status'  => 'ERR',
+                'code'    => 400,
+                'message' => 'Validation failed',
+                'errors'  => $errors
+            ]);
+            exit;
+        }
+
+        // ---------------- FIND Driver ----------------
+        $driver = pjAuthUserModel::factory()
+            ->join('pjDriver', 't2.auth_id = t1.id', 'left')
+            ->where('t1.email', $email)
+            ->where('t1.role_id', 4)
+            ->select("
+                t1.id,
+                t1.email,
+                t1.name,
+                t1.phone,
+                t1.password,
+                t1.status,
+            ")
+            ->limit(1)
+            ->findAll()
+            ->getData();
+
+        if (count($driver) != 1) {
+            echo json_encode([
+                'status'  => 'ERR',
+                'code'    => 401,
+                'message' => 'Invalid credentials',
+                'errors'  => []
+            ]);
+            exit;
+        }
+        $driver = $driver[0];
+
+        // ---------------- STATUS CHECK ----------------
+        if ($driver['status'] != 'T') {
+            echo json_encode([
+                'status'  => 'ERR',
+                'code'    => 403,
+                'message' => 'Account not active',
+                'errors'  => []
+            ]);
+            exit;
+        }
+
+        // ---------------- PASSWORD CHECK ----------------
+        $login = pjAuth::init([
+            'login_email'    => $email,
+            'login_password' => $password,
+            'role_id'        => 4
+        ])->doLogin();
+
+        if ($login['status'] != 'OK') {
+            echo json_encode([
+                'status'  => 'ERR',
+                'code'    => 401,
+                'message' => 'Wrong password',
+                'errors'  => []
+            ]);
+            exit;
+        }
+
+        // ---------------- TOKEN GENERATION ----------------
+        $api_login_token = bin2hex(random_bytes(32));
+        $current_login   = date("Y-m-d H:i:s");
+
+        $pjAuthUserModel = pjAuthUserModel::factory();
+
+        $pjAuthUserModel
+            ->reset()
+            ->setAttributes(['id' => $driver['id']])
+            ->modify([
+                'api_login_token' => $api_login_token,
+                'current_login'   => $current_login,
+                'device_token'   => $device_token,
+                'device_type'   => $device_type
+            ]);
+
+        unset($driver['password']);
+
+        // ---------------- SUCCESS RESPONSE ----------------
+        echo json_encode([
+            'status'  => 'OK',
+            'code'    => 200,
+            'message' => 'Login successful',
+            'driver' => $driver,
+            'data' => [
+                'id'              => $driver['id'],
+                'email'           => $driver['email'],
+                'api_login_token' => $api_login_token,
+                'current_login'   => $current_login,
+                'device_token'   => $device_token,
+                'device_type'   => $device_type
+            ]
+        ]);
+        exit;
+    }
+
+    public function pjActionGetDriverReservationList()
+    {
+        header("Content-Type: application/json");
+
+        $params = $this->_post->raw();
+
+        // ---------------- TOKEN ----------------
+
+        $token = $params['api_login_token'] ?? '';
+
+        if (empty($token)) {
+            echo json_encode([
+                'status' => 'ERR',
+                'code' => 401,
+                'message' => 'API token required'
+            ]);
+            exit;
+        }
+
+        // ---------------- FIND DRIVER USER ----------------
+
+        $user = pjAuthUserModel::factory()
+            ->select("t1.*")
+            ->where('t1.api_login_token', $token)
+            ->limit(1)
+            ->findAll()
+            ->getData();
+
+        if (empty($user)) {
+            echo json_encode([
+                'status' => 'ERR',
+                'code' => 401,
+                'message' => 'Invalid API token'
+            ]);
+            exit;
+        }
+
+        $user = $user[0];
+
+        // ---------------- FIND DRIVER ----------------
+
+        $driver = pjDriverModel::factory()
+            ->select("t1.*")
+            ->where('t1.auth_id', $user['id'])
+            ->limit(1)
+            ->findAll()
+            ->getData();
+
+        if (empty($driver)) {
+            echo json_encode([
+                'status' => 'ERR',
+                'code' => 404,
+                'message' => 'Driver not found'
+            ]);
+            exit;
+        }
+
+        $driver_id = $driver[0]['id'];
+
+        // ---------------- BOOKINGS QUERY ----------------
+
+        $pjBookingModel = pjBookingModel::factory()
+            ->join(
+                'pjMultiLang',
+                "t2.model='pjFleet'
+                AND t2.foreign_id=t1.fleet_id
+                AND t2.field='fleet'
+                AND t2.locale='".$this->getLocaleId()."'",
+                'left outer'
+            )
+            ->join('pjDriver', "t3.id=t1.driver_id", 'left outer')
+            ->join('pjAuthUser', "t4.id=t3.auth_id", 'left outer')
+            ->where("t3.id", $driver_id);
+
+        // ---------------- OPTIONAL FILTERS ----------------
+
+        if (!empty($params['status'])) {
+            $pjBookingModel->where('t1.status', $params['status']);
+        }
+
+        if (!empty($params['date'])) {
+            $pjBookingModel->where("DATE(t1.booking_date)", $params['date']);
+        }
+
+        if (!empty($params['start_date'])) {
+            $pjBookingModel->where("DATE(t1.booking_date) >=", $params['start_date']);
+        }
+
+        if (!empty($params['end_date'])) {
+            $pjBookingModel->where("DATE(t1.booking_date) <=", $params['end_date']);
+        }
+
+        // ---------------- TOTAL COUNT ----------------
+
+        $total = $pjBookingModel->findCount()->getData();
+
+        // ---------------- PAGINATION ----------------
+
+        $rowCount = isset($params['rowCount']) ? (int)$params['rowCount'] : 10;
+        $page     = isset($params['page']) ? (int)$params['page'] : 1;
+
+        $pages  = ceil($total / $rowCount);
+        $offset = ($page - 1) * $rowCount;
+
+        if ($page > $pages && $pages > 0) {
+            $page = $pages;
+        }
+
+        // ---------------- SORTING ----------------
+
+        $column = !empty($params['column']) ? $params['column'] : 'created';
+
+        if ($column == 'booking_status') {
+            $column = 'status';
+        }
+
+        $direction = strtoupper($params['direction'] ?? 'DESC');
+
+        if (!in_array($direction, ['ASC', 'DESC'])) {
+            $direction = 'DESC';
+        }
+
+        // ---------------- FETCH DATA ----------------
+
+        $data = $pjBookingModel
+            ->select("
+                t1.*,
+                t1.status AS booking_status,
+                t2.content AS fleet,
+                t3.*,
+
+                AES_DECRYPT(t1.cc_type, '".PJ_SALT."') AS cc_type,
+                AES_DECRYPT(t1.cc_num, '".PJ_SALT."') AS cc_num,
+                AES_DECRYPT(t1.cc_exp_month, '".PJ_SALT."') AS cc_exp_month,
+                AES_DECRYPT(t1.cc_exp_year, '".PJ_SALT."') AS cc_exp_year,
+                AES_DECRYPT(t1.cc_code, '".PJ_SALT."') AS cc_code,
+
+                t4.name AS driver_name
+            ")
+            ->groupBy("t1.uuid")
+            ->orderBy("t1.$column $direction")
+            ->limit($rowCount, $offset)
+            ->findAll()
+            ->getData();
+
+        // ---------------- FORMAT DATA ----------------
+
+        foreach ($data as $k => $v) {
+
+            $v['fleet'] = pjSanitize::stripScripts($v['fleet']);
+
+            $v['booking_date'] = date(
+                $this->option_arr['o_date_format'] . ', ' . $this->option_arr['o_time_format'],
+                strtotime($v['booking_date'])
+            );
+
+            $v['pickup_address'] = pjSanitize::stripScripts($v['pickup_address']);
+
+            $v['driver_name'] = pjSanitize::stripScripts($v['driver_name']);
+
+            $v['created'] = date(
+                $this->option_arr['o_date_format'] . ', ' . $this->option_arr['o_time_format'],
+                strtotime($v['created'])
+            );
+
+            $data[$k] = $v;
+        }
+
+        // ---------------- RESPONSE ----------------
+
+        echo json_encode([
+            'status' => 'OK',
+            'code' => 200,
+            'data' => $data,
+            'total' => $total,
+            'pages' => $pages,
+            'page' => $page,
+            'rowCount' => $rowCount,
+            'column' => $column,
+            'direction' => $direction
+        ]);
+
+        exit;
+    }
 }
