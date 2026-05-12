@@ -478,6 +478,7 @@ class pjAdminDrivers extends pjAdmin
             if ($this->isXHR())
             {
                 $pjDriverModel = pjDriverModel::factory();
+                $pjDriverModel->where('t1.supplier_id', 0);
 
                 if ($q = $this->_get->toString('q'))
                     { 

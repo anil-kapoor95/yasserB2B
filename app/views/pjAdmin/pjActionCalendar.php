@@ -307,87 +307,91 @@ div#calendar .fc-header-toolbar button.fc--button.fc-button.fc-button-primary {
 </div>
 
 <style>
-/* Background overlay */
-.booking-modal {
-    display: none;
-    position: fixed;
-    z-index: 9999;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0,0,0,0.5);
-}
-
-/* Modal box */
-.booking-modal-content {
-    background: #fff;
-    margin: 4% auto;
-    padding: 20px;
-    width: 650px;
-    border-radius: 8px;
-    position: relative;
-}
-
-/* Close button */
-.booking-close {
-    position: absolute;
-    right: 15px;
-    top: 10px;
-    cursor: pointer;
-    font-size: 22px;
-    font-weight: bold;
-}
-
-
-/* Mobile / iPhone */
-@media (max-width: 768px) {
-    .booking-modal-content {
-        width: 90%;
-    }
-}
-
-@media (max-width: 480px) {
-    .booking-modal-content {
-        width: 95%;
-        padding: 15px;
-    }
-}
-
-@media (max-width: 768px) {
-
-    .fc-toolbar-title {
-        font-size: 16px !important;
-    }
-
-    .fc-header-toolbar {
-        flex-wrap: wrap;
-        gap: 4px;
-    }
-
-    .fc-header-toolbar button {
-        padding: 6px 8px !important;
-        font-size: 12px;
-    }
-
-    .fc-daygrid-day-number {
-        font-size: 12px;
-    }
-
-    .fc-event {
-        font-size: 12px;
-    }
-
-    /* LIST view looks best on mobile */
-    .fc-list-event-title {
-        font-size: 13px;
-        line-height: 1.4;
-    }
-
-    div#calendar .fc-header-toolbar button span.fc-icon {
-    line-height: 10px;
+	/* Background overlay */
+	.booking-modal {
+		display: none;
+		position: fixed;
+		z-index: 9999;
+		left: 0;
+		top: 0;
+		width: 100%;
+		height: 100%;
+		background: rgba(0,0,0,0.5);
 	}
-}
+
+	/* Modal box */
+	.booking-modal-content {
+		background: #fff;
+		margin: 4% auto;
+		padding: 20px;
+		width: 650px;
+		border-radius: 8px;
+		position: relative;
+
+		/* ADD THESE */
+		max-height: 85vh;
+		overflow-y: auto;
+	}
+
+	/* Close button */
+	.booking-close {
+		position: absolute;
+		right: 15px;
+		top: 10px;
+		cursor: pointer;
+		font-size: 22px;
+		font-weight: bold;
+	}
+
+
+	/* Mobile / iPhone */
+	@media (max-width: 768px) {
+		.booking-modal-content {
+			width: 90%;
+		}
+	}
+
+	@media (max-width: 480px) {
+		.booking-modal-content {
+			width: 95%;
+			padding: 15px;
+		}
+	}
+
+	@media (max-width: 768px) {
+
+		.fc-toolbar-title {
+			font-size: 16px !important;
+		}
+
+		.fc-header-toolbar {
+			flex-wrap: wrap;
+			gap: 4px;
+		}
+
+		.fc-header-toolbar button {
+			padding: 6px 8px !important;
+			font-size: 12px;
+		}
+
+		.fc-daygrid-day-number {
+			font-size: 12px;
+		}
+
+		.fc-event {
+			font-size: 12px;
+		}
+
+		/* LIST view looks best on mobile */
+		.fc-list-event-title {
+			font-size: 13px;
+			line-height: 1.4;
+		}
+
+		div#calendar .fc-header-toolbar button span.fc-icon {
+		line-height: 10px;
+		}
+	}
 
 </style>
 

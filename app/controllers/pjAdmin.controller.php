@@ -750,7 +750,11 @@ class pjAdmin extends pjAppController
 			// }
 
 			$pjDriverModel = pjDriverModel::factory();
-            $deriver_ids =  $pjDriverModel->findAll()->getData();
+            $deriver_ids = $pjDriverModel
+				->where('supplier_id', 0)
+				->where('status', 'T')
+				->findAll()
+				->getData();
             
 			$this->set('has_update', pjAuth::factory('pjAdminBookings', 'pjActionUpdate')->hasAccess());
 

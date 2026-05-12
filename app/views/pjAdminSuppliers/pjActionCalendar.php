@@ -208,39 +208,56 @@ $roleId = $auth->getRoleId();
 			</div>
 			
 			<br>
-				<div>
-					<h4>Assign Driver</h4>
-					<select id="popup_driver_id" class="form-control" style="margin-bottom:10px;">
-						<option value=""> Choose Driver </option>
-						<?php foreach ($tpl['deriver_ids'] as $v) { ?>
-							<option value="<?php echo $v['id']; ?>"
-								${event.driver_id == <?php echo $v['id']; ?> ? 'selected' : ''}>
-								<?php echo stripslashes($v['first_name'].' '.$v['last_name']); ?>
-							</option>
-						<?php } ?>
-					</select>
-					<button onclick="saveDriverAssignment(${info.event.id})"
-							style="width:20%;padding:8px;background:#28a745;color:#fff;border:none;border-radius:4px; float: right;">
-						Assign Driver
-					</button>
-				</div>
-			<br>
-			${bookingCompleted}
 
-			<?php if($tpl['has_update']) { ?>
-			<button onclick="editBooking(${info.event.id})" 
-					style="padding:8px 15px; background:#007bff; color:#fff; border:none; border-radius:4px; cursor:pointer;">
-				Edit Booking
-			</button>
-				<?php } ?>
-			&nbsp;
-			<button onclick="printBooking(${info.event.id})" 
-					style="padding:8px 15px; background:#007bff; color:#fff; border:none; border-radius:4px; cursor:pointer;">
-				Print
-			</button>`;
+				<div class="driver-assign-wrapper">
+
+				<h4>Assign Driver</h4>
+
+				<select id="popup_driver_id" class="form-control driver-select">
+
+					<option value="">Choose Driver</option>
+
+					<?php foreach ($tpl['deriver_ids'] as $v) { ?>
+						<option value="<?php echo $v['id']; ?>"
+							${event.driver_id == <?php echo $v['id']; ?> ? 'selected' : ''}>
+							<?php echo stripslashes($v['first_name'].' '.$v['last_name']); ?>
+						</option>
+					<?php } ?>
+
+				</select>
+
+			</div>
+
+			<div class="booking-action-buttons">
+
+				<div class="left-action-buttons">
+
+					${bookingCompleted}
+
+					<?php if($tpl['has_update']) { ?>
+					<button onclick="editBooking(${info.event.id})"
+						style="background:#007bff;color:#fff;">
+						Edit Booking
+					</button>
+					<?php } ?>
+
+					<button onclick="printBooking(${info.event.id})"
+						style="background:#007bff;color:#fff;">
+						Print
+					</button>
+
+				</div>
+
+				<button 
+					class="assign-driver-btn"
+					onclick="saveDriverAssignment(${info.event.id})">
+					Assign Driver
+				</button>
+
+			</div>`;
 
 		document.getElementById("bookingModalContent").innerHTML = html;
-		document.getElementById("bookingModal").style.display = "block";
+		document.getElementById("bookingModal").classList.add("active");
 	}
 
 	});
@@ -304,156 +321,293 @@ div#calendar .fc-header-toolbar button.fc--button.fc-button.fc-button-primary {
 </div>
 
 <style>
-/* Background overlay */
-.booking-modal {
-    display: none;
-    position: fixed;
-    z-index: 9999;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0,0,0,0.5);
-}
 
-/* Modal box */
-.booking-modal-content {
-    background: #fff;
-    margin: 4% auto;
-    padding: 20px;
-    width: 650px;
-    border-radius: 8px;
-    position: relative;
-}
+	/* =========================
+	BOOKING MODAL
+	========================= */
 
-/* Close button */
-.booking-close {
-    position: absolute;
-    right: 15px;
-    top: 10px;
-    cursor: pointer;
-    font-size: 22px;
-    font-weight: bold;
-}
+	/* Background overlay */
+	.booking-modal {
+		display: none;
+		position: fixed;
+		z-index: 99999;
+		left: 0;
+		top: 0;
+		width: 100%;
+		height: 100%;
 
+		background: rgba(0,0,0,0.6);
 
-/* Mobile / iPhone */
-@media (max-width: 768px) {
-    .booking-modal-content {
-        width: 90%;
-    }
-}
-
-@media (max-width: 480px) {
-    .booking-modal-content {
-        width: 95%;
-        padding: 15px;
-    }
-}
-
-@media (max-width: 768px) {
-
-    .fc-toolbar-title {
-        font-size: 16px !important;
-    }
-
-    .fc-header-toolbar {
-        flex-wrap: wrap;
-        gap: 4px;
-    }
-
-    .fc-header-toolbar button {
-        padding: 6px 8px !important;
-        font-size: 12px;
-    }
-
-    .fc-daygrid-day-number {
-        font-size: 12px;
-    }
-
-    .fc-event {
-        font-size: 12px;
-    }
-
-    /* LIST view looks best on mobile */
-    .fc-list-event-title {
-        font-size: 13px;
-        line-height: 1.4;
-    }
-
-    div#calendar .fc-header-toolbar button span.fc-icon {
-    line-height: 10px;
+		overflow-y: auto;
+		padding: 20px;
+		box-sizing: border-box;
 	}
-}
+
+	/* ACTIVE STATE */
+	.booking-modal.active {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+	}
+
+	/* Modal content */
+	.booking-modal-content {
+		background: #fff;
+		width: 100%;
+		max-width: 750px;
+
+		border-radius: 10px;
+		position: relative;
+
+		padding: 25px;
+
+		box-sizing: border-box;
+
+		max-height: 95vh;
+		overflow-y: auto;
+
+		animation: modalFade .25s ease;
+	}
+
+	/* Animation */
+	@keyframes modalFade {
+		from {
+			opacity: 0;
+			transform: translateY(-15px);
+		}
+		to {
+			opacity: 1;
+			transform: translateY(0);
+		}
+	}
+
+	/* Close button */
+	.booking-close {
+		position: absolute;
+		right: 15px;
+		top: 10px;
+
+		font-size: 28px;
+		font-weight: bold;
+
+		cursor: pointer;
+		color: #333;
+	}
+
+	/* Text */
+	.booking-modal-content h3,
+	.booking-modal-content h4 {
+		margin-top: 0;
+	}
+
+	.booking-modal-content p {
+		margin-bottom: 8px;
+		line-height: 1.5;
+	}
+
+	/* Inputs */
+	.booking-modal-content select {
+		width: 100%;
+		padding: 10px;
+		border: 1px solid #ddd;
+		border-radius: 6px;
+	}
+
+	/* Buttons */
+	.booking-modal-content button {
+		padding: 10px 15px;
+		border: none;
+		border-radius: 6px;
+		cursor: pointer;
+		margin-top: 8px;
+	}
+
+	/* Mobile Responsive */
+	@media (max-width: 768px) {
+
+		.booking-modal {
+			padding: 10px;
+		}
+
+		.booking-modal-content {
+			max-width: 100%;
+			padding: 18px;
+		}
+
+		.booking-modal-content .row {
+			display: block;
+		}
+
+		.booking-modal-content .col-sm-6,
+		.booking-modal-content .col-sm-12 {
+			width: 100%;
+			margin-bottom: 15px;
+		}
+
+		.booking-modal-content button {
+			width: 100% !important;
+			float: none !important;
+			margin-top: 10px;
+		}
+
+		.booking-close {
+			font-size: 24px;
+		}
+	}
+
+	/* Extra Small Devices */
+	@media (max-width: 480px) {
+
+		.booking-modal-content {
+			padding: 15px;
+			border-radius: 8px;
+		}
+
+		.booking-modal-content h3 {
+			font-size: 18px;
+		}
+
+		.booking-modal-content h4 {
+			font-size: 16px;
+		}
+
+		.booking-modal-content p,
+		.booking-modal-content li {
+			font-size: 13px;
+		}	
+	}
+
+	/* =========================
+	DRIVER SECTION
+	========================= */
+
+	.driver-assign-wrapper {
+		margin-top: 20px;
+	}
+
+	/* dropdown full width */
+	.driver-select {
+		width: 100% !important;
+		height: 45px !important;
+		padding: 0 12px !important;
+		font-size: 14px;
+		border-radius: 6px;
+		border: 1px solid #ccc;
+	}
+
+	/* bottom action buttons row */
+		.booking-action-buttons {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		gap: 10px;
+		margin-top: 20px;
+	}
+
+	.left-action-buttons {
+		display: flex;
+		gap: 10px;
+		flex-wrap: wrap;
+	}
+
+	/* Mobile */
+	@media (max-width: 768px) {
+
+		.booking-action-buttons {
+			flex-direction: column;
+			align-items: stretch;
+		}
+
+		.left-action-buttons {
+			width: 100%;
+			flex-direction: column;
+		}
+
+		.left-action-buttons button,
+		.assign-driver-btn {
+			width: 100%;
+		}
+	}
+	.assign-driver-btn:hover {
+		background: #218838 !important;
+		color:#fff !important;
+	}
 
 </style>
 
 <script>
-function editBooking(id) {
-    window.location.href = `index.php?controller=pjAdminBookings&action=pjActionUpdate&id=${id}`;
+	function editBooking(id) {
+		window.location.href = `index.php?controller=pjAdminBookings&action=pjActionUpdate&id=${id}`;
+		}
+
+	function printBooking(id) {
+		window.location.href = `index.php?controller=pjAdminBookings&action=pjActionPrint&id=${id}`;
+		}
+
+	function closeBookingModal() {
+		document.getElementById("bookingModal").classList.remove("active");
 	}
 
-function printBooking(id) {
-    window.location.href = `index.php?controller=pjAdminBookings&action=pjActionPrint&id=${id}`;
+	/* Close modal on outside click */
+	window.onclick = function(event) {
+
+		let modal = document.getElementById("bookingModal");
+
+		if (event.target === modal) {
+			modal.classList.remove("active");
+		}
 	}
 
-function closeBookingModal() {
-    document.getElementById("bookingModal").style.display = "none";
-}
+	function bookingCompleted(id) {
+		window.location.href = `index.php?controller=pjAdmin&action=pjActionDriverUpdateEvents&id=${id}`;
+		}
 
-function bookingCompleted(id) {
-    window.location.href = `index.php?controller=pjAdmin&action=pjActionDriverUpdateEvents&id=${id}`;
+	function showToast(message, type = 'success') {
+
+		const toast = document.getElementById('toast');
+
+		toast.textContent = message;
+		toast.style.background = type === 'success' ? '#28a745' : '#dc3545';
+
+		toast.style.opacity = '1';
+		toast.style.transform = 'translateY(0)';
+
+		setTimeout(() => {
+			toast.style.opacity = '0';
+			toast.style.transform = 'translateY(-10px)';
+		}, 2500);
 	}
 
-function showToast(message, type = 'success') {
 
-    const toast = document.getElementById('toast');
+	function saveDriverAssignment(bookingId)
+	{
+		let driverId = document.getElementById('popup_driver_id').value;
 
-    toast.textContent = message;
-    toast.style.background = type === 'success' ? '#28a745' : '#dc3545';
+		if (!driverId) {
+			alert('Please select a driver');
+			return;
+		}
 
-    toast.style.opacity = '1';
-    toast.style.transform = 'translateY(0)';
+		fetch('index.php?controller=pjAdminBookings&action=pjActionAssignDriver', {
+			method: 'POST',
+			headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+			body: 'booking_id=' + bookingId + '&driver_id=' + driverId
+		})
+		.then(res => res.json())
+		.then(resp => {
+			if (resp.status === 'OK') {
+				showToast('Driver assigned successfully');
+				document.getElementById("bookingModal").classList.remove("active");
 
-    setTimeout(() => {
-        toast.style.opacity = '0';
-        toast.style.transform = 'translateY(-10px)';
-    }, 2500);
-}
-
-
-function saveDriverAssignment(bookingId)
-{
-    let driverId = document.getElementById('popup_driver_id').value;
-
-    if (!driverId) {
-        alert('Please select a driver');
-        return;
-    }
-
-    fetch('index.php?controller=pjAdminBookings&action=pjActionAssignDriver', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-        body: 'booking_id=' + bookingId + '&driver_id=' + driverId
-    })
-    .then(res => res.json())
-    .then(resp => {
-        if (resp.status === 'OK') {
-            showToast('Driver assigned successfully');
-            document.getElementById("bookingModal").style.display = "none";
-
-			 setTimeout(() => {
-                location.reload();
-            }, 1200);
-			
-            calendar.refetchEvents();
-        } else {
-            alert('Failed to assign driver');
-        }
-    });
-}
+				setTimeout(() => {
+					location.reload();
+				}, 1200);
+				
+				calendar.refetchEvents();
+			} else {
+				alert('Failed to assign driver');
+			}
+		});
+	}
 
 </script>
-
-
-

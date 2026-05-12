@@ -241,7 +241,7 @@ class pjJabbApi extends pjAppController
                 'password'  => $post['password'],
                 'name'      => trim($post['first_name'] . ' ' . $post['last_name']),
                 'phone'     => $post['phone'],
-                'status'    => 'F',
+                'status'    => 'T',
                 'is_active' => 'T',
                 'ip'        => pjUtil::getClientIp()
             ];
